@@ -169,7 +169,7 @@ fn main() {
             "StateRoot",
             state_root_value(&v),
             &enc(&v),
-            json!({}),
+            json!({ "state_root_hash": hex::encode(crypto::state::state_root_hash(&v)) }),
         ));
     }
 
@@ -371,6 +371,34 @@ fn main() {
             "op": "nums_key",
             "inputs": { "domain": domain::LOCK_ANCHOR_NUMS, "salt": "" },
             "output": hex::encode(key),
+        }));
+    }
+
+    // tier: §5.D8 CR/tier (DL-24 corrected formula). Pins cr_ppm + tier across
+    // the documented scenarios + threshold boundaries. (price = $50k = 5e12.)
+    let tier_cases: [(u64, u64, u64); 7] = [
+        (4_000_000_000, 100_000_000, 5_000_000_000_000), // 200% Healthy
+        (3_000_000_000, 100_000_000, 5_000_000_000_000), // 150% Healthy (boundary)
+        (2_600_000_000, 100_000_000, 5_000_000_000_000), // 130% PauseMint (boundary)
+        (2_400_000_000, 100_000_000, 5_000_000_000_000), // 120% Auction
+        (2_200_000_000, 100_000_000, 5_000_000_000_000), // 110% Auction (boundary)
+        (2_000_000_000, 100_000_000, 5_000_000_000_000), // 100% Settlement
+        (100_000_000, 100, 5_000_000_000_000),           // tiny supply (cr_ppm = 5e10)
+    ];
+    for (i, (reserve, supply, price)) in tier_cases.iter().enumerate() {
+        let cr = satusd_types::tier::collateral_ratio_ppm(*reserve, *supply, *price);
+        let tier = satusd_types::tier::recompute_tier(*reserve, *supply, *price);
+        vectors.push(json!({
+            "name": format!("tier_{i}"),
+            "kind": "crypto",
+            "op": "tier",
+            "inputs": {
+                "reserve_sats": reserve.to_string(),
+                "supply_atoms": supply.to_string(),
+                "price_e8": price.to_string(),
+            },
+            "cr_ppm": cr.map(|c| c.to_string()),
+            "tier": tier.as_u8(),
         }));
     }
 

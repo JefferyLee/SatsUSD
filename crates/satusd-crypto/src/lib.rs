@@ -4,3 +4,4 @@
 pub mod nums;
 pub mod poseidon;
 pub mod smt;
+pub mod state;

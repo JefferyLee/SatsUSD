@@ -3,6 +3,7 @@
 
 import { createHash } from "node:crypto";
 import { Encoder, hexToBytes, bytesToHex } from "./encoder.ts";
+import { hashBytesHex } from "./crypto.ts";
 
 type Fields = Record<string, any>;
 
@@ -307,6 +308,10 @@ export function structHashes(type: string, fields: Fields): Record<string, strin
     case "PendingClaim":
       return {
         pending_claim_hash: sha256Hex(domainTag("SATUSD_PENDING_CLAIM_V1"), encodeByType(type, fields)),
+      };
+    case "StateRoot":
+      return {
+        state_root_hash: hashBytesHex(bytesToHex(encodeByType(type, fields))),
       };
     default:
       return {};

@@ -15,6 +15,8 @@ import {
   sinkScriptKeyHex,
   tapTweakHex,
   numsKeyHex,
+  collateralRatioPpm,
+  recomputeTier,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -69,6 +71,15 @@ for (const v of doc.vectors as any[]) {
       case "nums_key":
         check(v.name, numsKeyHex(v.inputs.domain, v.inputs.salt), v.output, "nums_key");
         break;
+      case "tier": {
+        const r = BigInt(v.inputs.reserve_sats);
+        const s = BigInt(v.inputs.supply_atoms);
+        const p = BigInt(v.inputs.price_e8);
+        const cr = collateralRatioPpm(r, s, p);
+        check(v.name, cr === null ? "null" : cr.toString(), v.cr_ppm ?? "null", "cr_ppm");
+        check(v.name, String(recomputeTier(r, s, p)), String(v.tier), "tier");
+        break;
+      }
       default:
         failures.push(`${v.name}: unknown crypto op ${v.op}`);
     }

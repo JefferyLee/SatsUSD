@@ -70,6 +70,20 @@ export function numsKeyHex(domainName: string, saltHex: string): string {
   return bytesToHex(deriveNumsKey(domainName, hexToBytes(saltHex)));
 }
 
+// §5.D8 CR/tier (DL-24): cr_ppm = reserve_sats*price_e8*1e6 / (supply_atoms*1e14).
+export function collateralRatioPpm(reserve: bigint, supply: bigint, price: bigint): bigint | null {
+  if (supply === 0n) return null;
+  return (reserve * price * 1_000_000n) / (supply * 10n ** 14n);
+}
+
+export function recomputeTier(reserve: bigint, supply: bigint, price: bigint): number {
+  const cr = collateralRatioPpm(reserve, supply, price);
+  if (cr === null || cr >= 1_500_000n) return 0; // Healthy
+  if (cr >= 1_300_000n) return 1; // PauseMint
+  if (cr >= 1_100_000n) return 2; // Auction
+  return 3; // Settlement
+}
+
 function taggedHash(tag: string, msg: Uint8Array): Uint8Array {
   const th = sha256(new Uint8Array(Buffer.from(tag, "ascii")));
   return sha256(th, th, msg);

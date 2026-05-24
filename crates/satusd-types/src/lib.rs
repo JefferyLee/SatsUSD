@@ -7,6 +7,7 @@ pub mod derive;
 pub mod domain;
 pub mod encoding;
 pub mod hash;
+pub mod tier;
 pub mod types;
 
 pub use encoding::{canonical_encode, Encode, Encoder};

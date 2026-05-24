@@ -1,5 +1,5 @@
 {
-  "count": 1452,
+  "count": 1459,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -23991,7 +23991,9 @@
         "state_epoch": "17911330846695532586",
         "transition_type": 136
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2ef4c9a956871c72366c2ad9c1143f41b8d623582162356f461471175bfc0f0e"
+      },
       "kind": "struct",
       "name": "state_root_0",
       "sha256_of_encoding": "7af45d655a00ba43407e56b0925bad0a19f217e466302305591cd4d2148e8fe9",
@@ -24028,7 +24030,9 @@
         "state_epoch": "8605261418908141069",
         "transition_type": 239
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2418f686980b1a14247bf8c511d6cb7e055c58408c1fdfb4d95e97f85f2fc939"
+      },
       "kind": "struct",
       "name": "state_root_1",
       "sha256_of_encoding": "84fd9c6508136be70f9fa001bd6374ec02db01ddb514929a09e18279fd78b5b8",
@@ -24065,7 +24069,9 @@
         "state_epoch": "11283806849452550310",
         "transition_type": 211
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "274bfddf749975954dc882b30eb742dad5593b6c4633a74465c8314813e62141"
+      },
       "kind": "struct",
       "name": "state_root_2",
       "sha256_of_encoding": "f11cc3c4b36c400b056bbfaf2eb51bc854a8776e1ae18ca8b747f0fdbfeb7f0d",
@@ -24102,7 +24108,9 @@
         "state_epoch": "13551291871726153703",
         "transition_type": 216
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0b5e8cbfc64638fec5c1e66d81ade71a2d7d46226c2a3473d6fa7a218facbf8e"
+      },
       "kind": "struct",
       "name": "state_root_3",
       "sha256_of_encoding": "c3bff87f97d9f1eefc116e5e1e4a4f3bb74d7c29455e28c071ab0a8c9ec4bef4",
@@ -24139,7 +24147,9 @@
         "state_epoch": "17115244652791831869",
         "transition_type": 246
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0f0b2f41cbd932d5fe797823c11b46f2635a67b2d241086ba2463efdbf1a1f37"
+      },
       "kind": "struct",
       "name": "state_root_4",
       "sha256_of_encoding": "62bf549f4e00a2f22d25577a1378deedbcb3cda93b949767284b55b197b0612b",
@@ -24176,7 +24186,9 @@
         "state_epoch": "15777711897705516180",
         "transition_type": 55
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0f0d2369a343113a7ef48514394dffeecda6cfb36881899092cb2c6911563bf1"
+      },
       "kind": "struct",
       "name": "state_root_5",
       "sha256_of_encoding": "136fa80947af33565a438f25ad15776ca4d504ec36ee08497fb985bf23ae3b23",
@@ -24213,7 +24225,9 @@
         "state_epoch": "11907194088812072355",
         "transition_type": 237
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1e505dd744e9258b44ce8dfb171786c64b3bb4ab6f3d3246b8c4a8160de60ccc"
+      },
       "kind": "struct",
       "name": "state_root_6",
       "sha256_of_encoding": "ffeccf1497de14224569a74a7d1e154b1bd214c5fd5e0542ac119d61d54dc4cc",
@@ -24250,7 +24264,9 @@
         "state_epoch": "16044935720000170461",
         "transition_type": 111
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "21c880f7bf0f019d9d6cc63882cc68724a27a0b8742644361d9694537b568014"
+      },
       "kind": "struct",
       "name": "state_root_7",
       "sha256_of_encoding": "cdf7afe987206ea6aded7106e0f2cec76289aeb0d31c7643b43b2ab53ba95417",
@@ -24287,7 +24303,9 @@
         "state_epoch": "9699872679515974104",
         "transition_type": 249
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0d2c4577537190307142700230293b0713e16c8d833006e4e307971f5987a121"
+      },
       "kind": "struct",
       "name": "state_root_8",
       "sha256_of_encoding": "e84b5f5ea5f4e2f1ccafe4f90c009fe18e3f608bc01fe94fc2ca2fd6ef1a42ac",
@@ -24324,7 +24342,9 @@
         "state_epoch": "9318984221233649886",
         "transition_type": 199
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "25e422bfd855822c01e94d94ef7632f4ed4ca863113fcaaadd8275b3dbfa6cb4"
+      },
       "kind": "struct",
       "name": "state_root_9",
       "sha256_of_encoding": "e1b268bea0cedece210821fc300fbb8789c3568e9a0d63c8dc6144a1f27ff4ae",
@@ -24361,7 +24381,9 @@
         "state_epoch": "3351271766910319078",
         "transition_type": 185
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "063390c7c18e988e70d73d56245583bebcb9da5f1effaebb49ef1bcf70f4b17c"
+      },
       "kind": "struct",
       "name": "state_root_10",
       "sha256_of_encoding": "83f9c31973d68cacb58ef5b53f155beb62abff5f79401f9eab248eaaccacd539",
@@ -24398,7 +24420,9 @@
         "state_epoch": "9466803792599842994",
         "transition_type": 44
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1805611d6f71beaf61789e1b8334568e7bfddbb11a38347206b99fbe71916056"
+      },
       "kind": "struct",
       "name": "state_root_11",
       "sha256_of_encoding": "c25cb3f8ed496caeba5140041800a1139c311c407d0f1cff4392e009d7ebefd7",
@@ -24435,7 +24459,9 @@
         "state_epoch": "10251462959605677087",
         "transition_type": 210
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "01f55ad021aeb7d4c1ddd441fb8612d8e1b2932d2395f6f9740de965cb77b964"
+      },
       "kind": "struct",
       "name": "state_root_12",
       "sha256_of_encoding": "d715a8e5aa0c91f4e73e638a73bd302eb31e26a05d58e95ed68e6640186b8e11",
@@ -24472,7 +24498,9 @@
         "state_epoch": "10116468304978209724",
         "transition_type": 32
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "13f3a61a91c9b4a17aab94919540e5a86dcd69c1f959f2d47a4465c32e2393f5"
+      },
       "kind": "struct",
       "name": "state_root_13",
       "sha256_of_encoding": "b1054edb6e8044950c82abd8bea91668c5a03c017129a3067e3442af7a3d458b",
@@ -24509,7 +24537,9 @@
         "state_epoch": "16891979352697817183",
         "transition_type": 165
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0144a1a231765127cfad12c11fe67e31610263252f9593415a0a7bcc351dba94"
+      },
       "kind": "struct",
       "name": "state_root_14",
       "sha256_of_encoding": "bfc784431172250c9a980124ca0cce66b64800f8d6b6a913329383cdf9a5731b",
@@ -24546,7 +24576,9 @@
         "state_epoch": "11909091308298883103",
         "transition_type": 15
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0a0094f6b301d789e2f5d131185fd7da039b2e2dae64e41be1a4a3ed7521d2d1"
+      },
       "kind": "struct",
       "name": "state_root_15",
       "sha256_of_encoding": "ed6c80f4b55f22eba9b0c8bd3e2e99267a059b66421bbd86fcd9644e821870a8",
@@ -24583,7 +24615,9 @@
         "state_epoch": "6455087634646330285",
         "transition_type": 214
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "22441388c64d4ade2b19d8a3d2e900611d8ed81d5d303290fc0b895a3fccc420"
+      },
       "kind": "struct",
       "name": "state_root_16",
       "sha256_of_encoding": "54a08f98e2a31224b33bef4dfa9cd329f47f52c5e82f2224a4758d267c5a8b3a",
@@ -24620,7 +24654,9 @@
         "state_epoch": "662999816968595093",
         "transition_type": 230
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "06650954add0e0e4eb48984f310110134bc84e13e8eab0eb1d8493579f27ff3f"
+      },
       "kind": "struct",
       "name": "state_root_17",
       "sha256_of_encoding": "cab5560a68d46b258253416b7008903949828f90c2882ed99a3a948d36b2a563",
@@ -24657,7 +24693,9 @@
         "state_epoch": "10986983812297337219",
         "transition_type": 210
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "24fc5db9bef24cfd708f12ef45a03ffa3961966e583ce3f15648ba0f0b166945"
+      },
       "kind": "struct",
       "name": "state_root_18",
       "sha256_of_encoding": "271a83a22d13e5bbb73091347c95e83238f87903fd445d9cfd0dcefb0ac7d216",
@@ -24694,7 +24732,9 @@
         "state_epoch": "5271656056898233800",
         "transition_type": 140
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1522296c1fa035b1eb9b9c49872678e2cfaf8273cb6eac16035a94589b9a5b7e"
+      },
       "kind": "struct",
       "name": "state_root_19",
       "sha256_of_encoding": "d248d750adf71f33a95f848f68cdfbf6017b16b193c73d4b4e1bad673c9f3e52",
@@ -24731,7 +24771,9 @@
         "state_epoch": "16092558515865674891",
         "transition_type": 9
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1b0b37ed2b953c459a264ea772dc08f6cd6c26607b7e2fbf092304b31bee2d31"
+      },
       "kind": "struct",
       "name": "state_root_20",
       "sha256_of_encoding": "4cf0c1c1b99e1173b11a61ea6efc4bcb17b9b5ba4ca8cfa993bb014ef79d4fda",
@@ -24768,7 +24810,9 @@
         "state_epoch": "9683050080837480310",
         "transition_type": 81
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "05975653f3664d7a88cbdc2e637e2399b1185212a484016582629ad17ca71bb5"
+      },
       "kind": "struct",
       "name": "state_root_21",
       "sha256_of_encoding": "9aee38d2b4b4d9c539ee2d69b83056348a7ccb8d319380d1320cd0558e60d593",
@@ -24805,7 +24849,9 @@
         "state_epoch": "686417155059071587",
         "transition_type": 62
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "30189f3cc9916f5f5a882709499839934e46d547d1d9885e6a482218b709ec14"
+      },
       "kind": "struct",
       "name": "state_root_22",
       "sha256_of_encoding": "4a0b1f3e6dc51299507bcb072263f73f9b1fa19e498ca27a4c8a220aa189b310",
@@ -24842,7 +24888,9 @@
         "state_epoch": "9108733183000666065",
         "transition_type": 34
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1737c0cf38c4fe61eb4e8b620925e4e2a507d2411d6ad7e899b4b4eb06f98c3d"
+      },
       "kind": "struct",
       "name": "state_root_23",
       "sha256_of_encoding": "a503dd70a07815862c8f94f5f073b358cf004611e18178bfb7094a8afd8df9ce",
@@ -24879,7 +24927,9 @@
         "state_epoch": "4362045868945870973",
         "transition_type": 48
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0d70430ae3c761674b1a0ba2e9d70c829ca13051ec7873761a291c577f9eac99"
+      },
       "kind": "struct",
       "name": "state_root_24",
       "sha256_of_encoding": "4628e54377cd6d2cfb90269fd49cef319b96fe3bcc445884a1686658ec6cc8d2",
@@ -24916,7 +24966,9 @@
         "state_epoch": "6961816582281923398",
         "transition_type": 248
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2e344f37c68381f63ba2d3614a8a476a728f509e2b2178f0ee5d097556f76942"
+      },
       "kind": "struct",
       "name": "state_root_25",
       "sha256_of_encoding": "395a492ff5427e57c03b9dfde51dae458deeabf5575f1454920d54a45b0cd4d4",
@@ -24953,7 +25005,9 @@
         "state_epoch": "2733892484083780823",
         "transition_type": 20
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2ace5104b76774dfce3a4532b8d4eecc4e6c514ad1678f1eaa7b664907f430f1"
+      },
       "kind": "struct",
       "name": "state_root_26",
       "sha256_of_encoding": "b7f472998412f87445a9424f57d68fdb76bdc77af515dcc97c310b6a98b75ad4",
@@ -24990,7 +25044,9 @@
         "state_epoch": "18279430785116001946",
         "transition_type": 200
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2a7fa9d774563b4be8408d17e94ca90fe2182329666f743b96dbeff2e808b09b"
+      },
       "kind": "struct",
       "name": "state_root_27",
       "sha256_of_encoding": "2da022eccce1cc371296b2b35d0b6e074e91d2286f5183955cc922d192f6f859",
@@ -25027,7 +25083,9 @@
         "state_epoch": "15052187446373786036",
         "transition_type": 82
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "093cbf0dc67b6b7c6c5d5840d6165c83c04cbca4aa06f05a3ca51351babfce9f"
+      },
       "kind": "struct",
       "name": "state_root_28",
       "sha256_of_encoding": "2e5b3cc6be1369895a0a2b68f5c3a22ba8122d7ead192a2b27364ca3ae2c87ed",
@@ -25064,7 +25122,9 @@
         "state_epoch": "1137509270472990313",
         "transition_type": 60
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "040e28a4575669e679cba678256c54460e92ef6bb34d33ac655ea9bdd101a23c"
+      },
       "kind": "struct",
       "name": "state_root_29",
       "sha256_of_encoding": "8434ea7a39ae7fe616c5b11ef3ffaf9815f9592be38eea8fd0c0e97ea0a5d7b8",
@@ -25101,7 +25161,9 @@
         "state_epoch": "10068661288071497059",
         "transition_type": 250
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "046b0baf1da68f926f4cf1a94d22d38bd089c24aa4c0466ebd7d928469ec27f2"
+      },
       "kind": "struct",
       "name": "state_root_30",
       "sha256_of_encoding": "10469a3936d42ff11f6caecdd2f277884053eb531a63b0fc98f34376d34d8691",
@@ -25138,7 +25200,9 @@
         "state_epoch": "15367520625398144811",
         "transition_type": 60
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "222f43a968b33cf3926ae5697a4d634f30409202127dcaeb82bfabbe51843024"
+      },
       "kind": "struct",
       "name": "state_root_31",
       "sha256_of_encoding": "b926174992a0b64b1b5fd89a119759f739aa8aef0a25608e3bf8069c41cfb9ce",
@@ -25175,7 +25239,9 @@
         "state_epoch": "6297248845180386107",
         "transition_type": 36
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2ccfbd3fa4aed618bc98c41bc733975ae7eea4443d5abc7681eda6aa31840c6e"
+      },
       "kind": "struct",
       "name": "state_root_32",
       "sha256_of_encoding": "a382c59dbe8ae0fa8a913243969b153ddd23ce3e13a06e4f1aae3794a2ed13d2",
@@ -25212,7 +25278,9 @@
         "state_epoch": "7340322912064375997",
         "transition_type": 106
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "266014c0c9c70cdb9c34b15c5675a33bf0ba175aeb51b3797f855bbfba40a3c6"
+      },
       "kind": "struct",
       "name": "state_root_33",
       "sha256_of_encoding": "cfa230ee68653fb2b9521c62bb6b08adfd29e54d44cfdd9534dd62f2a3f52948",
@@ -25249,7 +25317,9 @@
         "state_epoch": "4451387966184962596",
         "transition_type": 131
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1e0ffe00f46c2e3e7c5f83dbfdfe3c2af36eb32c89f748cb6aebf61eba663e10"
+      },
       "kind": "struct",
       "name": "state_root_34",
       "sha256_of_encoding": "7d325c0a5d1c4be5dfb65c264392bb59d4bd908409c004bbf514f659eee4f1bd",
@@ -25286,7 +25356,9 @@
         "state_epoch": "17799617668267033551",
         "transition_type": 142
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "06ad7b6fc37440ea9300d5f1681c38dbb99e0ef1a3142ff9cd5a845992026ac8"
+      },
       "kind": "struct",
       "name": "state_root_35",
       "sha256_of_encoding": "33cb94510e28de2e59395f0d6ce5799a6bf78047661a209e0a49c57e414564a4",
@@ -25323,7 +25395,9 @@
         "state_epoch": "14141475261474579722",
         "transition_type": 183
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "09bcbeaf105b6e3a13ffe6b8dc1fd6729f0d019e4453e590ae70472b88f87484"
+      },
       "kind": "struct",
       "name": "state_root_36",
       "sha256_of_encoding": "c843629b833c9652a4edac704fbba58632c07d2636cea4043911567c3ad506df",
@@ -25360,7 +25434,9 @@
         "state_epoch": "17566804037393225397",
         "transition_type": 132
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "251e33f5594ded80b2f123b81ed53a901b83057024c61c2adea6ea742618dc82"
+      },
       "kind": "struct",
       "name": "state_root_37",
       "sha256_of_encoding": "7fa0b5dbcf739abdb19fc14be196ae13803deca81c06b7347f2aaa2b579cf929",
@@ -25397,7 +25473,9 @@
         "state_epoch": "10006208575695645074",
         "transition_type": 197
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "305681709845322a155c8220f43b134af93bb9276102e01404a4a4b6786e93bd"
+      },
       "kind": "struct",
       "name": "state_root_38",
       "sha256_of_encoding": "84fb61cbc65d92f7fa2e2fc2c53739b8321f9d151983d8c1af36374ff3669925",
@@ -25434,7 +25512,9 @@
         "state_epoch": "6989302022170903293",
         "transition_type": 184
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1ffe855335f176f2a16fccec231eb5ade28c651f9e133cd17b8ff3297253f56c"
+      },
       "kind": "struct",
       "name": "state_root_39",
       "sha256_of_encoding": "87c64e3b76161a2780262005b989535cf0eba5327013972ca151c7f4ced52aee",
@@ -25471,7 +25551,9 @@
         "state_epoch": "5833247610121998882",
         "transition_type": 186
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "08c6a9d240e124805123f662000f8b6a9a535579e66ac32cdfc33179e684dc2d"
+      },
       "kind": "struct",
       "name": "state_root_40",
       "sha256_of_encoding": "dfd2c6b09922295834369da359a43df5ef02565114eb26c62e4fa0fa53f79977",
@@ -25508,7 +25590,9 @@
         "state_epoch": "1815617356890374352",
         "transition_type": 157
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "19702d57e19b3ca325cc73a300e99c24d7c0212a365160fa88e4bf08cc5233fc"
+      },
       "kind": "struct",
       "name": "state_root_41",
       "sha256_of_encoding": "d75cda417d13cff05678042016731409da0cafada54fa0dfd7e6c042c58ac382",
@@ -25545,7 +25629,9 @@
         "state_epoch": "594088593578396009",
         "transition_type": 221
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "057df2288fda3378fd421652a466d89cdf95f48456491cf36d127cf47271c214"
+      },
       "kind": "struct",
       "name": "state_root_42",
       "sha256_of_encoding": "07cfb91adea84cec869dc3429b09aac616fef17a809c6c080cdc22d033e6b2dc",
@@ -25582,7 +25668,9 @@
         "state_epoch": "549901658230823803",
         "transition_type": 162
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1ccb69d7d1270b71e98718ba7a5d94f344b3c56661f876432e8335a86430bd40"
+      },
       "kind": "struct",
       "name": "state_root_43",
       "sha256_of_encoding": "d4cb1f23e269497b5d4e43cb5a032d7fa0d9c7718ae40dc9066c80cf17ff9c08",
@@ -25619,7 +25707,9 @@
         "state_epoch": "3554070475034056766",
         "transition_type": 193
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "26aaf6dec8ebcdc7ad1b2862de48ae9db8cc6e9b9195856b486330a8c1f85294"
+      },
       "kind": "struct",
       "name": "state_root_44",
       "sha256_of_encoding": "87859ecf08785a6e71e3a80108c211f4a46bdb3f4ba5cd57ab80be2fa7405bb4",
@@ -25656,7 +25746,9 @@
         "state_epoch": "12787314783633508146",
         "transition_type": 151
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1e27568e5b63d501480b2c3396cc075c65ea286a05e7472f2b8d1e024655d2f6"
+      },
       "kind": "struct",
       "name": "state_root_45",
       "sha256_of_encoding": "f52bfef2e7dcc5c98187e2fd8e97845e2b457d374f8a8e9be98cf149609ff744",
@@ -25693,7 +25785,9 @@
         "state_epoch": "47020614352151366",
         "transition_type": 147
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2ffc1a449a383e9de2087ca4c3b6e68c9e983c6ff3fab773db3d11b74d5c7e70"
+      },
       "kind": "struct",
       "name": "state_root_46",
       "sha256_of_encoding": "f79db414704ac93406c25261d0a867984c3bd5f874e5014e7a2efb3134f2e56c",
@@ -25730,7 +25824,9 @@
         "state_epoch": "17320050615889192261",
         "transition_type": 239
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0fb262248e7015438e059c5497b200e708f395b55725586107f0cb23bbde0bd2"
+      },
       "kind": "struct",
       "name": "state_root_47",
       "sha256_of_encoding": "f2c43adb5aafd662924a6110f203a30bc772b700bc130ada52138ac71d09b1ee",
@@ -25767,7 +25863,9 @@
         "state_epoch": "9669059032229859049",
         "transition_type": 4
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "28e6a4897b304e19523d3dc025203dadc4d932bc205baafb0cc07882e07bba87"
+      },
       "kind": "struct",
       "name": "state_root_48",
       "sha256_of_encoding": "56da5be3ac44ef16b80109a37b25085fed29edb9bb800f6ae4fe18421bfb6ced",
@@ -25804,7 +25902,9 @@
         "state_epoch": "4539961986544036824",
         "transition_type": 34
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0bb71d977147d1a18d52d200d83c26a5e7bb02e9a3d266f43283a1a860f28c6b"
+      },
       "kind": "struct",
       "name": "state_root_49",
       "sha256_of_encoding": "d491d43d10ba88fdca88e9158cd598db5656cfb0baf14f6c199565aa1a0149da",
@@ -25841,7 +25941,9 @@
         "state_epoch": "12381952689020188368",
         "transition_type": 195
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0148cedc005289bba64d0c704456855eadcdd3125ea95b637fc2be636638c686"
+      },
       "kind": "struct",
       "name": "state_root_50",
       "sha256_of_encoding": "461c59fa1b7a42c930396da5d806995af1f620ebabf81411f45f914a419337ac",
@@ -25878,7 +25980,9 @@
         "state_epoch": "1054554344118288069",
         "transition_type": 217
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "12de2213db70c569bfebd1e6a2ffb67355fab42d3ac046c8d06f6ee6847c5300"
+      },
       "kind": "struct",
       "name": "state_root_51",
       "sha256_of_encoding": "98f39feac11651bb4f47c472e173dadc40315585923159d735f2a1fb74cc50e3",
@@ -25915,7 +26019,9 @@
         "state_epoch": "8932668027743839284",
         "transition_type": 142
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "155c723d0aa3fd290aee6a89b8b5be91d9ace4c62791dcedea6288c51fa1517c"
+      },
       "kind": "struct",
       "name": "state_root_52",
       "sha256_of_encoding": "c2c42e28db060a672cda043173e834af150391468468e15a2978a78398c4fc00",
@@ -25952,7 +26058,9 @@
         "state_epoch": "16995714976823239309",
         "transition_type": 252
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "032e712d2078cf14dfaa52bd11ae404e72ca5da5e82e9f8651baee92d74a7476"
+      },
       "kind": "struct",
       "name": "state_root_53",
       "sha256_of_encoding": "c3861f85a07cce0117c894930faa86d779c3cf2d2b43767c2bdd3f9571f23d5e",
@@ -25989,7 +26097,9 @@
         "state_epoch": "11199134070044172443",
         "transition_type": 130
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0f97406125fb351c4b44a676d14471a7e106166c221268306a8adaa37ec016b0"
+      },
       "kind": "struct",
       "name": "state_root_54",
       "sha256_of_encoding": "86da89e89d147acd6d3a653d7ac1c77699f2db65c67d8a23abef0a66317db732",
@@ -26026,7 +26136,9 @@
         "state_epoch": "12468519669326115881",
         "transition_type": 16
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "057d48b1beb1764e180b248bce81fb04aa843ad0b1d865b0219ec243a12f95f3"
+      },
       "kind": "struct",
       "name": "state_root_55",
       "sha256_of_encoding": "f6ffdf1334e41558fd7b3214fa5745599bd9c1dd7b3c50672e7590d686666099",
@@ -26063,7 +26175,9 @@
         "state_epoch": "6054563145404242721",
         "transition_type": 11
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "28a79258f2ee972f100d9677dad26c97928335f6c658e110bf6c4584abda4bb3"
+      },
       "kind": "struct",
       "name": "state_root_56",
       "sha256_of_encoding": "9e3a355cf436e7f6ff4b09ce91424bab53a94dd9364451badae2ed69072d7eae",
@@ -26100,7 +26214,9 @@
         "state_epoch": "16605329571976817790",
         "transition_type": 249
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "261304c5204797214adf0ef2b7dad35642ef5e71105ee2cdd956ac53d15c6e00"
+      },
       "kind": "struct",
       "name": "state_root_57",
       "sha256_of_encoding": "1be65db6e10d85bb1eca42a46a7055178f77f975b9d464faea217e58b42080a5",
@@ -26137,7 +26253,9 @@
         "state_epoch": "3843338046578439586",
         "transition_type": 91
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2f376c86c2f9263f71fb01368e9cd316c1e6f595c4ef3cdede9e2ab6f8caa918"
+      },
       "kind": "struct",
       "name": "state_root_58",
       "sha256_of_encoding": "3cb34848f649f9643f2bfc12a56c5012c1b9a547be5c52b7af1a86c6cb627aaa",
@@ -26174,7 +26292,9 @@
         "state_epoch": "185512869792470857",
         "transition_type": 2
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "16521c54c4a11b95fb0f6bd8a1af48ac9626766e444feab377be32a8fb86898d"
+      },
       "kind": "struct",
       "name": "state_root_59",
       "sha256_of_encoding": "7d139a11469fca4fc035951ba012b2981d2205dcd4ac8a44492ab488e8b1b6f5",
@@ -26211,7 +26331,9 @@
         "state_epoch": "2890632336164182899",
         "transition_type": 26
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1560d2ae713fc1b7235c59ecc958952501cdf097b2df4a419dcc1fd53b7130de"
+      },
       "kind": "struct",
       "name": "state_root_60",
       "sha256_of_encoding": "e976af65333d71eb2672d8162f1aa5b688a25c4f58bacc7c26ccc5742d430179",
@@ -26248,7 +26370,9 @@
         "state_epoch": "2123925151376101240",
         "transition_type": 145
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "18e9a2b77dc40361eaeac2a3bb33c91e0cacbe65591bc7a68e1b1b37cb71d0ca"
+      },
       "kind": "struct",
       "name": "state_root_61",
       "sha256_of_encoding": "3f75c6a7790715c0a7f3498c7a5bd5f675bf0df7edf4c68cf63bffb5ac743107",
@@ -26285,7 +26409,9 @@
         "state_epoch": "3801357877806817704",
         "transition_type": 193
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1862df915cbaeca81dbd16f039299de40beb99a481ba7a2f7f20680a643c41ca"
+      },
       "kind": "struct",
       "name": "state_root_62",
       "sha256_of_encoding": "303b9ece5c551faba2a5fdfbb7be054cd83ab9c3e64b9ca74f9d82f03bf0954a",
@@ -26322,7 +26448,9 @@
         "state_epoch": "11254764359603816518",
         "transition_type": 83
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "23a9af0271fbbf07a9617e4b5fc03e19fcfff85a3fad75d7ae04931756769189"
+      },
       "kind": "struct",
       "name": "state_root_63",
       "sha256_of_encoding": "b03285b148c5e5be65e7d9a8505c8db021f34f021443fbe1c47c30f2f5a826bd",
@@ -26359,7 +26487,9 @@
         "state_epoch": "16326341733506344146",
         "transition_type": 104
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "13214f63f95db56383e704c870ab2248cc34b463f2d4bc16de4445e1411c3e5e"
+      },
       "kind": "struct",
       "name": "state_root_64",
       "sha256_of_encoding": "56bb476b12c6ff218428ee6b2db38ee9e56cce9703857b5b3c40728704c1b8b7",
@@ -26396,7 +26526,9 @@
         "state_epoch": "13387299111272115364",
         "transition_type": 68
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "24617280bb877dea2895ef45c80ee987971ac71d9a80b3d9d75167b4a0e8ed4b"
+      },
       "kind": "struct",
       "name": "state_root_65",
       "sha256_of_encoding": "ffb5c67591e2cb31f991b7963250d8e05088a6862545e5ef083ac1f1087f3a36",
@@ -26433,7 +26565,9 @@
         "state_epoch": "9567189575081339482",
         "transition_type": 196
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0e8383271586f78c8811a9d97c24d035f1fb8812cabc8872e996a69301e0a12c"
+      },
       "kind": "struct",
       "name": "state_root_66",
       "sha256_of_encoding": "d1ccd16a024378200a2487d0765f9c4e612219042ea90260c13cfa516caddff3",
@@ -26470,7 +26604,9 @@
         "state_epoch": "2071743326878141757",
         "transition_type": 170
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0dddaf08ecde5403d484a4f2de296110d5f76a8bc5d3071d331be034ef160d76"
+      },
       "kind": "struct",
       "name": "state_root_67",
       "sha256_of_encoding": "b56cc614364690d68bf6dc5aef4b636c3a432490219d0a1273ecad5fb74f43a6",
@@ -26507,7 +26643,9 @@
         "state_epoch": "3692555585910831640",
         "transition_type": 219
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0afa2ba6c08514b73e1256de4b232ad60196b859c47604ac9328be0ab88cfe9c"
+      },
       "kind": "struct",
       "name": "state_root_68",
       "sha256_of_encoding": "e5bc3d6d54c15dc76d32366b8a203fc5b57d8719b16ebf48741251292962efbe",
@@ -26544,7 +26682,9 @@
         "state_epoch": "2167907508762469573",
         "transition_type": 254
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1d1471f81131d0fd255cde58dfffd38bb178ea260cb1a301f60de8dd1c569376"
+      },
       "kind": "struct",
       "name": "state_root_69",
       "sha256_of_encoding": "9a815cbb1276f9dbab7b55b2600c2f659521653837601e982a7fdf0dd49bd859",
@@ -26581,7 +26721,9 @@
         "state_epoch": "17961826925276735982",
         "transition_type": 147
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2fc0ce7c7ce105b68a4d031485a8fb1f4b24449ad1bd14f78db103e208fd6fc4"
+      },
       "kind": "struct",
       "name": "state_root_70",
       "sha256_of_encoding": "7ade0f8906dd725a39c4a4b62c0439a2d8d0f9d37463eb1daf9ee4ac5d2988b1",
@@ -26618,7 +26760,9 @@
         "state_epoch": "11531265586723793448",
         "transition_type": 242
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "21d80d4155481553f740ad2c4d8a505b0aad13c95addfc2f218743d275ba0c75"
+      },
       "kind": "struct",
       "name": "state_root_71",
       "sha256_of_encoding": "f6e41553054dcae8c0dd3e661a5dedfc669b88f37a531362ed56f8bc78eb6f50",
@@ -26655,7 +26799,9 @@
         "state_epoch": "14536111851199644878",
         "transition_type": 60
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "110e3147ce847c64c8f8492d781514a8c3cbaa5afb31e5b61931f50ccd8b4d42"
+      },
       "kind": "struct",
       "name": "state_root_72",
       "sha256_of_encoding": "57cedef8d7afa130e6ec5f19d091c5cca140b5f651ff4fe2ff0bbfa67e832c08",
@@ -26692,7 +26838,9 @@
         "state_epoch": "98398456212348705",
         "transition_type": 28
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "0cff14a3ec852cefcf3936ea5ffc257cf974f82fe8fb356236c4db447a60ce72"
+      },
       "kind": "struct",
       "name": "state_root_73",
       "sha256_of_encoding": "13049869b635ba2aa3fb2b5fe8f15853344c01003083736c20c9af7f8d889da1",
@@ -26729,7 +26877,9 @@
         "state_epoch": "9615696406176092197",
         "transition_type": 202
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1ac4428cb4d4aa2553589d18a3980f686d12b760bffdcf97b7b7c01abfffa00f"
+      },
       "kind": "struct",
       "name": "state_root_74",
       "sha256_of_encoding": "a5aee36f03961cfd6ab8b79dac2cc4c5af82180d6ac04dd878600b326c77c190",
@@ -26766,7 +26916,9 @@
         "state_epoch": "13221399842441029995",
         "transition_type": 197
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1e48abaa5d5318c2cb55a44f610b93b04a6a3c410c1b78af280f2fb4b69eb1e4"
+      },
       "kind": "struct",
       "name": "state_root_75",
       "sha256_of_encoding": "e3edf043bb58ea3128e8f815205fa70b861c552c4fa162ebec2e26a1bb8344e5",
@@ -26803,7 +26955,9 @@
         "state_epoch": "8525594600949880261",
         "transition_type": 81
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "216ad14670fd6e2f5a60e60cb58bb93aca54ef2bc6babf5d9cf618ddd9caf712"
+      },
       "kind": "struct",
       "name": "state_root_76",
       "sha256_of_encoding": "3ad4c07243537185338a26769a5a3d750c28fc67ec2e70d632f1a35664fc724e",
@@ -26840,7 +26994,9 @@
         "state_epoch": "3170579521094148879",
         "transition_type": 193
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "03ef50027b44d5afdc7efbaf96f1ede85e1d8c0a6e76ce3786f069cb502085da"
+      },
       "kind": "struct",
       "name": "state_root_77",
       "sha256_of_encoding": "03d2f50174e62182f3684220d4c92f2699a3849cea95378d97711d5bad71248e",
@@ -26877,7 +27033,9 @@
         "state_epoch": "4010028228680930042",
         "transition_type": 92
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "1eae321de1f9940e8ca6f280c67db627d398ebc2bceb0dfe52b960a449dc29b0"
+      },
       "kind": "struct",
       "name": "state_root_78",
       "sha256_of_encoding": "4e70742045932d87cfaa2dc9210919cc51ca13fb9674d7fc24292477b96fd437",
@@ -26914,7 +27072,9 @@
         "state_epoch": "9722703119479066148",
         "transition_type": 44
       },
-      "hashes": {},
+      "hashes": {
+        "state_root_hash": "2a22930490ca7fd5a9a195a18cf925a7bc5529e30971ccee4702cbafae29e01c"
+      },
       "kind": "struct",
       "name": "state_root_79",
       "sha256_of_encoding": "b4b06f4fc99971554fd994db32c7a9a88cb419beae38e963efab6632c5639664",
@@ -34783,6 +34943,90 @@
       "name": "nums_key_lock_anchor",
       "op": "nums_key",
       "output": "568cd35bd51ce37435044f03c8a816eed8799279d24715cf0eefbf4f263c034f"
+    },
+    {
+      "cr_ppm": "2000000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "4000000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_0",
+      "op": "tier",
+      "tier": 0
+    },
+    {
+      "cr_ppm": "1500000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "3000000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_1",
+      "op": "tier",
+      "tier": 0
+    },
+    {
+      "cr_ppm": "1300000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "2600000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_2",
+      "op": "tier",
+      "tier": 1
+    },
+    {
+      "cr_ppm": "1200000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "2400000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_3",
+      "op": "tier",
+      "tier": 2
+    },
+    {
+      "cr_ppm": "1100000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "2200000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_4",
+      "op": "tier",
+      "tier": 2
+    },
+    {
+      "cr_ppm": "1000000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "2000000000",
+        "supply_atoms": "100000000"
+      },
+      "kind": "crypto",
+      "name": "tier_5",
+      "op": "tier",
+      "tier": 3
+    },
+    {
+      "cr_ppm": "50000000000",
+      "inputs": {
+        "price_e8": "5000000000000",
+        "reserve_sats": "100000000",
+        "supply_atoms": "100"
+      },
+      "kind": "crypto",
+      "name": "tier_6",
+      "op": "tier",
+      "tier": 0
     }
   ]
 }
