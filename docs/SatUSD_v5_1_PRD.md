@@ -5,9 +5,9 @@
 | | |
 |---|---|
 | Status | **Solo / AI-assisted development draft — Conditional approval for M0/M1 only** |
-| Version | v5.1 |
+| Version | v5.2 |
 | Date | 2026-05-24 |
-| Supersedes | v3 design draft、v4 implementation draft、v4.1 PRD draft、**v5.0 PRD (review feedback incorporated)** |
+| Supersedes | v3 design draft、v4 implementation draft、v4.1 PRD draft、v5.0 PRD draft、**v5.1 PRD** |
 | Maintainer | **Jeffery + AI coding/research agents** |
 | Development mode | Solo + AI agent collaboration (see §16) |
 | Review cadence | Per-milestone retro + per-discovery gate report (see §20) |
@@ -77,6 +77,8 @@
 | **DL-30 (v5.1.X)** | **BTC HTLC script template 进入 §18 spec**：完整 tapleaf script、tapleaf hash、sighash flag、sequence、refund script、dust/fee 规则，详见 §18.6 | 修复 v5.0 P1-#11 |
 | **DL-31 (v5.1.X)** | **文档状态从 "Approved for development" 降级为 "Solo/AI development draft — Conditional approval for M0/M1 only"**；建立四个 Discovery Gates G1-G4，详见 §16.4 | 修复 v5.0 P2-#12 与评审建议的四个硬 gate |
 | **DL-32 (v5.1.X)** | **解决 §2.3 KPI 与 §13 总数不一致**：§13 共 **44 个**对抗场景，KPI 引用全部 44 个 | 修复 v5.0 P2-#13 |
+| **DL-33 (v5.2)** | **增加 BitVM2Reserve 作为 BitVM3 的 fallback**（§11.5）：若 M7 末 BitVM3 上游成熟度不足（由新增 advisory gate G6 评估），降级到 BitVM2；二者实现同一 `OptimisticEnforcementBackend`，用户无感 | BitVM3 是 2026 新论文，工程化风险高；Citrea/Clementine 已证明 BitVM2 主网可用，需要一条已验证的退路 |
+| **DL-34 (v5.2)** | **增加两个 advisory（非阻塞）gates**：G5 Covenant Landscape Review（每 6 个月）、G6 BitVM upstream readiness（M6），详见 §16.4；并在 §17 增加 R-coordination-1 | covenant 软分叉激活路径不确定会影响 BitVM 成本/可行性；需要周期性 review，且不把任何单一 BIP 当架构前提 |
 
 **Note on `tapd.BurnAsset` 实测**：本 PRD 假定 MVP 阶段 `tapd.BurnAsset` 不可承载用户 metadata。M1 仍执行 BurnAsset discovery 任务（§9.2），但发现可用后属于增量优化，不进入 MVP 关键路径。
 
@@ -1045,6 +1047,7 @@ trait OptimisticEnforcementBackend: ReserveBackend {
 | MockReserve | ✓ | ✗ |
 | MultisigReserve | ✓ | ✗ |
 | OptimisticPlayground | ✓ | ✓ |
+| BitVM2Reserve (v5.2, fallback — §11.5) | ✓ | ✓ |
 | BitVM3Reserve | ✓ | ✓ |
 
 **MultisigReserve 不假装挑战流程**。Challenger 在该阶段对 backend 调用 `veto_package()`（属于 `MultisigReserve` 而非 trait 接口）。
@@ -2393,6 +2396,24 @@ section_id:
 
 **对接 contract**：§5.D9, §5.D12, §5.D15, §5.D18, §14 M7/M8, §16.4 G4。
 
+### 11.5 BitVM2Reserve as Fallback（v5.2 新增 —— DL-33）
+
+如果到 M7 末期 BitVM3 上游学术与工程成熟度不足以支持 SatUSD 集成（由 advisory gate **G6** 评估，见 §16.4），降级到 **BitVM2Reserve**。
+
+`BitVM2Reserve` 实现与 `BitVM3Reserve` **完全相同**的 §5.D9 `OptimisticEnforcementBackend` trait（`submit_assert` / `submit_disprove` / `finalize_withdraw` / `observe_challenge_window`），因此对 state node、challenger、wallet、用户**接口与语义一致，无感知**。
+
+区别（数量级估算，as of 2026，须在 G6 复核）：
+
+| 维度 | BitVM2 | BitVM3 |
+|---|---|---|
+| Setup 数据量 | ~10–100 GB | ~1–10 GB |
+| 单次 Disprove 成本 | 约 BitVM3 的 ~1000× | 基准 |
+| 主网就绪度 | 已验证（Citrea/Clementine，§21.1） | 2026 新论文，待工程化 |
+
+选择 BitVM2 fallback **不影响长期演化路径**：M8+ 完成后仍可迁移到 BitVM3（同一 trait，迁移是 backend 替换而非协议改动）。
+
+**对接 contract**：§5.D9（backend 表已含 BitVM2Reserve 行）、§16.4 G6、§14 M8。
+
 ---
 
 ## 12. Wallet Integration Specification
@@ -3237,6 +3258,31 @@ v5.1 引入 4 个 **hard gates**。每个 gate 必须通过才能进入对应下
   - ADR-006 finalize: "BitVM3 lineage dispute architecture"。
 - **下游 block**: BitVM3 setup ceremony 不能在 G4 通过前开始。
 
+#### Advisory（非阻塞）gates G5–G6（v5.2 新增 —— DL-34）
+
+G1–G4 是 **hard gates**（不过则下游 milestone 不许开始）。G5/G6 不同：它们是**周期性 / 评估性 advisory gates**，**不阻塞**任何 milestone，只产出决策输入与 PRD 修订建议。
+
+##### G5: Covenant Landscape Review（周期性）
+
+- **触发**: 每 6 个月，或任一相关 BIP 状态变化（Draft → Proposed → Final，或出现激活信号）时。
+- **目标**: 跟踪 Bitcoin covenant 软分叉格局对 BitVM / SatUSD 的影响；**不把任何单一 BIP 当作架构前提**。
+- **Deliverable**: `docs/discovery/G5_covenant_review_YYYYMMDD.md`，含：
+  - 相关 BIP 当前状态：**BIP-119 (OP_CHECKTEMPLATEVERIFY/CTV)、BIP-347 (OP_CAT)、BIP-348 (OP_CHECKSIGFROMSTACK/CSFS)、BIP-345 (OP_VAULT)、BIP-118 (SIGHASH_ANYPREVOUT/APO)、BIP-420 (OP_CAT covenant bundle)**。
+  - 任何激活信号（BIP-9 signal、UASF 客户端发布、LNHANCE 等捆绑提案进展）。
+  - 对 SatUSD 架构的影响评估（尤其 OP_CAT 对 BitVM2/3 的降本影响）。
+  - 是否触发 PRD 修订建议。
+- **不阻塞**：与所有 milestone 并行。
+
+##### G6: BitVM Upstream Readiness Assessment
+
+- **触发**: M6 完成时（也可每个 milestone 各做一次）。
+- **目标**: 评估 BitVM2 vs BitVM3 的工程化成熟度，为 M8 的 backend 选择（§11.4 / §11.5）提供依据。
+- **Deliverable**: `docs/discovery/G6_bitvm_readiness_YYYYMMDD.md`，含：
+  - BOB / Citrea / Bitlayer 等最新主网状态报告。
+  - BitVM3 论文 + 参考实现进度报告。
+  - 决策：M8 走 BitVM2（§11.5 fallback）还是 BitVM3（§11.4）。
+- **不阻塞**：可与 M7 并行；其结论是 §11.5 fallback 触发与否的依据。
+
 ### 16.5 Milestone Review Gates
 
 每个 milestone（M0..M8）完成时必须通过 **milestone review gate**：
@@ -3300,6 +3346,7 @@ v5.0 包含但 v5.1 删除（因 solo + AI agent 模式不适用）：
 | **法律法规限制 issuer 或 operator** | P1 | 持续法律 review | 地理限制 + KYC opt-in for operators |
 | **Wallet 第三方集成滞后** | P2 | M3 后接触主流钱包 | Reference wallet + SDK 优先；早期市场教育 |
 | **Solo 模式下 Jeffery 单点失败（生病/休假）** | P1 | 持续 | 所有决策写 ADR；agent 任务 brief 完整；外部 reviewer 至少了解协议核心 |
+| **R-coordination-1 (v5.2, P1)**：Bitcoin covenant 软分叉激活路径不确定 —— 利好 BitVM 大幅降本的 **OP_CAT (BIP-347)** 可能迟迟不激活，而只激活对 BitVM 降本帮助有限的 **CTV (BIP-119)**，使 BitVM 长期维持高成本（注：BitVM2 在当前脚本即可运行，不依赖软分叉，风险是成本而非可行性） | P1 | G5 covenant review（每 6 个月） | 定期 review（§16.4 G5）；不把任何特定 BIP 当架构前提；保持 BitVM2(§11.5)+BitVM3(§11.4) 两条路径完整可工作 |
 
 ---
 
@@ -3971,7 +4018,8 @@ Solo 模式下，外部协作主要是：
 | v4.1 | 2026-05-24 | (PRD draft) | 引入 Lock-first、HTLC atomic、L1 anchor、EdDSA-BabyJub、Decision Log |
 | v5.0 | 2026-05-24 | (PRD draft) | DL-14..DL-21, KPI, 信任清单, 时序图, 数据结构, API, software verifier 规约, wallet spec, 44 项 adversarial, milestone, SLA, 团队 + 预算 |
 | **v5.1** | 2026-05-24 | Jeffery + AI agents | **Conditional approval for M0/M1 only**. 修复 v5.0 review feedback 全部 P0/P1: DL-22..DL-32; §5 D14-D18 新决策; §16 重写为 Solo + AI Agent Mode; §20 重写为个人项目沟通节奏; §18.6 BTC HTLC script template; §18.7 NUMS burn sink; §13 总数 54 项; §14 引入 G1-G4 Discovery Gates |
+| **v5.2** | 2026-05-24 | Jeffery + AI agents | DL-33 §11.5 BitVM2Reserve fallback; DL-34 §16.4 advisory gates G5 (covenant landscape review) / G6 (BitVM upstream readiness) + §17 R-coordination-1; §5.D9 backend 表加 BitVM2Reserve 行。见 ADR-0018 |
 
 ---
 
-*End of PRD v5.1.*
+*End of PRD v5.2.*

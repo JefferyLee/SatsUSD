@@ -9,6 +9,7 @@
 | [ADR-0015](ADR-0015-smt-conventions.md) | Sparse Merkle tree conventions (height 256, Poseidon) | accepted |
 | [ADR-0016](ADR-0016-enum-discriminants.md) | Status enum discriminants + FreezeReason variant set | accepted |
 | [ADR-0017](ADR-0017-native-regtest-devnet.md) | Native-binary regtest devnet (interim, vs docker-compose) | accepted |
+| [ADR-0018](ADR-0018-v52-bitvm2-fallback-and-covenant-gates.md) | v5.2 — BitVM2 fallback, advisory gates G5/G6, covenant risk | accepted |
 
 Reserved (placeholders to be filled during full M0, per PRD §14.2): ADR-001 (lock plan A/B),
 ADR-002 (BTC payout confirmation), ADR-003 (CR formula), ADR-004 (mint finalize CR re-check),
