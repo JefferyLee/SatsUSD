@@ -343,6 +343,19 @@ export function deriveOutput(type: string, inputs: Fields): string {
       enc.fixed(B(inputs, "deposit_txid"));
       return sha256Hex(domainTag("SATUSD_MINT_REQUEST_V1"), enc.bytes());
     }
+    case "oracle_set_hash": {
+      const keys = (inputs.signer_pubkeys as string[]).map(hexToBytes);
+      keys.sort((a, b) => {
+        for (let i = 0; i < a.length; i++) {
+          if (a[i] !== b[i]) return a[i] - b[i];
+        }
+        return 0;
+      });
+      const enc = new Encoder();
+      enc.u64(U(inputs, "oracle_set_epoch"));
+      enc.seq(keys, (e, k) => e.fixed(k));
+      return sha256Hex(domainTag("SATUSD_ORACLE_SET_V1"), enc.bytes());
+    }
     default:
       throw new Error(`no derivation for type ${type}`);
   }

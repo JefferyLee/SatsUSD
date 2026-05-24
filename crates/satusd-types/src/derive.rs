@@ -70,6 +70,18 @@ pub fn lock_record_hash(r: &LockRecord) -> [u8; 32] {
     tagged_hash(domain::LOCK_RECORD, &canonical_encode(r))
 }
 
+/// `oracle_set_hash` (domain `SATUSD_ORACLE_SET_V1`, §5.D7/§18.2): commitment to
+/// an oracle signer set for an epoch. Signer pubkeys are sorted for determinism;
+/// `StateRoot::oracle_set_hash` must equal this for the active set.
+pub fn oracle_set_hash(oracle_set_epoch: u64, signer_pubkeys: &[[u8; 32]]) -> [u8; 32] {
+    let mut sorted = signer_pubkeys.to_vec();
+    sorted.sort_unstable();
+    let mut e = Encoder::new();
+    e.u64(oracle_set_epoch);
+    e.seq(&sorted, |e, pk| e.fixed(pk));
+    tagged_hash(domain::ORACLE_SET, &e.into_bytes())
+}
+
 /// `mint_commitment` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): binds a
 /// MINT_COMMIT so MINT_FINALIZE can match it (I-03) and reject a double finalize
 /// (I-07). Stored as `IssuerPosition::pending_mint_commitment`.

@@ -251,6 +251,25 @@ fn main() {
         }));
     }
 
+    for i in 0..PER_TYPE {
+        let n = 3 + (i % 3); // 3..=5 signers
+        let pubkeys: Vec<[u8; 32]> = (0..n).map(|_| d.arr::<32>()).collect();
+        let epoch = d.u64();
+        let out = derive::oracle_set_hash(epoch, &pubkeys);
+        vectors.push(json!({
+            "name": format!("oracle_set_hash_{i}"),
+            "kind": "derive",
+            "type": "oracle_set_hash",
+            "inputs": {
+                "oracle_set_epoch": epoch.to_string(),
+                "signer_pubkeys": Value::Array(
+                    pubkeys.iter().map(|p| Value::from(hex::encode(p))).collect()
+                ),
+            },
+            "output": hex::encode(out),
+        }));
+    }
+
     // Edge cases: all-zero RedeemIntent (both operator variants).
     let zero_intent_none = RedeemIntent {
         version: 0,

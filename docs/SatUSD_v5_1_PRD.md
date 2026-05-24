@@ -912,11 +912,14 @@ struct OracleMessage {
    - 5 个 signer 必须不同
 2. 对每个 message, 验证 timestamp 与 chain_time 关系 (D6)
 3. 验证 oracle_set_epoch 与 state.oracle_set_hash 对应
-4. 对 5 个 price_e8 排序, 取 median = selected_oracle_price_e8
-5. 验证 |max - min| / median <= 5%, 否则 reject
-6. 验证 |any - median| / median <= 2% for inliers
-7. 至少 3 个 inliers, 否则 reject
+4. 对 price_e8 排序, 取 median = selected_oracle_price_e8
+5. 验证 |any - median| / median <= 2% for inliers（剔除 outlier）
+6. 至少 3 个 inliers, 否则 reject
 ```
+
+> v5.2 修正：原 step 5「|max-min|/median <= 5% 否则 reject」与 §13.2 O-05（outlier
+> *排除* 后只要 ≥3 inliers 即接受）冲突。以 O-05 为准：按 median ±2% 过滤 inlier、要求 ≥3，
+> 不做全局 5% 硬拒。实现见 `satusd-state::oracle`。
 
 **Source transcript 责任**：
 
