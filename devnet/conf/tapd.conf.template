@@ -1,0 +1,10 @@
+[Application Options]
+debuglevel=info
+network=regtest
+rpclisten=127.0.0.1:10029
+restlisten=127.0.0.1:8089
+
+[lnd]
+lnd.host=127.0.0.1:10009
+lnd.macaroonpath=__ROOT__/devnet/data/lnd/data/chain/bitcoin/regtest/admin.macaroon
+lnd.tlspath=__ROOT__/devnet/data/lnd/tls.cert

@@ -17,3 +17,8 @@ dist/
 # Local env
 .env
 .env.local
+
+# Devnet runtime (binaries, chain/wallet data, logs) — not committed
+devnet/bin/
+devnet/data/
+devnet/logs/
