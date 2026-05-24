@@ -1,0 +1,23 @@
+[package]
+name = "satusd-tapd-client"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+hex.workspace = true
+hyper-util = "0.1.20"
+prost = "0.14.3"
+rustls = "0.23.40"
+rustls-pemfile = "2.2.0"
+rustls-pki-types = "1.14.1"
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "macros"] }
+tokio-rustls = "0.26.4"
+tonic = { version = "0.14.6", features = ["tls-ring"] }
+tonic-prost = "0.14.6"
+tower = { version = "0.5.3", features = ["util"] }
+
+[build-dependencies]
+tonic-build = "0.14.6"
+tonic-prost-build = "0.14.6"
