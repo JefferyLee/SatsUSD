@@ -82,6 +82,25 @@ pub fn oracle_set_hash(oracle_set_epoch: u64, signer_pubkeys: &[[u8; 32]]) -> [u
     tagged_hash(domain::ORACLE_SET, &e.into_bytes())
 }
 
+/// `mint_request_sighash` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): the message
+/// the issuer multisig signs to authorize a MINT_COMMIT. Binds the full economic
+/// request (issuer, amount, deposit). Distinct preimage from `mint_commitment`.
+pub fn mint_request_sighash(
+    issuer_id: &[u8; 32],
+    requested_mint_atoms: u64,
+    deposit_sats: u64,
+    deposit_txid: &[u8; 32],
+    asset_metadata_commitment: &[u8; 32],
+) -> [u8; 32] {
+    let mut e = Encoder::new();
+    e.fixed(issuer_id);
+    e.u64(requested_mint_atoms);
+    e.u64(deposit_sats);
+    e.fixed(deposit_txid);
+    e.fixed(asset_metadata_commitment);
+    tagged_hash(domain::MINT_REQUEST, &e.into_bytes())
+}
+
 /// `mint_commitment` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): binds a
 /// MINT_COMMIT so MINT_FINALIZE can match it (I-03) and reject a double finalize
 /// (I-07). Stored as `IssuerPosition::pending_mint_commitment`.

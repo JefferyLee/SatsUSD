@@ -12,9 +12,10 @@
 //! already-verified results; their cryptographic establishment is wired in later
 //! chunks (SPV/D14, oracle/D7, lineage/DL-23).
 
+use satusd_crypto::ecdsa::verify_ecdsa;
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{issuer_position_hash, mint_commitment};
+use satusd_types::derive::{issuer_position_hash, mint_commitment, mint_request_sighash};
 use satusd_types::tier::{self, collateral_ratio_ppm};
 use satusd_types::types::{IssuerPosition, IssuerStatus, StateRoot, TransitionType};
 
@@ -65,6 +66,12 @@ macro_rules! ensure {
     };
 }
 
+/// An issuer multisig signature: a compact ECDSA sig from one authorized signer.
+pub struct MultisigSig {
+    pub signer_pubkey: [u8; 33],
+    pub signature: [u8; 64],
+}
+
 /// MINT_COMMIT witness: the request plus the facts external verifiers establish.
 pub struct MintCommitWitness {
     pub issuer_id: [u8; 32],
@@ -74,8 +81,31 @@ pub struct MintCommitWitness {
     pub deposit_confirmations: u32,
     pub deposit_to_reserve: bool,
     pub asset_metadata_commitment: [u8; 32],
-    pub multisig_threshold_met: bool,
+    /// Issuer 2-of-3 multisig signatures over `mint_request_sighash`.
+    pub signatures: Vec<MultisigSig>,
     pub oracle_price_e8: u64,
+}
+
+/// Count distinct, authorized, valid signatures over `sighash` (§5.D11). A sig
+/// counts only if its key is one of `issuer.multisig_pubkeys`, not already used,
+/// and the ECDSA check passes.
+fn count_valid_multisig(
+    sighash: &[u8; 32],
+    issuer: &IssuerPosition,
+    sigs: &[MultisigSig],
+) -> usize {
+    let mut seen: Vec<[u8; 33]> = Vec::new();
+    let mut count = 0;
+    for s in sigs {
+        if !issuer.multisig_pubkeys.contains(&s.signer_pubkey) || seen.contains(&s.signer_pubkey) {
+            continue;
+        }
+        if verify_ecdsa(sighash, &s.signer_pubkey, &s.signature) {
+            seen.push(s.signer_pubkey);
+            count += 1;
+        }
+    }
+    count
 }
 
 /// MINT_FINALIZE witness.
@@ -181,7 +211,18 @@ pub fn verify_mint_commit(
         DepositNotConfirmed
     ); // I-01
     ensure!(w.deposit_to_reserve, DepositNotToReserve); // I-02
-    ensure!(w.multisig_threshold_met, MultisigThresholdNotMet); // I-06
+    let sighash = mint_request_sighash(
+        &w.issuer_id,
+        w.requested_mint_atoms,
+        w.deposit_sats,
+        &w.deposit_txid,
+        &w.asset_metadata_commitment,
+    );
+    ensure!(
+        count_valid_multisig(&sighash, prev_issuer, &w.signatures)
+            >= prev_issuer.multisig_threshold as usize,
+        MultisigThresholdNotMet // I-06
+    );
     ensure!(
         prev_issuer.pending_mint_commitment.is_none(),
         PendingMintExists
@@ -323,17 +364,40 @@ pub fn verify_mint_finalize(
 mod tests {
     use super::*;
     use satusd_crypto::smt::SparseMerkleTree;
+    use secp256k1::{Message, Secp256k1, SecretKey};
 
     const PRICE_50K: u64 = 5_000_000_000_000; // $50,000 × 10^8
     const ISSUER_ID: [u8; 32] = [0xab; 32];
     const DEPOSIT_TXID: [u8; 32] = [0xcd; 32];
     const META: [u8; 32] = [0xef; 32];
 
+    fn signer_keys() -> [SecretKey; 3] {
+        [
+            SecretKey::from_byte_array([0x11; 32]).unwrap(),
+            SecretKey::from_byte_array([0x22; 32]).unwrap(),
+            SecretKey::from_byte_array([0x33; 32]).unwrap(),
+        ]
+    }
+
+    fn signer_pubkeys() -> Vec<[u8; 33]> {
+        let secp = Secp256k1::new();
+        signer_keys()
+            .iter()
+            .map(|sk| sk.public_key(&secp).serialize())
+            .collect()
+    }
+
+    fn sign(sk: &SecretKey, sighash: &[u8; 32]) -> [u8; 64] {
+        Secp256k1::new()
+            .sign_ecdsa(Message::from_digest(*sighash), sk)
+            .serialize_compact()
+    }
+
     fn issuer(pending: Option<[u8; 32]>, status: IssuerStatus) -> IssuerPosition {
         IssuerPosition {
             issuer_id: ISSUER_ID,
             status,
-            multisig_pubkeys: vec![[0x02; 33], [0x03; 33], [0x02; 33]],
+            multisig_pubkeys: signer_pubkeys(),
             multisig_threshold: 2,
             reserve_deposits_sats: 0,
             minted_satusd_atoms: 0,
@@ -411,18 +475,40 @@ mod tests {
         n
     }
 
-    fn commit_witness() -> MintCommitWitness {
+    /// A commit witness signed by the first `n_sigs` issuer multisig keys.
+    fn signed_commit_witness(n_sigs: usize) -> MintCommitWitness {
+        let requested_mint_atoms = 100_000_000u64; // $1M
+        let deposit_sats = 4_000_000_000u64; // 40 BTC ⇒ 400% post-mint
+        let sighash = mint_request_sighash(
+            &ISSUER_ID,
+            requested_mint_atoms,
+            deposit_sats,
+            &DEPOSIT_TXID,
+            &META,
+        );
+        let keys = signer_keys();
+        let pks = signer_pubkeys();
+        let signatures = (0..n_sigs)
+            .map(|i| MultisigSig {
+                signer_pubkey: pks[i],
+                signature: sign(&keys[i], &sighash),
+            })
+            .collect();
         MintCommitWitness {
             issuer_id: ISSUER_ID,
-            requested_mint_atoms: 100_000_000, // $1M
+            requested_mint_atoms,
             deposit_txid: DEPOSIT_TXID,
-            deposit_sats: 4_000_000_000, // 40 BTC ⇒ 400% post-mint
+            deposit_sats,
             deposit_confirmations: 6,
             deposit_to_reserve: true,
             asset_metadata_commitment: META,
-            multisig_threshold_met: true,
+            signatures,
             oracle_price_e8: PRICE_50K,
         }
+    }
+
+    fn commit_witness() -> MintCommitWitness {
+        signed_commit_witness(2)
     }
 
     /// Drive a full happy-path commit and return (post_state, post_issuer).
@@ -613,8 +699,7 @@ mod tests {
         let prev_issuer = issuer(None, IssuerStatus::Active);
         let (_t, proof, root) = tree_with(&prev_issuer);
         let prev = base_state(0, 0, root);
-        let mut w = commit_witness();
-        w.multisig_threshold_met = false;
+        let w = signed_commit_witness(1); // only 1-of-2 signatures
         let new = make_new(
             &prev,
             TransitionType::MintCommit,

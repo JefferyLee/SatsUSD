@@ -252,6 +252,28 @@ fn main() {
     }
 
     for i in 0..PER_TYPE {
+        let issuer_id: [u8; 32] = d.arr();
+        let requested = d.u64();
+        let deposit_sats = d.u64();
+        let txid: [u8; 32] = d.arr();
+        let meta: [u8; 32] = d.arr();
+        let out = derive::mint_request_sighash(&issuer_id, requested, deposit_sats, &txid, &meta);
+        vectors.push(json!({
+            "name": format!("mint_request_sighash_{i}"),
+            "kind": "derive",
+            "type": "mint_request_sighash",
+            "inputs": {
+                "issuer_id": hex::encode(issuer_id),
+                "requested_mint_atoms": requested.to_string(),
+                "deposit_sats": deposit_sats.to_string(),
+                "deposit_txid": hex::encode(txid),
+                "asset_metadata_commitment": hex::encode(meta),
+            },
+            "output": hex::encode(out),
+        }));
+    }
+
+    for i in 0..PER_TYPE {
         let n = 3 + (i % 3); // 3..=5 signers
         let pubkeys: Vec<[u8; 32]> = (0..n).map(|_| d.arr::<32>()).collect();
         let epoch = d.u64();

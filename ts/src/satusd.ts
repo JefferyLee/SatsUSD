@@ -343,6 +343,15 @@ export function deriveOutput(type: string, inputs: Fields): string {
       enc.fixed(B(inputs, "deposit_txid"));
       return sha256Hex(domainTag("SATUSD_MINT_REQUEST_V1"), enc.bytes());
     }
+    case "mint_request_sighash": {
+      const enc = new Encoder();
+      enc.fixed(B(inputs, "issuer_id"));
+      enc.u64(U(inputs, "requested_mint_atoms"));
+      enc.u64(U(inputs, "deposit_sats"));
+      enc.fixed(B(inputs, "deposit_txid"));
+      enc.fixed(B(inputs, "asset_metadata_commitment"));
+      return sha256Hex(domainTag("SATUSD_MINT_REQUEST_V1"), enc.bytes());
+    }
     case "oracle_set_hash": {
       const keys = (inputs.signer_pubkeys as string[]).map(hexToBytes);
       keys.sort((a, b) => {

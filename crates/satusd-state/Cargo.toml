@@ -11,3 +11,4 @@ satusd-crypto = { path = "../satusd-crypto" }
 
 [dev-dependencies]
 hex.workspace = true
+secp256k1 = "0.31.1"

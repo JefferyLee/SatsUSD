@@ -1351,6 +1351,7 @@ dependencies = [
  "hex",
  "satusd-crypto",
  "satusd-types",
+ "secp256k1 0.31.1",
 ]
 
 [[package]]
