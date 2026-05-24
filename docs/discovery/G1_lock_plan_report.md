@@ -74,16 +74,50 @@ PublishAndLogTransfer`. Recommend updating §5.D3 (ADR-001 will record this).
   - Note: bitcoin 0.32 brings secp256k1 0.29 alongside satusd-crypto's 0.31;
     crossed via `[u8;32]` bytes (no type clash). Unify later if desired.
 
-## Open / next steps
+## Progress (cont. 2)
 
-- [ ] Derive the **asset-layer** `lock_script_key = TapTweak(user_asset_refund_key,
-      lock_tweak)` (reuse satusd-crypto `tap_tweak` + `derive::lock_tweak`).
-- [ ] `FundVirtualPsbt(script_key=lock_script_key)` → `SignVirtualPsbt` →
-      `CommitVirtualPsbts` committing the asset into the `satusd-lock` anchor
-      output; sign the anchor; `PublishAndLogTransfer`. Confirm tapd accepts the
-      externally-shaped (NUMS + script-tree) anchor.
+- **Asset-layer `lock_script_key` implemented** (`satusd-lock::derive_lock_script_key`):
+  `TapTweak(user_asset_refund_key, lock_tweak)` reusing satusd-crypto/-types.
+  Deterministic, valid x-only, payment-hash-sensitive. Unit-tested.
+- **How our script tree attaches (key discovery):** tapd embeds custom spending
+  conditions as a **`tapscript_sibling`** of the Taproot Asset commitment — the
+  anchor output's tap tree is `branch(asset_commitment_root, tapscript_sibling)`.
+  The sibling preimage is supplied on the receiving side (e.g. `NewAddr`'s
+  `tapscript_sibling`, taprootassets.proto field 8; also on transfer outputs).
+  - **Refines §5.D3's model**: the finalize/refund leaves are the *sibling* of the
+    asset commitment, not the whole tree. Our `satusd-lock` finalize/refund branch
+    becomes the `tapscript_sibling` preimage.
+  - **Still open**: setting the anchor **internal key to NUMS** (§5.D3) — address
+    receive uses tapd's own internal key; NUMS likely needs `CommitVirtualPsbts`
+    with a custom anchor internal key. To verify next.
+
+## Bitcoin-layer spend paths — VERIFIED on regtest
+
+`satusd-lock` bin `g1_lock_btc` builds the lock anchor, funds it from the regtest
+wallet, and spends it (via bitcoind RPC, rust-bitcoin 0.32):
+
+- **FINALIZE** path: witness `[operator_sig, preimage, finalize_script,
+  control_block]`, `nSequence = finalize_csv` — confirmed on-chain.
+- **REFUND** path: witness `[user_sig, refund_script, control_block]`,
+  `nSequence = refund_csv` — confirmed on-chain.
+- **TAMPER** (wrong preimage in finalize): rejected by bitcoind with
+  `mempool-script-verify-flag-failed (Script failed an OP_EQUALVERIFY operation)`.
+- **KEY-PATH**: structurally impossible — internal key is the lock-anchor NUMS.
+
+This retires G1's core risk: the §5.D3 Bitcoin-layer lock and both spend paths
+are physically realizable. Run: `make devnet-up && cargo run -p satusd-lock --bin g1_lock_btc`.
+
+## Open / next steps (asset-layer tapd anchoring — to complete Plan A)
+
+- [ ] Serialize the `satusd-lock` finalize/refund branch as a tapd
+      `tapscript_sibling` preimage.
+- [ ] Mint asset; `FundVirtualPsbt(script_key=lock_script_key)` → `SignVirtualPsbt`
+      → `CommitVirtualPsbts` (asset commitment + our sibling; custom NUMS internal)
+      → sign anchor → `PublishAndLogTransfer`.
 - [ ] Confirm anchor on regtest; verify finalize + refund spends; verify tamper
       and key-path-spend failures.
+- [ ] Finalize report + ADR-001 (§5.D3 path correction: CommitVirtualPsbts +
+      tapscript_sibling; NUMS-domain spec gap; sibling-vs-whole-tree clarification).
 - [ ] If CommitVirtualPsbts cannot place assets under a fully custom external
       anchor output → fall back to Plan B (manual anchor + RegisterTransfer/proof
       import) and document.

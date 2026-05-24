@@ -18,6 +18,19 @@ use bitcoin::taproot::{TaprootBuilder, TaprootSpendInfo};
 /// Domain for the lock anchor NUMS internal key (see SPEC GAP above).
 pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
 
+/// Asset-layer lock script key (§5.D3): `TapTweak(user_asset_refund_key,
+/// SHA256("SATUSD_LOCK_TWEAK_V1" || redeem_intent_hash || payment_hash))`.
+/// This is the Taproot Asset output's script key; the secp256k1 TapTweak is
+/// off-circuit (§5.D18) and reuses the ADR-0014 primitive.
+pub fn derive_lock_script_key(
+    user_asset_refund_key: &[u8; 32],
+    redeem_intent_hash: &[u8; 32],
+    payment_hash: &[u8; 32],
+) -> [u8; 32] {
+    let tweak = satusd_types::derive::lock_tweak(redeem_intent_hash, payment_hash);
+    satusd_crypto::nums::tap_tweak(user_asset_refund_key, &tweak)
+}
+
 /// The fixed NUMS internal key for lock anchors (unknown discrete log).
 pub fn lock_anchor_internal_key() -> XOnlyPublicKey {
     let bytes = satusd_crypto::nums::derive_nums_key(LOCK_ANCHOR_NUMS_DOMAIN, &[]);
@@ -101,7 +114,28 @@ mod tests {
     }
 
     fn sample() -> LockAnchor {
-        build_lock_anchor(&[0x11; 32], xonly("test-operator"), xonly("test-user"), 150, 288)
+        build_lock_anchor(
+            &[0x11; 32],
+            xonly("test-operator"),
+            xonly("test-user"),
+            150,
+            288,
+        )
+    }
+
+    #[test]
+    fn lock_script_key_is_deterministic_and_sensitive() {
+        let refund = satusd_crypto::nums::derive_nums_key("test-user", &[]);
+        let rih = [0x22; 32];
+        let ph = [0x33; 32];
+        let k = derive_lock_script_key(&refund, &rih, &ph);
+        assert_eq!(k, derive_lock_script_key(&refund, &rih, &ph));
+        // It is a valid x-only key (TapTweak output).
+        assert!(satusd_crypto::nums::is_valid_xonly(&k));
+        // Changing the payment hash changes the key.
+        let mut ph2 = ph;
+        ph2[0] ^= 1;
+        assert_ne!(k, derive_lock_script_key(&refund, &rih, &ph2));
     }
 
     #[test]
