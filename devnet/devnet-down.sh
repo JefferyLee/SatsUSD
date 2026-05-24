@@ -5,7 +5,8 @@ set -uo pipefail
 source "$(dirname "${BASH_SOURCE[0]}")/env.sh"
 
 stop() { # <name>
-  local name="$1" pidfile="$DATA/$name.pid"
+  local name="$1"
+  local pidfile="$DATA/$name.pid"
   if [ -f "$pidfile" ]; then
     local pid; pid="$(cat "$pidfile")"
     if kill -0 "$pid" 2>/dev/null; then
