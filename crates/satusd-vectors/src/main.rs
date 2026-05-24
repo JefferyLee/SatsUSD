@@ -361,6 +361,19 @@ fn main() {
         }));
     }
 
+    // nums_key: domain + salt -> x-only NUMS key (§18.7). Pins the lock-anchor
+    // NUMS internal key (§5.D3, empty salt).
+    {
+        let key = crypto::nums::derive_nums_key(domain::LOCK_ANCHOR_NUMS, &[]);
+        vectors.push(json!({
+            "name": "nums_key_lock_anchor",
+            "kind": "crypto",
+            "op": "nums_key",
+            "inputs": { "domain": domain::LOCK_ANCHOR_NUMS, "salt": "" },
+            "output": hex::encode(key),
+        }));
+    }
+
     // Domain separator registry: name -> raw ASCII bytes (no padding).
     let domains: Vec<Value> = domain::ALL
         .iter()

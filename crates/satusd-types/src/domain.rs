@@ -15,6 +15,8 @@ pub const ASSET_FAMILY: &str = "SATUSD_ASSET_FAMILY_V1";
 pub const STATE_ROOT: &str = "SATUSD_STATE_ROOT_V1";
 pub const REDEEM_INTENT: &str = "SATUSD_REDEEM_INTENT_V1";
 pub const LOCK_TWEAK: &str = "SATUSD_LOCK_TWEAK_V1";
+/// NUMS internal key for the Bitcoin-layer lock anchor (§5.D3, §18.7; no salt).
+pub const LOCK_ANCHOR_NUMS: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
 pub const LOCK_RECORD: &str = "SATUSD_LOCK_RECORD_V1";
 pub const LOCK_FINALIZE: &str = "SATUSD_LOCK_FINALIZE_V1";
 pub const LOCK_REFUND: &str = "SATUSD_LOCK_REFUND_V1";
@@ -43,6 +45,7 @@ pub const ALL: &[&str] = &[
     STATE_ROOT,
     REDEEM_INTENT,
     LOCK_TWEAK,
+    LOCK_ANCHOR_NUMS,
     LOCK_RECORD,
     LOCK_FINALIZE,
     LOCK_REFUND,

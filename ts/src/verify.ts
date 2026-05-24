@@ -14,6 +14,7 @@ import {
   burnTweakHex,
   sinkScriptKeyHex,
   tapTweakHex,
+  numsKeyHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -64,6 +65,9 @@ for (const v of doc.vectors as any[]) {
         break;
       case "tap_tweak":
         check(v.name, tapTweakHex(v.inputs.internal_key, v.inputs.tweak), v.output, "tap_tweak");
+        break;
+      case "nums_key":
+        check(v.name, numsKeyHex(v.inputs.domain, v.inputs.salt), v.output, "nums_key");
         break;
       default:
         failures.push(`${v.name}: unknown crypto op ${v.op}`);

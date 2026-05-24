@@ -1,5 +1,5 @@
 {
-  "count": 1451,
+  "count": 1452,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -17,6 +17,10 @@
     {
       "name": "SATUSD_LOCK_TWEAK_V1",
       "tag_hex": "5341545553445f4c4f434b5f545745414b5f5631"
+    },
+    {
+      "name": "SATUSD_LOCK_ANCHOR_NUMS_V1",
+      "tag_hex": "5341545553445f4c4f434b5f414e43484f525f4e554d535f5631"
     },
     {
       "name": "SATUSD_LOCK_RECORD_V1",
@@ -34769,6 +34773,16 @@
       "name": "tap_tweak_79",
       "op": "tap_tweak",
       "output": "4ddea915d94e5ce5cd55f89011bbedefc8b1cb3ff355c20abf1ab0daf0aeb538"
+    },
+    {
+      "inputs": {
+        "domain": "SATUSD_LOCK_ANCHOR_NUMS_V1",
+        "salt": ""
+      },
+      "kind": "crypto",
+      "name": "nums_key_lock_anchor",
+      "op": "nums_key",
+      "output": "568cd35bd51ce37435044f03c8a816eed8799279d24715cf0eefbf4f263c034f"
     }
   ]
 }

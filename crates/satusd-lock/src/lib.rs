@@ -5,10 +5,10 @@
 //!   finalize: OP_SHA256 <payment_hash> OP_EQUALVERIFY <operator> OP_CHECKSIGVERIFY <csv> OP_CSV
 //!   refund:   <user_asset_refund_key> OP_CHECKSIGVERIFY <csv> OP_CSV
 //!
-//! SPEC GAP (flag for §18 + ADR): §5.D3 says the anchor internal key is "a fixed
-//! NUMS key" but gives no derivation. We derive it from a dedicated domain
-//! `SATUSD_LOCK_ANCHOR_NUMS_V1` (no salt) via the §18.7 NUMS rule; this domain
-//! must be registered in §18.2 and pinned with a test vector.
+//! The anchor internal key is derived from the dedicated domain
+//! `SATUSD_LOCK_ANCHOR_NUMS_V1` (no salt) via the §18.7 NUMS rule. The domain is
+//! registered in `satusd_types::domain` (§18.2) and pinned by the `nums_key`
+//! cross-language test vector.
 
 use bitcoin::hashes::Hash;
 use bitcoin::opcodes::all::{OP_CHECKSIGVERIFY, OP_CSV, OP_EQUALVERIFY, OP_SHA256};
@@ -16,8 +16,8 @@ use bitcoin::script::{Builder, ScriptBuf};
 use bitcoin::secp256k1::{Secp256k1, XOnlyPublicKey};
 use bitcoin::taproot::{LeafVersion, TapLeafHash, TapNodeHash, TaprootBuilder, TaprootSpendInfo};
 
-/// Domain for the lock anchor NUMS internal key (see SPEC GAP above).
-pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
+/// Domain for the lock anchor NUMS internal key (registered in §18.2).
+pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = satusd_types::domain::LOCK_ANCHOR_NUMS;
 
 /// Asset-layer lock script key (§5.D3): `TapTweak(user_asset_refund_key,
 /// SHA256("SATUSD_LOCK_TWEAK_V1" || redeem_intent_hash || payment_hash))`.

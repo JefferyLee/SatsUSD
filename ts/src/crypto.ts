@@ -66,6 +66,10 @@ export function deriveNumsKey(domainName: string, salt: Uint8Array): Uint8Array 
   }
 }
 
+export function numsKeyHex(domainName: string, saltHex: string): string {
+  return bytesToHex(deriveNumsKey(domainName, hexToBytes(saltHex)));
+}
+
 function taggedHash(tag: string, msg: Uint8Array): Uint8Array {
   const th = sha256(new Uint8Array(Buffer.from(tag, "ascii")));
   return sha256(th, th, msg);
