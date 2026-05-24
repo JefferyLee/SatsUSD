@@ -22,3 +22,6 @@ dist/
 devnet/bin/
 devnet/data/
 devnet/logs/
+
+# Pre-SatUSD 2023 legacy files, archived out of the way (kept on disk, not tracked)
+legacy/
