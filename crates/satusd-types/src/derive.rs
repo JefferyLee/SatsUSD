@@ -5,7 +5,7 @@
 use crate::domain;
 use crate::encoding::{canonical_encode, Encoder};
 use crate::hash::{sha256, tagged_hash};
-use crate::types::{OutPoint, RedeemIntent, ReserveClaim};
+use crate::types::{IssuerPosition, OutPoint, PendingClaim, RedeemIntent, ReserveClaim};
 
 /// `asset_family_id` (§5.D1).
 pub fn asset_family_id(
@@ -50,4 +50,14 @@ pub fn claim_id(claim: &ReserveClaim) -> [u8; 32] {
     let mut e = Encoder::new();
     claim.encode_for_claim_id(&mut e);
     sha256(&[tag, &e.into_bytes()])
+}
+
+/// `issuer_position_hash` (domain `SATUSD_ISSUER_POSITION_V1`, §18.2).
+pub fn issuer_position_hash(p: &IssuerPosition) -> [u8; 32] {
+    tagged_hash(domain::ISSUER_POSITION, &canonical_encode(p))
+}
+
+/// `pending_claim_hash` (domain `SATUSD_PENDING_CLAIM_V1`, §18.2).
+pub fn pending_claim_hash(c: &PendingClaim) -> [u8; 32] {
+    tagged_hash(domain::PENDING_CLAIM, &canonical_encode(c))
 }

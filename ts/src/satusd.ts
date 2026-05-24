@@ -223,7 +223,32 @@ function encodeStateRoot(e: Encoder, f: Fields): void {
   e.u64(U(f, "l1_anchor_chain_time"));
 }
 
+function encodeIssuerPosition(e: Encoder, f: Fields): void {
+  e.fixed(B(f, "issuer_id"));
+  e.enumU8(N(f, "status"));
+  e.seq(listB(f, "multisig_pubkeys"), (e, pk) => e.fixed(pk));
+  e.u8(N(f, "multisig_threshold"));
+  e.u64(U(f, "reserve_deposits_sats"));
+  e.u64(U(f, "minted_satusd_atoms"));
+  e.u64(U(f, "pending_mint_atoms"));
+  e.u64(U(f, "collateral_ratio_ppm"));
+  e.opt(f["last_deposit_txid"] ?? null, (e, v) => e.fixed(hexToBytes(v)));
+  e.opt(f["freeze_reason"] ?? null, (e, v) => e.enumU8(v as number));
+  e.u32(N(f, "registered_at_height"));
+}
+
+function encodePendingClaim(e: Encoder, f: Fields): void {
+  e.fixed(B(f, "claim_id"));
+  e.fixed(B(f, "operator_id"));
+  e.u64(U(f, "reserved_sats"));
+  e.u32(N(f, "claim_created_height"));
+  e.u32(N(f, "claim_expiry_height"));
+  e.enumU8(N(f, "status"));
+}
+
 const ENCODERS: Record<string, (e: Encoder, f: Fields) => void> = {
+  IssuerPosition: encodeIssuerPosition,
+  PendingClaim: encodePendingClaim,
   RedeemIntent: encodeRedeemIntent,
   ClaimClock: encodeClaimClock,
   OracleMessage: encodeOracleMessage,
@@ -275,6 +300,14 @@ export function structHashes(type: string, fields: Fields): Record<string, strin
         ),
       };
     }
+    case "IssuerPosition":
+      return {
+        issuer_position_hash: sha256Hex(domainTag("SATUSD_ISSUER_POSITION_V1"), encodeByType(type, fields)),
+      };
+    case "PendingClaim":
+      return {
+        pending_claim_hash: sha256Hex(domainTag("SATUSD_PENDING_CLAIM_V1"), encodeByType(type, fields)),
+      };
     default:
       return {};
   }

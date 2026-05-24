@@ -415,6 +415,110 @@ impl Encode for ReserveClaim {
     }
 }
 
+/// Issuer status (§5.D11). Discriminants frozen 0-based in declaration order (ADR-0016).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum IssuerStatus {
+    Active = 0,
+    Paused = 1,
+    Frozen = 2,
+    Exiting = 3,
+}
+
+impl IssuerStatus {
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+}
+
+/// Reason an issuer was paused/frozen — the five §5.D11 triggers (ADR-0016).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum FreezeReason {
+    OracleUnavailable = 0,
+    IndividualCrBelowTier1 = 1,
+    ReserveCommitteeVote = 2,
+    MintProofMismatch = 3,
+    ManualEmergencyPause = 4,
+}
+
+impl FreezeReason {
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+}
+
+/// Pending reserve claim status (§5.D12). Discriminants frozen 0-based (ADR-0016).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum PendingClaimStatus {
+    Pending = 0,
+    Finalized = 1,
+    Challenged = 2,
+    Expired = 3,
+    Reclaimed = 4,
+}
+
+impl PendingClaimStatus {
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+}
+
+/// IssuerPosition (§5.D11).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct IssuerPosition {
+    pub issuer_id: [u8; 32],
+    pub status: IssuerStatus,
+    pub multisig_pubkeys: Vec<[u8; 33]>,
+    pub multisig_threshold: u8,
+    pub reserve_deposits_sats: u64,
+    pub minted_satusd_atoms: u64,
+    pub pending_mint_atoms: u64,
+    pub collateral_ratio_ppm: u64,
+    pub last_deposit_txid: Option<[u8; 32]>,
+    pub freeze_reason: Option<FreezeReason>,
+    pub registered_at_height: u32,
+}
+
+impl Encode for IssuerPosition {
+    fn encode(&self, e: &mut Encoder) {
+        e.fixed(&self.issuer_id);
+        e.enum_u8(self.status.as_u8());
+        e.seq(&self.multisig_pubkeys, |e, pk| e.fixed(pk));
+        e.u8(self.multisig_threshold);
+        e.u64(self.reserve_deposits_sats);
+        e.u64(self.minted_satusd_atoms);
+        e.u64(self.pending_mint_atoms);
+        e.u64(self.collateral_ratio_ppm);
+        e.opt(&self.last_deposit_txid, |e, txid| e.fixed(txid));
+        e.opt(&self.freeze_reason, |e, r| e.enum_u8(r.as_u8()));
+        e.u32(self.registered_at_height);
+    }
+}
+
+/// PendingClaim (§5.D12).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct PendingClaim {
+    pub claim_id: [u8; 32],
+    pub operator_id: [u8; 32],
+    pub reserved_sats: u64,
+    pub claim_created_height: u32,
+    pub claim_expiry_height: u32,
+    pub status: PendingClaimStatus,
+}
+
+impl Encode for PendingClaim {
+    fn encode(&self, e: &mut Encoder) {
+        e.fixed(&self.claim_id);
+        e.fixed(&self.operator_id);
+        e.u64(self.reserved_sats);
+        e.u32(self.claim_created_height);
+        e.u32(self.claim_expiry_height);
+        e.enum_u8(self.status.as_u8());
+    }
+}
+
 /// StateRoot (§6.1). `state_root_hash` is Poseidon(encode) — Poseidon deferred.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StateRoot {

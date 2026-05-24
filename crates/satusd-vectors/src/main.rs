@@ -173,6 +173,28 @@ fn main() {
         ));
     }
 
+    for i in 0..PER_TYPE {
+        let v = build_issuer_position(&mut d, i);
+        vectors.push(struct_vector(
+            &format!("issuer_position_{i}"),
+            "IssuerPosition",
+            issuer_position_value(&v),
+            &enc(&v),
+            json!({ "issuer_position_hash": hex::encode(derive::issuer_position_hash(&v)) }),
+        ));
+    }
+
+    for i in 0..PER_TYPE {
+        let v = build_pending_claim(&mut d, i);
+        vectors.push(struct_vector(
+            &format!("pending_claim_{i}"),
+            "PendingClaim",
+            pending_claim_value(&v),
+            &enc(&v),
+            json!({ "pending_claim_hash": hex::encode(derive::pending_claim_hash(&v)) }),
+        ));
+    }
+
     // Standalone derivations that are not a single struct encoding.
     for i in 0..PER_TYPE {
         let genesis: [u8; 32] = d.arr();

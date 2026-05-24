@@ -426,6 +426,94 @@ pub fn reserve_claim_value(v: &ReserveClaim) -> Value {
     })
 }
 
+// --------------------------------------------------------------- IssuerPosition
+
+pub fn build_issuer_position(d: &mut Det, idx: usize) -> IssuerPosition {
+    let status = [
+        IssuerStatus::Active,
+        IssuerStatus::Paused,
+        IssuerStatus::Frozen,
+        IssuerStatus::Exiting,
+    ][idx % 4];
+    let freeze_reason = match status {
+        IssuerStatus::Paused | IssuerStatus::Frozen => Some(
+            [
+                FreezeReason::OracleUnavailable,
+                FreezeReason::IndividualCrBelowTier1,
+                FreezeReason::ReserveCommitteeVote,
+                FreezeReason::MintProofMismatch,
+                FreezeReason::ManualEmergencyPause,
+            ][idx % 5],
+        ),
+        _ => None,
+    };
+    let n_keys = 1 + d.count(2);
+    IssuerPosition {
+        issuer_id: d.arr(),
+        status,
+        multisig_pubkeys: (0..n_keys).map(|_| d.arr::<33>()).collect(),
+        multisig_threshold: (n_keys as u8).max(1),
+        reserve_deposits_sats: d.u64(),
+        minted_satusd_atoms: d.u64(),
+        pending_mint_atoms: d.u64(),
+        collateral_ratio_ppm: d.u64(),
+        last_deposit_txid: if idx.is_multiple_of(2) {
+            Some(d.arr())
+        } else {
+            None
+        },
+        freeze_reason,
+        registered_at_height: d.u32(),
+    }
+}
+
+pub fn issuer_position_value(v: &IssuerPosition) -> Value {
+    json!({
+        "issuer_id": hx(&v.issuer_id),
+        "status": v.status.as_u8(),
+        "multisig_pubkeys": Value::Array(v.multisig_pubkeys.iter().map(|pk| hx(pk)).collect()),
+        "multisig_threshold": v.multisig_threshold,
+        "reserve_deposits_sats": u64s(v.reserve_deposits_sats),
+        "minted_satusd_atoms": u64s(v.minted_satusd_atoms),
+        "pending_mint_atoms": u64s(v.pending_mint_atoms),
+        "collateral_ratio_ppm": u64s(v.collateral_ratio_ppm),
+        "last_deposit_txid": v.last_deposit_txid.map_or(Value::Null, |t| hx(&t)),
+        "freeze_reason": v.freeze_reason.map_or(Value::Null, |r| Value::from(r.as_u8())),
+        "registered_at_height": v.registered_at_height,
+    })
+}
+
+// ----------------------------------------------------------------- PendingClaim
+
+pub fn build_pending_claim(d: &mut Det, idx: usize) -> PendingClaim {
+    let status = [
+        PendingClaimStatus::Pending,
+        PendingClaimStatus::Finalized,
+        PendingClaimStatus::Challenged,
+        PendingClaimStatus::Expired,
+        PendingClaimStatus::Reclaimed,
+    ][idx % 5];
+    PendingClaim {
+        claim_id: d.arr(),
+        operator_id: d.arr(),
+        reserved_sats: d.u64(),
+        claim_created_height: d.u32(),
+        claim_expiry_height: d.u32(),
+        status,
+    }
+}
+
+pub fn pending_claim_value(v: &PendingClaim) -> Value {
+    json!({
+        "claim_id": hx(&v.claim_id),
+        "operator_id": hx(&v.operator_id),
+        "reserved_sats": u64s(v.reserved_sats),
+        "claim_created_height": v.claim_created_height,
+        "claim_expiry_height": v.claim_expiry_height,
+        "status": v.status.as_u8(),
+    })
+}
+
 // -------------------------------------------------------------------- StateRoot
 
 pub fn build_state_root(d: &mut Det) -> StateRoot {

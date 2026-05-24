@@ -68,6 +68,56 @@ fn all_domain_separators_unique() {
 }
 
 #[test]
+fn enum_discriminants_are_frozen() {
+    assert_eq!(IssuerStatus::Active.as_u8(), 0);
+    assert_eq!(IssuerStatus::Exiting.as_u8(), 3);
+    assert_eq!(FreezeReason::OracleUnavailable.as_u8(), 0);
+    assert_eq!(FreezeReason::ManualEmergencyPause.as_u8(), 4);
+    assert_eq!(PendingClaimStatus::Pending.as_u8(), 0);
+    assert_eq!(PendingClaimStatus::Reclaimed.as_u8(), 4);
+}
+
+#[test]
+fn issuer_position_options_change_length() {
+    let mut p = IssuerPosition {
+        issuer_id: [1; 32],
+        status: IssuerStatus::Active,
+        multisig_pubkeys: vec![[2; 33], [3; 33]],
+        multisig_threshold: 2,
+        reserve_deposits_sats: 10,
+        minted_satusd_atoms: 20,
+        pending_mint_atoms: 0,
+        collateral_ratio_ppm: 2_000_000,
+        last_deposit_txid: Some([9; 32]),
+        freeze_reason: None,
+        registered_at_height: 100,
+    };
+    let base = canonical_encode(&p).len();
+    p.last_deposit_txid = None;
+    assert_eq!(canonical_encode(&p).len(), base - 32);
+    p.freeze_reason = Some(FreezeReason::ReserveCommitteeVote);
+    assert_eq!(canonical_encode(&p).len(), base - 32 + 1);
+    let h = derive::issuer_position_hash(&p);
+    p.status = IssuerStatus::Frozen;
+    assert_ne!(h, derive::issuer_position_hash(&p));
+}
+
+#[test]
+fn pending_claim_hash_is_field_sensitive() {
+    let mut c = PendingClaim {
+        claim_id: [1; 32],
+        operator_id: [2; 32],
+        reserved_sats: 5000,
+        claim_created_height: 10,
+        claim_expiry_height: 154,
+        status: PendingClaimStatus::Pending,
+    };
+    let base = derive::pending_claim_hash(&c);
+    c.status = PendingClaimStatus::Reclaimed;
+    assert_ne!(base, derive::pending_claim_hash(&c));
+}
+
+#[test]
 fn claim_id_ignores_claim_id_and_signature_fields() {
     let mut claim = ReserveClaim {
         claim_id: [0; 32],
