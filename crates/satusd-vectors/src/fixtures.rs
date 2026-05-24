@@ -448,6 +448,7 @@ pub fn build_issuer_position(d: &mut Det, idx: usize) -> IssuerPosition {
         _ => None,
     };
     let n_keys = 1 + d.count(2);
+    let pmc: [u8; 32] = d.arr();
     IssuerPosition {
         issuer_id: d.arr(),
         status,
@@ -464,6 +465,11 @@ pub fn build_issuer_position(d: &mut Det, idx: usize) -> IssuerPosition {
         },
         freeze_reason,
         registered_at_height: d.u32(),
+        pending_mint_commitment: if idx.is_multiple_of(3) {
+            Some(pmc)
+        } else {
+            None
+        },
     }
 }
 
@@ -480,6 +486,7 @@ pub fn issuer_position_value(v: &IssuerPosition) -> Value {
         "last_deposit_txid": v.last_deposit_txid.map_or(Value::Null, |t| hx(&t)),
         "freeze_reason": v.freeze_reason.map_or(Value::Null, |r| Value::from(r.as_u8())),
         "registered_at_height": v.registered_at_height,
+        "pending_mint_commitment": v.pending_mint_commitment.map_or(Value::Null, |c| hx(&c)),
     })
 }
 

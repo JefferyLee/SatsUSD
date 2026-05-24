@@ -479,6 +479,9 @@ pub struct IssuerPosition {
     pub last_deposit_txid: Option<[u8; 32]>,
     pub freeze_reason: Option<FreezeReason>,
     pub registered_at_height: u32,
+    /// Commitment to the single outstanding MINT_COMMIT (`mint_commitment`), or
+    /// `None` if no mint is pending (v5.2, ADR-0019). One pending mint per issuer.
+    pub pending_mint_commitment: Option<[u8; 32]>,
 }
 
 impl Encode for IssuerPosition {
@@ -494,6 +497,7 @@ impl Encode for IssuerPosition {
         e.opt(&self.last_deposit_txid, |e, txid| e.fixed(txid));
         e.opt(&self.freeze_reason, |e, r| e.enum_u8(r.as_u8()));
         e.u32(self.registered_at_height);
+        e.opt(&self.pending_mint_commitment, |e, c| e.fixed(c));
     }
 }
 

@@ -230,6 +230,24 @@ fn main() {
         }));
     }
 
+    for i in 0..PER_TYPE {
+        let requested = d.u64();
+        let meta: [u8; 32] = d.arr();
+        let txid: [u8; 32] = d.arr();
+        let out = derive::mint_commitment(requested, &meta, &txid);
+        vectors.push(json!({
+            "name": format!("mint_commitment_{i}"),
+            "kind": "derive",
+            "type": "mint_commitment",
+            "inputs": {
+                "requested_mint_atoms": requested.to_string(),
+                "asset_metadata_commitment": hex::encode(meta),
+                "deposit_txid": hex::encode(txid),
+            },
+            "output": hex::encode(out),
+        }));
+    }
+
     // Edge cases: all-zero RedeemIntent (both operator variants).
     let zero_intent_none = RedeemIntent {
         version: 0,

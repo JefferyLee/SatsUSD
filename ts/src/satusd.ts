@@ -236,6 +236,7 @@ function encodeIssuerPosition(e: Encoder, f: Fields): void {
   e.opt(f["last_deposit_txid"] ?? null, (e, v) => e.fixed(hexToBytes(v)));
   e.opt(f["freeze_reason"] ?? null, (e, v) => e.enumU8(v as number));
   e.u32(N(f, "registered_at_height"));
+  e.opt(f["pending_mint_commitment"] ?? null, (e, v) => e.fixed(hexToBytes(v)));
 }
 
 function encodePendingClaim(e: Encoder, f: Fields): void {
@@ -334,6 +335,13 @@ export function deriveOutput(type: string, inputs: Fields): string {
         B(inputs, "redeem_intent_hash"),
         B(inputs, "payment_hash"),
       );
+    case "mint_commitment": {
+      const enc = new Encoder();
+      enc.u64(U(inputs, "requested_mint_atoms"));
+      enc.fixed(B(inputs, "asset_metadata_commitment"));
+      enc.fixed(B(inputs, "deposit_txid"));
+      return sha256Hex(domainTag("SATUSD_MINT_REQUEST_V1"), enc.bytes());
+    }
     default:
       throw new Error(`no derivation for type ${type}`);
   }

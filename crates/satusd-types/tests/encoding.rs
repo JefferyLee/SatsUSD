@@ -91,6 +91,7 @@ fn issuer_position_options_change_length() {
         last_deposit_txid: Some([9; 32]),
         freeze_reason: None,
         registered_at_height: 100,
+        pending_mint_commitment: None,
     };
     let base = canonical_encode(&p).len();
     p.last_deposit_txid = None;

@@ -159,6 +159,14 @@ pub fn verify_exclusion(root: &[u8; 32], key: &[u8; 32], proof: &[[u8; 32]]) -> 
     proof.len() == HEIGHT && &fold_to_root(key, Fr::from(0u64), proof) == root
 }
 
+/// Root obtained by setting `key -> value` against an existing membership/
+/// non-membership `proof` (same sibling path). Lets a transition verifier compute
+/// the post-update root from a single leaf change without holding the whole tree.
+pub fn root_after_update(key: &[u8; 32], value: &[u8; 32], proof: &[[u8; 32]]) -> [u8; 32] {
+    debug_assert_eq!(proof.len(), HEIGHT);
+    fold_to_root(key, leaf_hash(key, value), proof)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

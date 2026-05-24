@@ -1107,6 +1107,7 @@ struct IssuerPosition {
   last_deposit_txid:          Option<[u8; 32]>,
   freeze_reason:              Option<FreezeReason>,
   registered_at_height:       u32,
+  pending_mint_commitment:    Option<[u8; 32]>,  // ★ v5.2 (ADR-0019)：绑定唯一在途 MINT_COMMIT，供 finalize 匹配 (I-03) + 防重复 finalize (I-07)；一 issuer 一笔
 }
 ```
 

@@ -1345,6 +1345,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-state"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-crypto",
+ "satusd-types",
+]
+
+[[package]]
 name = "satusd-tapd-client"
 version = "0.1.0"
 dependencies = [

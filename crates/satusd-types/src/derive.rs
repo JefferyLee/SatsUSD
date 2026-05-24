@@ -61,3 +61,18 @@ pub fn issuer_position_hash(p: &IssuerPosition) -> [u8; 32] {
 pub fn pending_claim_hash(c: &PendingClaim) -> [u8; 32] {
     tagged_hash(domain::PENDING_CLAIM, &canonical_encode(c))
 }
+
+/// `mint_commitment` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): binds a
+/// MINT_COMMIT so MINT_FINALIZE can match it (I-03) and reject a double finalize
+/// (I-07). Stored as `IssuerPosition::pending_mint_commitment`.
+pub fn mint_commitment(
+    requested_mint_atoms: u64,
+    asset_metadata_commitment: &[u8; 32],
+    deposit_txid: &[u8; 32],
+) -> [u8; 32] {
+    let mut e = Encoder::new();
+    e.u64(requested_mint_atoms);
+    e.fixed(asset_metadata_commitment);
+    e.fixed(deposit_txid);
+    tagged_hash(domain::MINT_REQUEST, &e.into_bytes())
+}
