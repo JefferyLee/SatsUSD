@@ -14,7 +14,7 @@ use bitcoin::hashes::Hash;
 use bitcoin::opcodes::all::{OP_CHECKSIGVERIFY, OP_CSV, OP_EQUALVERIFY, OP_SHA256};
 use bitcoin::script::{Builder, ScriptBuf};
 use bitcoin::secp256k1::{Secp256k1, XOnlyPublicKey};
-use bitcoin::taproot::{LeafVersion, TapLeafHash, TaprootBuilder, TaprootSpendInfo};
+use bitcoin::taproot::{LeafVersion, TapLeafHash, TapNodeHash, TaprootBuilder, TaprootSpendInfo};
 
 /// Domain for the lock anchor NUMS internal key (see SPEC GAP above).
 pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
@@ -119,6 +119,43 @@ pub fn build_lock_anchor(
     }
 }
 
+/// Build the lock anchor as **tapd actually commits it** at the asset layer.
+///
+/// When tapd anchors a Taproot Asset with our finalize/refund branch supplied as
+/// the `tapscript_sibling`, the real anchor tap tree is one level deeper than the
+/// bare Bitcoin-layer demo:
+///   root = TapBranch(ta_commitment_root, TapBranch(finalize, refund))
+/// where `ta_commitment_root` is tapd's `taproot_asset_root` (read back from
+/// ListUtxos / ListTransfers once the anchor confirms). The finalize/refund
+/// control blocks therefore carry one extra merkle step (ta_commitment_root).
+pub fn build_asset_lock_anchor(
+    payment_hash: &[u8; 32],
+    operator: XOnlyPublicKey,
+    user_asset_refund_key: XOnlyPublicKey,
+    finalize_csv: i64,
+    refund_csv: i64,
+    ta_commitment_root: &[u8; 32],
+) -> LockAnchor {
+    let finalize_script = finalize_leaf(payment_hash, operator, finalize_csv);
+    let refund_script = refund_leaf(user_asset_refund_key, refund_csv);
+    let secp = Secp256k1::verification_only();
+    let ta_node = TapNodeHash::from_byte_array(*ta_commitment_root);
+    let spend_info = TaprootBuilder::new()
+        .add_hidden_node(1, ta_node)
+        .expect("ta commitment node at depth 1")
+        .add_leaf(2, finalize_script.clone())
+        .expect("finalize leaf at depth 2")
+        .add_leaf(2, refund_script.clone())
+        .expect("refund leaf at depth 2")
+        .finalize(&secp, lock_anchor_internal_key())
+        .expect("taproot tree finalizes");
+    LockAnchor {
+        spend_info,
+        finalize_script,
+        refund_script,
+    }
+}
+
 /// Convenience: build a lock anchor from raw x-only key bytes (for callers that
 /// don't depend on rust-bitcoin types).
 pub fn build_lock_anchor_from_bytes(
@@ -190,6 +227,30 @@ mod tests {
             .spend_info
             .control_block(&(a.refund_script.clone(), LeafVersion::TapScript))
             .is_some());
+    }
+
+    #[test]
+    fn asset_anchor_adds_one_merkle_step_over_bare() {
+        // The asset-layer tree is TapBranch(ta_root, branch(finalize, refund)),
+        // one level deeper than the bare anchor, so the finalize control block
+        // carries exactly one extra 32-byte merkle step.
+        let bare = sample();
+        let asset = build_asset_lock_anchor(
+            &[0x11; 32],
+            xonly("test-operator"),
+            xonly("test-user"),
+            150,
+            288,
+            &[0xcd; 32],
+        );
+        let leaf = (asset.finalize_script.clone(), LeafVersion::TapScript);
+        let bare_cb = bare
+            .spend_info
+            .control_block(&(bare.finalize_script.clone(), LeafVersion::TapScript))
+            .unwrap();
+        let asset_cb = asset.spend_info.control_block(&leaf).unwrap();
+        assert_eq!(asset_cb.serialize().len(), bare_cb.serialize().len() + 32);
+        assert_eq!(asset.spend_info.internal_key(), lock_anchor_internal_key());
     }
 
     #[test]

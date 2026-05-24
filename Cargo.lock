@@ -1348,6 +1348,8 @@ dependencies = [
 name = "satusd-tapd-client"
 version = "0.1.0"
 dependencies = [
+ "bitcoin",
+ "bitcoincore-rpc",
  "hex",
  "hyper-util",
  "prost",
@@ -1356,6 +1358,7 @@ dependencies = [
  "rustls-pki-types",
  "satusd-crypto",
  "satusd-lock",
+ "satusd-types",
  "tokio",
  "tokio-rustls",
  "tonic",

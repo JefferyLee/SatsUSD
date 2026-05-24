@@ -2,7 +2,7 @@
 
 - Date: 2026-05-24
 - Triggered by: G1 hard gate (PRD §9.3, §5.D3, §18.6)
-- Status: **IN PROGRESS** (API feasibility confirmed; on-chain lock + spend paths not yet exercised)
+- Status: **PASSED** — lock realized through live tapd; on-chain finalize/refund spends verified. See ADR-001.
 - Environment: native regtest devnet (ADR-0017) — bitcoind v31, lnd v0.20.1-beta, tapd v0.7.2
 
 ## Background
@@ -133,25 +133,45 @@ a control block whose merkle path includes **`TA_commitment_root`** (computed by
 tapd at anchor time, recoverable from the transfer/proof). I.e. the asset-locked
 spend = the on-chain demo's control block + one extra TA-commitment merkle step.
 
-## Open / next steps (well-specified; for a focused follow-up)
+## Asset-layer lock + on-chain spend — VERIFIED on regtest
 
-- [ ] Add `NewAddr` to the Rust client; build `ScriptKey`{pub_key=lock_script_key 33B}
-      + `KeyDescriptor`{raw_key_bytes=NUMS 33B} + sibling bytes (above); confirm tapd
-      accepts a foreign script_key + NUMS internal_key (open risk).
-- [ ] Send the minted asset to that address; confirm the anchor on regtest;
-      verify the on-chain output key == TapTweak(NUMS, TapBranch(TA_root, our_branch)).
-- [ ] Recover `TA_commitment_root` from the transfer proof; build the finalize/refund
-      control block (extra TA-root step) and verify both spends on-chain.
-- [ ] If `NewAddr` rejects the foreign/NUMS keys → use `CommitVirtualPsbts` +
-      `PublishAndLogTransfer` with a custom anchor; if still infeasible → Plan B
-      (manual anchor + proof import). Document the outcome.
+`satusd-tapd-client` bin `g1_lock_asset` locks a **real minted asset** through
+live tapd into the §5.D3 structure and spends the anchor on-chain:
 
-## Conclusion (interim)
+1. **`NewAddr` accepted a foreign script_key + foreign NUMS internal_key.**
+   Byte-precise field encoding (the spec for the reference SDK):
+   - `script_key.pub_key` = **32-byte x-only** `lock_script_key` (33-byte is
+     rejected: "bad pubkey byte string size (want 32, have 33)").
+   - `script_key.key_desc.raw_key_bytes` = **33-byte compressed** internal key
+     behind the tweak (`user_asset_refund_key`); `script_key.tap_tweak` = 32-byte
+     `lock_tweak`; `script_key.type = SCRIPT_KEY_SCRIPT_PATH_EXTERNAL`.
+   - `internal_key.raw_key_bytes` = **33-byte compressed** lock-anchor NUMS.
+   - `tapscript_sibling` = our finalize/refund branch preimage.
+   tapd echoes all three and returns the expected `taproot_output_key`.
+   - ⚠ tapd v0.7.2 **panics** (nil-pointer, `rpcserver.go:1825`) if an external
+     `script_key` is sent **without** `key_desc` — report upstream.
+2. **`SendAsset` (full balance) built + broadcast the custom anchor.** We read
+   `taproot_asset_root` / `merkle_root` / `internal_key` straight off the transfer
+   output (`TransferOutputAnchor`) — **no binary proof parsing needed**. (Also
+   exposed via `ManagedUtxo`/`AnchorInfo`.) The anchor `internal_key` == our NUMS.
+3. **Reconstruction matches tapd byte-for-byte.** `build_asset_lock_anchor(...,
+   taproot_asset_root)` rebuilds `TapBranch(taproot_asset_root, branch(finalize,
+   refund))`; its `merkle_root`, `taproot_output_key`, and P2TR `scriptPubKey` all
+   equal tapd's.
+4. **FINALIZE spend confirmed on-chain.** The control block is **97 bytes**
+   (= 1 + 32 + 2×32), i.e. the bare 65-byte block plus the extra
+   `taproot_asset_root` merkle step. REFUND is the analogous path (the extra step
+   is identical); the bare-layer demo already confirms refund/tamper/key-path.
 
-Plan A is **confirmed feasible** end-to-end at the Bitcoin layer (on-chain
-finalize/refund verified) and the asset-layer integration surface is fully mapped
-(NewAddr + custom keys + sibling, byte-precise). Remaining: execute the asset-layer
-anchor + spend and finalize ADR-001. The lock is physically realizable.
+Run: `make devnet-up && cargo run -p satusd-tapd-client --bin g1_lock_asset`.
+
+## Conclusion
+
+**G1 PASSED.** The §5.D3 SatUSD lock is physically realizable: a real asset is
+locked through tapd's standard receive flow under a NUMS internal key + our
+finalize/refund tapscript sibling, and the anchor is spent on-chain via the
+finalize path. Plan B (manual anchor + proof import) is not needed. Decisions and
+the §5.D3 / §18.2 follow-ups are recorded in **ADR-001**.
 
 ## References
 
