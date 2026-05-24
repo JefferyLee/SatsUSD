@@ -1,0 +1,19 @@
+# Rust
+/target
+**/target
+Cargo.lock.bak
+
+# Node / TypeScript
+node_modules/
+dist/
+*.tsbuildinfo
+
+# Editor / OS
+.DS_Store
+*.swp
+.vscode/
+.claude/
+
+# Local env
+.env
+.env.local

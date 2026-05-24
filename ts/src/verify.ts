@@ -1,0 +1,61 @@
+// Cross-language verifier: reads the Rust-generated vectors and asserts the
+// TypeScript reference produces byte-identical encodings and hashes.
+// Run: node ts/src/verify.ts   (Node >= 23 strips types; no build/install needed)
+
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join } from "node:path";
+import { Encoder, bytesToHex } from "./encoder.ts";
+import { encodeByType, structHashes, deriveOutput, sha256Hex, domainTag } from "./satusd.ts";
+
+const here = dirname(fileURLToPath(import.meta.url));
+const vectorsPath = join(here, "../../integration/vectors/vectors.json");
+
+const doc = JSON.parse(readFileSync(vectorsPath, "utf8"));
+
+let pass = 0;
+const failures: string[] = [];
+
+function check(name: string, got: string, want: string, what: string): void {
+  if (got === want) {
+    pass++;
+  } else {
+    failures.push(`${name} [${what}]: got ${got} want ${want}`);
+  }
+}
+
+// Domain separator registry: name -> raw ASCII bytes (no padding).
+for (const d of doc.domains as Array<{ name: string; tag_hex: string }>) {
+  check(d.name, bytesToHex(domainTag(d.name)), d.tag_hex, "domain_tag");
+}
+
+for (const v of doc.vectors as any[]) {
+  if (v.kind === "struct") {
+    const enc = encodeByType(v.type, v.fields);
+    const encHex = bytesToHex(enc);
+    check(v.name, encHex, v.encoding_hex, "encoding");
+    check(v.name, sha256Hex(enc), v.sha256_of_encoding, "sha256_of_encoding");
+    const hashes = structHashes(v.type, v.fields);
+    for (const [k, want] of Object.entries(v.hashes as Record<string, string>)) {
+      check(v.name, hashes[k] ?? "<missing>", want, k);
+    }
+  } else if (v.kind === "derive") {
+    check(v.name, deriveOutput(v.type, v.inputs), v.output, v.type);
+  } else {
+    failures.push(`${v.name}: unknown kind ${v.kind}`);
+  }
+}
+
+const total = pass + failures.length;
+console.log(`checked ${total} assertions across ${doc.count} vectors + ${doc.domains.length} domains`);
+console.log(`pass: ${pass}, fail: ${failures.length}`);
+
+if (failures.length > 0) {
+  console.error("\nFAILURES (first 20):");
+  for (const f of failures.slice(0, 20)) console.error("  " + f);
+  process.exit(1);
+}
+console.log("OK — Rust and TypeScript byte-match.");
+
+// Encoder is exercised above via encodeByType; explicit import keeps it linted as used.
+void Encoder;
