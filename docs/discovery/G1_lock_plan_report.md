@@ -62,11 +62,26 @@ PublishAndLogTransfer`. Recommend updating §5.D3 (ADR-001 will record this).
   served cert (see lib.rs `PinnedCertVerifier`). The reference SDK will need the
   same to talk to lnd. Requires `protoc` at build time (brew protobuf).
 
+## Progress (cont.)
+
+- **Bitcoin-layer lock anchor built** (`crates/satusd-lock`, rust-bitcoin 0.32):
+  `build_lock_anchor` produces the P2TR with NUMS internal key + finalize/refund
+  tapscript leaves (§5.D3). Deterministic output key, both leaves carry control
+  blocks, scriptPubKey is P2TR, internal key == lock-anchor NUMS. Unit-tested.
+  - **SPEC GAP**: §5.D3 says the anchor uses "a fixed NUMS key" but gives no
+    derivation. We derive from `SATUSD_LOCK_ANCHOR_NUMS_V1` (no salt) via the
+    §18.7 NUMS rule → **§18.2 must register this domain + a test vector** (ADR).
+  - Note: bitcoin 0.32 brings secp256k1 0.29 alongside satusd-crypto's 0.31;
+    crossed via `[u8;32]` bytes (no type clash). Unify later if desired.
+
 ## Open / next steps
 
-- [ ] Derive `lock_script_key` (reuse satusd-crypto `tap_tweak` + lock_tweak).
-- [ ] `CommitVirtualPsbts` with a custom anchor P2TR (NUMS internal + finalize/refund
-      leaves per §18.6); confirm tapd accepts the externally-shaped anchor output.
+- [ ] Derive the **asset-layer** `lock_script_key = TapTweak(user_asset_refund_key,
+      lock_tweak)` (reuse satusd-crypto `tap_tweak` + `derive::lock_tweak`).
+- [ ] `FundVirtualPsbt(script_key=lock_script_key)` → `SignVirtualPsbt` →
+      `CommitVirtualPsbts` committing the asset into the `satusd-lock` anchor
+      output; sign the anchor; `PublishAndLogTransfer`. Confirm tapd accepts the
+      externally-shaped (NUMS + script-tree) anchor.
 - [ ] Confirm anchor on regtest; verify finalize + refund spends; verify tamper
       and key-path-spend failures.
 - [ ] If CommitVirtualPsbts cannot place assets under a fully custom external

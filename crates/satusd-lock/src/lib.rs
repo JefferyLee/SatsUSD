@@ -1,0 +1,137 @@
+//! SatUSD lock — Bitcoin-layer anchor output (PRD §5.D3).
+//!
+//! The lock anchor is a P2TR with a **NUMS internal key** (no key-path spend)
+//! and a 2-leaf tapscript tree:
+//!   finalize: OP_SHA256 <payment_hash> OP_EQUALVERIFY <operator> OP_CHECKSIGVERIFY <csv> OP_CSV
+//!   refund:   <user_asset_refund_key> OP_CHECKSIGVERIFY <csv> OP_CSV
+//!
+//! SPEC GAP (flag for §18 + ADR): §5.D3 says the anchor internal key is "a fixed
+//! NUMS key" but gives no derivation. We derive it from a dedicated domain
+//! `SATUSD_LOCK_ANCHOR_NUMS_V1` (no salt) via the §18.7 NUMS rule; this domain
+//! must be registered in §18.2 and pinned with a test vector.
+
+use bitcoin::opcodes::all::{OP_CHECKSIGVERIFY, OP_CSV, OP_EQUALVERIFY, OP_SHA256};
+use bitcoin::script::{Builder, ScriptBuf};
+use bitcoin::secp256k1::{Secp256k1, XOnlyPublicKey};
+use bitcoin::taproot::{TaprootBuilder, TaprootSpendInfo};
+
+/// Domain for the lock anchor NUMS internal key (see SPEC GAP above).
+pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
+
+/// The fixed NUMS internal key for lock anchors (unknown discrete log).
+pub fn lock_anchor_internal_key() -> XOnlyPublicKey {
+    let bytes = satusd_crypto::nums::derive_nums_key(LOCK_ANCHOR_NUMS_DOMAIN, &[]);
+    XOnlyPublicKey::from_slice(&bytes).expect("NUMS key is a valid x-only pubkey")
+}
+
+/// Finalize tapleaf: spendable with the HTLC preimage + operator signature after CSV.
+pub fn finalize_leaf(payment_hash: &[u8; 32], operator: XOnlyPublicKey, csv: i64) -> ScriptBuf {
+    Builder::new()
+        .push_opcode(OP_SHA256)
+        .push_slice(payment_hash)
+        .push_opcode(OP_EQUALVERIFY)
+        .push_x_only_key(&operator)
+        .push_opcode(OP_CHECKSIGVERIFY)
+        .push_int(csv)
+        .push_opcode(OP_CSV)
+        .into_script()
+}
+
+/// Refund tapleaf: spendable by the user's asset-refund key after the (longer) CSV.
+pub fn refund_leaf(user_asset_refund_key: XOnlyPublicKey, csv: i64) -> ScriptBuf {
+    Builder::new()
+        .push_x_only_key(&user_asset_refund_key)
+        .push_opcode(OP_CHECKSIGVERIFY)
+        .push_int(csv)
+        .push_opcode(OP_CSV)
+        .into_script()
+}
+
+/// A fully-built lock anchor: the Taproot spend info plus both leaf scripts.
+pub struct LockAnchor {
+    pub spend_info: TaprootSpendInfo,
+    pub finalize_script: ScriptBuf,
+    pub refund_script: ScriptBuf,
+}
+
+impl LockAnchor {
+    /// The P2TR scriptPubKey to fund (the anchor output).
+    pub fn script_pubkey(&self) -> ScriptBuf {
+        ScriptBuf::new_p2tr_tweaked(self.spend_info.output_key())
+    }
+
+    /// 32-byte x-only Taproot output key.
+    pub fn output_key_bytes(&self) -> [u8; 32] {
+        self.spend_info.output_key().serialize()
+    }
+}
+
+/// Build the §5.D3 Bitcoin-layer lock anchor (NUMS internal + finalize/refund leaves).
+pub fn build_lock_anchor(
+    payment_hash: &[u8; 32],
+    operator: XOnlyPublicKey,
+    user_asset_refund_key: XOnlyPublicKey,
+    finalize_csv: i64,
+    refund_csv: i64,
+) -> LockAnchor {
+    let finalize_script = finalize_leaf(payment_hash, operator, finalize_csv);
+    let refund_script = refund_leaf(user_asset_refund_key, refund_csv);
+    let secp = Secp256k1::verification_only();
+    let spend_info = TaprootBuilder::new()
+        .add_leaf(1, finalize_script.clone())
+        .expect("finalize leaf at depth 1")
+        .add_leaf(1, refund_script.clone())
+        .expect("refund leaf at depth 1")
+        .finalize(&secp, lock_anchor_internal_key())
+        .expect("taproot tree finalizes");
+    LockAnchor {
+        spend_info,
+        finalize_script,
+        refund_script,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use bitcoin::taproot::LeafVersion;
+
+    fn xonly(domain: &str) -> XOnlyPublicKey {
+        XOnlyPublicKey::from_slice(&satusd_crypto::nums::derive_nums_key(domain, &[])).unwrap()
+    }
+
+    fn sample() -> LockAnchor {
+        build_lock_anchor(&[0x11; 32], xonly("test-operator"), xonly("test-user"), 150, 288)
+    }
+
+    #[test]
+    fn lock_anchor_is_deterministic() {
+        assert_eq!(sample().output_key_bytes(), sample().output_key_bytes());
+    }
+
+    #[test]
+    fn both_leaves_have_control_blocks_and_differ() {
+        let a = sample();
+        assert_ne!(a.finalize_script, a.refund_script);
+        assert!(a
+            .spend_info
+            .control_block(&(a.finalize_script.clone(), LeafVersion::TapScript))
+            .is_some());
+        assert!(a
+            .spend_info
+            .control_block(&(a.refund_script.clone(), LeafVersion::TapScript))
+            .is_some());
+    }
+
+    #[test]
+    fn internal_key_is_nums_and_spk_is_p2tr() {
+        let a = sample();
+        // Internal key is the lock-anchor NUMS (no key-path spend possible).
+        assert_eq!(a.spend_info.internal_key(), lock_anchor_internal_key());
+        assert!(a.script_pubkey().is_p2tr());
+        println!(
+            "lock anchor output_key = 0x{}",
+            hex::encode(a.output_key_bytes())
+        );
+    }
+}
