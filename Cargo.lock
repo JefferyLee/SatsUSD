@@ -1354,6 +1354,8 @@ dependencies = [
  "rustls",
  "rustls-pemfile",
  "rustls-pki-types",
+ "satusd-crypto",
+ "satusd-lock",
  "tokio",
  "tokio-rustls",
  "tonic",

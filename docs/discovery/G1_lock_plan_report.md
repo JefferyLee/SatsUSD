@@ -107,21 +107,51 @@ wallet, and spends it (via bitcoind RPC, rust-bitcoin 0.32):
 This retires G1's core risk: the §5.D3 Bitcoin-layer lock and both spend paths
 are physically realizable. Run: `make devnet-up && cargo run -p satusd-lock --bin g1_lock_btc`.
 
-## Open / next steps (asset-layer tapd anchoring — to complete Plan A)
+## Asset-layer anchoring — integration design resolved (byte-precise)
 
-- [ ] Serialize the `satusd-lock` finalize/refund branch as a tapd
-      `tapscript_sibling` preimage.
-- [ ] Mint asset; `FundVirtualPsbt(script_key=lock_script_key)` → `SignVirtualPsbt`
-      → `CommitVirtualPsbts` (asset commitment + our sibling; custom NUMS internal)
-      → sign anchor → `PublishAndLogTransfer`.
-- [ ] Confirm anchor on regtest; verify finalize + refund spends; verify tamper
-      and key-path-spend failures.
-- [ ] Finalize report + ADR-001 (§5.D3 path correction: CommitVirtualPsbts +
-      tapscript_sibling; NUMS-domain spec gap; sibling-vs-whole-tree clarification).
-- [ ] If CommitVirtualPsbts cannot place assets under a fully custom external
-      anchor output → fall back to Plan B (manual anchor + RegisterTransfer/proof
-      import) and document.
-- [ ] Finalize this report + ADR-001 ("Lock construction: Plan A / B / Hybrid").
+The receive path is `NewAddr` (taprootassets.proto), which takes all three pieces:
+- `script_key` (field 3) = our `lock_script_key` (asset-level).
+- `internal_key` (field 4, KeyDescriptor) = the lock-anchor NUMS (BTC-level).
+- `tapscript_sibling` (field 5) = serialized preimage of our finalize/refund branch.
+
+**`tapscript_sibling` byte format** (confirmed from tapd v0.7.2 `commitment/taproot.go`):
+- Branch: `0x01 || leftLeafTapHash(32) || rightLeafTapHash(32)` — tapd recomputes the
+  TapBranch hash with BIP341 sorting, so child order is irrelevant.
+- Leaf:   `0x00 || leafVersion || compactSize(script) || script`.
+Our sibling is the branch of {finalize, refund}.
+
+**VALIDATED against live tapd** (`satusd-tapd-client` bin `g1_addr`): `NewAddr`
+with our branch preimage (`satusd-lock::tapscript_sibling_preimage`) succeeds and
+the daemon **echoes the identical `tapscript_sibling`** and returns a
+`taproot_output_key` — confirming the reverse-engineered encoding is correct.
+
+**Key consequence for spends (important):** tapd attaches our branch as the
+*sibling of the Taproot Asset commitment*, so the real anchor tap tree is
+`TapBranch(TA_commitment_root, branch(finalize, refund))` — one level deeper than
+the bare Bitcoin-layer demo. Therefore an asset-layer finalize/refund spend needs
+a control block whose merkle path includes **`TA_commitment_root`** (computed by
+tapd at anchor time, recoverable from the transfer/proof). I.e. the asset-locked
+spend = the on-chain demo's control block + one extra TA-commitment merkle step.
+
+## Open / next steps (well-specified; for a focused follow-up)
+
+- [ ] Add `NewAddr` to the Rust client; build `ScriptKey`{pub_key=lock_script_key 33B}
+      + `KeyDescriptor`{raw_key_bytes=NUMS 33B} + sibling bytes (above); confirm tapd
+      accepts a foreign script_key + NUMS internal_key (open risk).
+- [ ] Send the minted asset to that address; confirm the anchor on regtest;
+      verify the on-chain output key == TapTweak(NUMS, TapBranch(TA_root, our_branch)).
+- [ ] Recover `TA_commitment_root` from the transfer proof; build the finalize/refund
+      control block (extra TA-root step) and verify both spends on-chain.
+- [ ] If `NewAddr` rejects the foreign/NUMS keys → use `CommitVirtualPsbts` +
+      `PublishAndLogTransfer` with a custom anchor; if still infeasible → Plan B
+      (manual anchor + proof import). Document the outcome.
+
+## Conclusion (interim)
+
+Plan A is **confirmed feasible** end-to-end at the Bitcoin layer (on-chain
+finalize/refund verified) and the asset-layer integration surface is fully mapped
+(NewAddr + custom keys + sibling, byte-precise). Remaining: execute the asset-layer
+anchor + spend and finalize ADR-001. The lock is physically realizable.
 
 ## References
 

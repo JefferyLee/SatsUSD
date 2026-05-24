@@ -10,10 +10,11 @@
 //! `SATUSD_LOCK_ANCHOR_NUMS_V1` (no salt) via the §18.7 NUMS rule; this domain
 //! must be registered in §18.2 and pinned with a test vector.
 
+use bitcoin::hashes::Hash;
 use bitcoin::opcodes::all::{OP_CHECKSIGVERIFY, OP_CSV, OP_EQUALVERIFY, OP_SHA256};
 use bitcoin::script::{Builder, ScriptBuf};
 use bitcoin::secp256k1::{Secp256k1, XOnlyPublicKey};
-use bitcoin::taproot::{TaprootBuilder, TaprootSpendInfo};
+use bitcoin::taproot::{LeafVersion, TapLeafHash, TaprootBuilder, TaprootSpendInfo};
 
 /// Domain for the lock anchor NUMS internal key (see SPEC GAP above).
 pub const LOCK_ANCHOR_NUMS_DOMAIN: &str = "SATUSD_LOCK_ANCHOR_NUMS_V1";
@@ -77,6 +78,20 @@ impl LockAnchor {
     pub fn output_key_bytes(&self) -> [u8; 32] {
         self.spend_info.output_key().serialize()
     }
+
+    /// Serialized tapd `tapscript_sibling` preimage for the finalize/refund branch
+    /// (tapd `commitment/taproot.go` format): `0x01 || leftLeafTapHash ||
+    /// rightLeafTapHash`. tapd recomputes the TapBranch hash with BIP341 sorting,
+    /// so child order is irrelevant.
+    pub fn tapscript_sibling_preimage(&self) -> Vec<u8> {
+        let f = TapLeafHash::from_script(&self.finalize_script, LeafVersion::TapScript);
+        let r = TapLeafHash::from_script(&self.refund_script, LeafVersion::TapScript);
+        let mut out = Vec::with_capacity(65);
+        out.push(0x01); // BranchPreimage
+        out.extend_from_slice(f.as_byte_array());
+        out.extend_from_slice(r.as_byte_array());
+        out
+    }
 }
 
 /// Build the §5.D3 Bitcoin-layer lock anchor (NUMS internal + finalize/refund leaves).
@@ -102,6 +117,26 @@ pub fn build_lock_anchor(
         finalize_script,
         refund_script,
     }
+}
+
+/// Convenience: build a lock anchor from raw x-only key bytes (for callers that
+/// don't depend on rust-bitcoin types).
+pub fn build_lock_anchor_from_bytes(
+    payment_hash: &[u8; 32],
+    operator_xonly: &[u8; 32],
+    user_asset_refund_xonly: &[u8; 32],
+    finalize_csv: i64,
+    refund_csv: i64,
+) -> Result<LockAnchor, bitcoin::secp256k1::Error> {
+    let operator = XOnlyPublicKey::from_slice(operator_xonly)?;
+    let user = XOnlyPublicKey::from_slice(user_asset_refund_xonly)?;
+    Ok(build_lock_anchor(
+        payment_hash,
+        operator,
+        user,
+        finalize_csv,
+        refund_csv,
+    ))
 }
 
 #[cfg(test)]
