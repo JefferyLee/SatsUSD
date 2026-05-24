@@ -1,13 +1,17 @@
 [package]
-name = "satusd-vectors"
+name = "satusd-crypto"
 edition.workspace = true
 version.workspace = true
 license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+ark-bn254 = "0.5"
+ark-ff = "0.5"
+light-poseidon = "0.4"
 satusd-types = { path = "../satusd-types" }
-satusd-crypto = { path = "../satusd-crypto" }
+secp256k1 = "0.31.1"
 sha2.workspace = true
+
+[dev-dependencies]
 hex.workspace = true
-serde_json.workspace = true

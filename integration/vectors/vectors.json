@@ -1,5 +1,5 @@
 {
-  "count": 1043,
+  "count": 1291,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -28682,6 +28682,2558 @@
       "name": "lock_record_edge_empty_lineage",
       "sha256_of_encoding": "7fd1337e3132f8139ce5705400c37f8a5b5abf11d92e173640f5803872bbae38",
       "type": "LockRecord"
+    },
+    {
+      "inputs": {
+        "a": "f2544638633faa29f24e9fa95a1dc90c1bcc8a08d937ba00a684b02a6b32ea",
+        "b": "1e53704e2dbdfa6a187fb10db3449f7d18df6ed2f3379e4124c4d761487123"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_0",
+      "op": "poseidon2",
+      "output": "02c28e1b00eba294509065c3e111d70d705d72545738db2b10b5939626634b04"
+    },
+    {
+      "inputs": {
+        "a": "8f141d2d337df2687545de399a95185c71e63c995ed8e7c65ca77ab834a6cb",
+        "b": "6ee20a1dce6d2520e2f2a5cecf127a4f2de47637613b652faec685ac659e99"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_1",
+      "op": "poseidon2",
+      "output": "252015d012b0f82740473fff7fa0cbedab43fa08f691b33aa35b4e6b687f8a5e"
+    },
+    {
+      "inputs": {
+        "a": "857068836c35493385cf882f5595451e054f582bc548ae7edd1aec4aadb0c7",
+        "b": "f6c171baba5d32ef2259a3ef3db0a4b8daf2fa85b5cbacf71a436ac1ea35d8"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_2",
+      "op": "poseidon2",
+      "output": "13fd55ef6dc621d70b8042f6d692c8f161d122972c5ea999d740ebb2fcfe1519"
+    },
+    {
+      "inputs": {
+        "a": "c9f2bda9784c72a64b5c7ae980c6cbad1daf5475c35746a0dc99b59811d991",
+        "b": "9f0217b9022206cd12dffe0ac8247c2b9e69bc100681022671176023856aa8"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_3",
+      "op": "poseidon2",
+      "output": "2ed4dab4093cc712cdbbaef9f257578cd535da40cbc6818e6122f683f242af2d"
+    },
+    {
+      "inputs": {
+        "a": "ddc1515d0cf7e862b0472fd9753bd8ed0c72ec8ac41fae8c1acc7dabe82e13",
+        "b": "96fd1661b5b92a4b30738380b4210558dd2c1bd06076b404af4ac60cbd9642"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_4",
+      "op": "poseidon2",
+      "output": "2017f1cbc0891cac096c36dd3b33ced6d90add312ffee1b78bf78c6f8a27f3e0"
+    },
+    {
+      "inputs": {
+        "a": "9b46efc4879d4854d4ca34641c151b8b24d523be13a8312925ded794310f1d",
+        "b": "9dd460b10c751fffca3d0ebf4b5fb18bb2624f12699877a3d209bcbc94c25f"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_5",
+      "op": "poseidon2",
+      "output": "2ec984db40fea992e1b184f4b6189bc368d2a2cff7ce6224b16df18d4f7bc0fd"
+    },
+    {
+      "inputs": {
+        "a": "10ab18c61772a27d7ead1a551827820ffb858b0105434505fd9cdb0fd746ee",
+        "b": "fa13c5b2df276dd2f205b4e224d74ef328628a540c47e4c9f7f570873f7726"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_6",
+      "op": "poseidon2",
+      "output": "11a454271bfc0454e12e138372f4d49b9ccc53e82e320257778b421d4e4846f6"
+    },
+    {
+      "inputs": {
+        "a": "2bd0806cd0007b0e50e110f4b3a30df35a65772e744a822151a8e24527b5b6",
+        "b": "09b8bc1dadfd8b852fd11a40dd4194c27fe1acb701d8903e47b9eb365f6112"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_7",
+      "op": "poseidon2",
+      "output": "2050b82eaf9616020a5c5a46066bdb76f343a519f9f41d9962de08e7650b14f5"
+    },
+    {
+      "inputs": {
+        "a": "fb06841d034803418fd5a6cdd53c5cce0aaf81d37113f59abb54a2efd0a276",
+        "b": "e95377a860c598fdd281ebd54aa2e71754accd22fb0b57d55d3addeb862ee0"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_8",
+      "op": "poseidon2",
+      "output": "2f96779a82952eca07d22a988501a2612f315a92ba8d12a21f12f5c189f2d7c8"
+    },
+    {
+      "inputs": {
+        "a": "bdc62a245ba5429412d4425491d4d39d317677ab5c47d11d832bf38405553a",
+        "b": "9c334801fe34df9996c685953383779074da2fdb3df1e8c757e90f646363ec"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_9",
+      "op": "poseidon2",
+      "output": "11379261ad2965f13b20282eb09676901d5b0f77d40a82bb4b708832e62fd225"
+    },
+    {
+      "inputs": {
+        "a": "2b78c4ca6d389e7a51632eee25feb8e25632921c20caf415f2b04c55f71d81",
+        "b": "c74767feb3e52cb19a32f5638c7a571680d4da5d54c8cbf7bb71363d46db86"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_10",
+      "op": "poseidon2",
+      "output": "02c69e54779e4acbc9da9e3a423234f8b1a92f985224253ce11ebbca14469de3"
+    },
+    {
+      "inputs": {
+        "a": "8e01d8708e98921d4b43450b5275f0cf4291459fe00633730fba4ae2b8837c",
+        "b": "489fdc3fb33d4672edbcbdbf19abf564409f4c6d0f8595a74e236b39fa993a"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_11",
+      "op": "poseidon2",
+      "output": "001c29054ac192d9eba840222f807f74760155a0bb7175cce57817120e50d173"
+    },
+    {
+      "inputs": {
+        "a": "49689be0ba54214b6cb9662ae4e13430b36ca13f8250bf5c9285750260c2d5",
+        "b": "dc6951b22058e560dfbe0b44ee7fd694617306de84dbf15c54a1e28b98ac7a"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_12",
+      "op": "poseidon2",
+      "output": "1782f243835a96eb6fb2b59c35d79e80d3efe73968e4f159b2d7c82527aa9286"
+    },
+    {
+      "inputs": {
+        "a": "ccacefcf45a7640480c634cf8cc260c16d83c61ceb8e5c355a71c9c8017667",
+        "b": "a3d4a2b1178a29f28b49cddf995bd70a8d1a430520a82717df5b1dafe24245"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_13",
+      "op": "poseidon2",
+      "output": "12621b94321cebaba2f61aab6f7e21d2cac3410c7bdd602d70ea12fe42a73b69"
+    },
+    {
+      "inputs": {
+        "a": "c5ac96d275f59538e40f3e5e80a5f7ca8b3f520d3c4c312acf1d9f2f76d635",
+        "b": "67e7484296fa0f606f93b4367e1296fd86bedbd20e9d73a856529f17331740"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_14",
+      "op": "poseidon2",
+      "output": "1dcdfd0b8376aa480899e64b6e5530feaec1a5f034f5631b4da4d545351b1924"
+    },
+    {
+      "inputs": {
+        "a": "afa1d21b4e349ef610d83f6febddba848d166eaf8f861dbc11900f1851e81b",
+        "b": "a79d8327cbbcadd938fba89734348d79cdd4340417bb2e7e761ea7a2ba97f8"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_15",
+      "op": "poseidon2",
+      "output": "0128f56f9182da50b1282b0bf0bee7e7b945125f39a9652eff04c6a5a1bf6bfa"
+    },
+    {
+      "inputs": {
+        "a": "507a427668b0280333034f5e888f126649404d0be684e1489128ed63b5659a",
+        "b": "b83a74c27de9f61efbcd66fdcb46f4912a30154c90542e308f5939808b7488"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_16",
+      "op": "poseidon2",
+      "output": "1ba59a454c6544fc5d46a6c4c27eae5ece641ff0eb8b9cd85a993927c92027ab"
+    },
+    {
+      "inputs": {
+        "a": "b98a2d280c0be0c6f95cb7a0c9ae190f55c7ea7576d25b85a2d8a68b2d3f10",
+        "b": "e15de654802e80064090ecf1f2bc3795eb9eecfeb14d694ff4be3ed6984067"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_17",
+      "op": "poseidon2",
+      "output": "2873ba7df6c70c74485a140882820b01a3001b1c012d8b115df87edf5b554a7a"
+    },
+    {
+      "inputs": {
+        "a": "a8281cff20a331c831aa4049a7b8b96dbe4ecd85a03d70f58243b954589e11",
+        "b": "7acb73dd34ccbb22e9c803b629659b6059ae9b1a2450352d06015311aaff6a"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_18",
+      "op": "poseidon2",
+      "output": "0f2b82fcb4aa66a3122b1e507156bfd06fed1b815950aa25a193636e88b33733"
+    },
+    {
+      "inputs": {
+        "a": "f6d03b1857cec4888484c979cfe6a39beeef778aede58d2b6986c495adc7dd",
+        "b": "a0b45dd83786af03c5975a03a04c63060ff7bcdb7d75943ba78f82f850c177"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_19",
+      "op": "poseidon2",
+      "output": "1c5141359896bc91e2f6eb7140390d25e4042984dfc4041b62ca68a545e8a197"
+    },
+    {
+      "inputs": {
+        "a": "05ab0d62d56daf35706393cdaf574ab23b87311c2f4237a5486e94f694ee76",
+        "b": "75d2b4ef96287d3f05cc56d24ae2978850dc4816212d35e4da450d4878c707"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_20",
+      "op": "poseidon2",
+      "output": "283b1076badf2284e61530a23807839227a465403c322ee3870703aa364b8152"
+    },
+    {
+      "inputs": {
+        "a": "d252f0322002868244bf203fe604d80a65d458da7e8d4e00b8e9f61e6803e2",
+        "b": "f1d99c21600a63f9811352d85f257787e719717eb576f059f6a16cf9016196"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_21",
+      "op": "poseidon2",
+      "output": "1e04c06c3cf544f178695457577ef66b10d49bf3ad8217a7a64c5ef253618b9b"
+    },
+    {
+      "inputs": {
+        "a": "34f3b93da15d1a21049fcd3d27ba2e2c6bd15e8ca479a980c065eede7543a3",
+        "b": "032e9e087af085747eb0c14f416fa185a843ec47c6c0c43e5006d7127111cd"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_22",
+      "op": "poseidon2",
+      "output": "2ed3db8df91697592a06a27a7cafbfb1e1dc101360ac7d8f7fd832c152ac3ddf"
+    },
+    {
+      "inputs": {
+        "a": "230b0d2baa29018bc9d69079b1a099ca468cd4cbe85e13c6f551c4cbf5c6ca",
+        "b": "d445ad4283b118b2df1386c58ff8bc09a753701a4a0096a21487f4568d09f2"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_23",
+      "op": "poseidon2",
+      "output": "0cc363c3fac7960712a9fb3b394e1c940755b157a97c5b0a5d828974d8d70315"
+    },
+    {
+      "inputs": {
+        "a": "d4c222fdf77cb241754f3a20e57ca33f2c04a437c08d1847876c93f09dff6c",
+        "b": "c1743cb0771bffb8b88263d68092e2736a1dff7199c64f44b0950b67bf07c4"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_24",
+      "op": "poseidon2",
+      "output": "0a168cc12ef34f31a821e69efda0d44c09ede6831558d532bebad896d0a7c8e1"
+    },
+    {
+      "inputs": {
+        "a": "d7be1bfba3c1b5ccf825da86c60c986c9cf74febd28e9e60866e107bbe5dbc",
+        "b": "c302606f0e791475ec4086cebda6ff9b30e8f718fe51ec1fa77ab84b8b9001"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_25",
+      "op": "poseidon2",
+      "output": "0e59f97d59bc74ccd300d9e639cf86640a7ed2142b7688a6abdab5683a0c2257"
+    },
+    {
+      "inputs": {
+        "a": "7b6e445c2dcab4728a12b46aab0430b11680be9266321f1e21c3f1c0075b22",
+        "b": "8c64c7908208359ce6ff0ae67c7d17afc00e38495ccc1c8870841d48fb0592"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_26",
+      "op": "poseidon2",
+      "output": "14df5d10b5cbd14d502097fec247cfafa5427025c22366b9a04d476cc23ce290"
+    },
+    {
+      "inputs": {
+        "a": "c79462d9eaa7e2cd88b777b0d81049e5fc63d6dfcc23e03359f4abce805416",
+        "b": "78eb4e99efead67739ff802274d86817c2d03e65f82c73190337f91efc654c"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_27",
+      "op": "poseidon2",
+      "output": "11c8e4275cc7eed91fe0330ef748d0ca59835ec32dd6090db5790745cb22616c"
+    },
+    {
+      "inputs": {
+        "a": "af824e58deb6f601347a35d9b8077009bb735107fd192a52b3135d27e6211f",
+        "b": "bea40e048152016dbf2d435f24fc7412b2f3b91b4ee33f5710d9581e570b05"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_28",
+      "op": "poseidon2",
+      "output": "0b2153f68fe38fe40ed29e04a2d2918510d022d44a2432481342f1ee81fa9d10"
+    },
+    {
+      "inputs": {
+        "a": "44065dbb96abb7c88fead1f12a47c681cdff0521d936fac3a0ccbeaab71824",
+        "b": "87da995cef575e960f672a425896671b72db76a7e0988ee9ef58ee87dc908a"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_29",
+      "op": "poseidon2",
+      "output": "14dabd05ff60e8810312f9252c59a67527052054186dce2fcb643e8209a6c4bd"
+    },
+    {
+      "inputs": {
+        "a": "d945c5c1a083662c06bd5e24ed9794b19b4a6b2fbda4bfba9ee966070fe686",
+        "b": "0e84bc21d78c920c7b6623a2ef4db324c43d379a505b13cd86b98f9542f002"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_30",
+      "op": "poseidon2",
+      "output": "29266f518c200bf0cd7b807101c3b0f0256d1dcb35d0b5b8de638241630fc77d"
+    },
+    {
+      "inputs": {
+        "a": "444ae94053e89a96b868a7f4caa6de3a0bbd2d8f62e1aafcb61ae95bc9c7eb",
+        "b": "3bdf154185a68c12de976b77fbef5fa60c0936b85cd7b32b93f350fa1955b9"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_31",
+      "op": "poseidon2",
+      "output": "22176b997db007f9c109dfbba526238c24de59ca32cf487da5f35bf741be6322"
+    },
+    {
+      "inputs": {
+        "a": "c7d89442eb906f2830b4ccfcb0de3abff96cd2b155d4c87e299d14779753d5",
+        "b": "94973dc46db6fbf4b7ad660344e068f6f45ff2871dd894ffb2c9e5222e92c2"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_32",
+      "op": "poseidon2",
+      "output": "068238a10c8afcfb4bbe09cfb08cee31102b5776c9548fe4c604f731e67651ba"
+    },
+    {
+      "inputs": {
+        "a": "6516c39fd6a096841805b5dab30daabee7850b3cffaed9310a1b8ba8da487a",
+        "b": "7cc092d22bfb7f0af86412594f5b8d94df9e3fc538ab493cc18d328e8df1e9"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_33",
+      "op": "poseidon2",
+      "output": "0009783dace024ea5f468736b3decd50111d9a98f516ff1f9252c8c055e8f422"
+    },
+    {
+      "inputs": {
+        "a": "1009061a14d0a2e9bb4e093696044c83c8316c12aaf768f40a195326a6f174",
+        "b": "76fc69d8b2e614542ce83af8b41b022627e798c7398401cb5d7865f43d411b"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_34",
+      "op": "poseidon2",
+      "output": "06ba5a0865d8e75f346ad7adf8dc39c933a56194be6429cb293b354b7518d4b4"
+    },
+    {
+      "inputs": {
+        "a": "28413878d0b0ed2005d314a60e222d98a07f9125bd4f4d104c849992352e57",
+        "b": "764dd6ffa293c107e50be1db34246a2b0b81addf28444b9200ca186d1c0da5"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_35",
+      "op": "poseidon2",
+      "output": "3054d3c40b516e3b80c2269e02bf822253ca9ed067801fc744d85599e50a2650"
+    },
+    {
+      "inputs": {
+        "a": "7c0f1ae0a20eb5afdf23505c29dddfa8dacc422fd2bb3c4dbcf962dea94587",
+        "b": "ef36b5bacac0ce1c2bb445c4553f02161f206bafc96c4a33c3c95011b6eb78"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_36",
+      "op": "poseidon2",
+      "output": "23003a891e10c2ace53aebc7981b1ad1cdc239b8f9f835dd4689c33e67e28e2c"
+    },
+    {
+      "inputs": {
+        "a": "2a800b9bb9792ffb32b27ab06cdb47046ed87c08da9c8d9f55245ad3d286e5",
+        "b": "96f438452b7cdbb055dc601acd4278dabbf75f3e9665f2afaddbcf25fda3b7"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_37",
+      "op": "poseidon2",
+      "output": "23b34539a69b2d781cb4fefb83e3ea1831ab3f4367507514f46287fe6ba983f9"
+    },
+    {
+      "inputs": {
+        "a": "bc1857cdad33197f90fc53fb6db1feeef68e869b15f06351d492f1800c14f1",
+        "b": "ff7edbc61627f6146d792259479fe9cfcabbfe4369b7813d690589ac5a0b2d"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_38",
+      "op": "poseidon2",
+      "output": "1a5f2c90ceb29be0aefaf407a440f6e7febf88ec26f86cdd2026309475765f1c"
+    },
+    {
+      "inputs": {
+        "a": "168db4e9cb412879bfa19bf86f5eee0e2fe381dfb670982894c505cbc44937",
+        "b": "65184984234b4aa84f79bdb4896f9d02e85f26c64b77c2eaa4e232cda34797"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_39",
+      "op": "poseidon2",
+      "output": "2feb549c22b789c015f50dabe2bf9b8bd1efb05c1f53021bc85532f849d815d4"
+    },
+    {
+      "inputs": {
+        "a": "bca937c1dd5dcd76b74781683c859328409089c77c12497bfb7051e65c588b",
+        "b": "f9cc77673a74f4f4fdcfd417617566f81520afc79c2f073959b93826414df1"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_40",
+      "op": "poseidon2",
+      "output": "2e305045b11f602815281243ed84587e831ac418f3f1452ee7b7c4bc28c9894d"
+    },
+    {
+      "inputs": {
+        "a": "2084eb167ffb97c5657b3172a48a1748e4c00f2406ccbf822bcac0bb2bafcc",
+        "b": "f0070ba0f04a178bc8fd263aa43a7b2bc73392ef43d082a721ed5d6a7332a7"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_41",
+      "op": "poseidon2",
+      "output": "2f50dca212cff9bf3da5eb3c736ef2521ca08676f8bd17bbf00860eb759e2d83"
+    },
+    {
+      "inputs": {
+        "a": "d3c9fd9870b2d79fabb4f29a076e7815b28e5143a16348ccc066f855564060",
+        "b": "41b795fe80fbac468ba778daffc2a8e29b40325858f6140835dce3c5717d53"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_42",
+      "op": "poseidon2",
+      "output": "27dcd8c45177954021a6d0611e5741c1b0658e70eeb6f4f582f80c3e3edd4bd5"
+    },
+    {
+      "inputs": {
+        "a": "5b7697b5e1b6703313e884b20f00b6d37dd82ebc451824ace96b4076e3b5d3",
+        "b": "2ead59d711501a68195176a99ddf7d1b3ee041750ddb2ffa2d7c7612418124"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_43",
+      "op": "poseidon2",
+      "output": "2130586b12f75cee0ff710fc6970b20bd8b03c90846995360d620c353a76f82a"
+    },
+    {
+      "inputs": {
+        "a": "28e5d42f3dda26ae2d5cd4250d322aa06086f5ecc379c5ff5a92fa6546da3d",
+        "b": "72f6d2af22bb5c25c7f628199b0037976ded1b1cfb73a0e3e7a284f7546533"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_44",
+      "op": "poseidon2",
+      "output": "15acab307e25b0fbe8d83177090c58a5beec1cf69759d2e70a180a0cc1438691"
+    },
+    {
+      "inputs": {
+        "a": "408f25fe117d9a49524f311781325d03ff3c253abc482eb14d8df5f1dfebff",
+        "b": "fc101cb2c5536fe19d27e72437292ed28b97ef66f09b2c9197c684ac15030a"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_45",
+      "op": "poseidon2",
+      "output": "0a2e924badf02ed4460fa86818a6d35efd3fa5c255d279784a3b550c9fda1cd6"
+    },
+    {
+      "inputs": {
+        "a": "e2f570f8a069730c70c957554d16a5f5d5a36c3812373c9f7d2c2023c0d77c",
+        "b": "c7c13950ce6d97c9477ff1793c21fd12ee82c4003adfc194ed9e387a210a17"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_46",
+      "op": "poseidon2",
+      "output": "0d972ccfb759ab183e1142ba2a58c50ca845bb79ff49d2563b72dd5d5c75fa0e"
+    },
+    {
+      "inputs": {
+        "a": "3395386fdf61f0e67f2269dd46feea1ee90259d292197077e3fac9ad84a990",
+        "b": "fbbbe328b905b558141770d1eec783b2bcc9cfb745094f0db5a2a0ac8a7569"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_47",
+      "op": "poseidon2",
+      "output": "0f697efa23ce64d4c306fd3f093f50d4faadaff0dfa397ebd344a69d476a767d"
+    },
+    {
+      "inputs": {
+        "a": "a491178b8eb0faa84b679763d9fe98dc1ef9f414f119c38981722ddecdc58d",
+        "b": "667c75020e7dfdc2b27b8431708943da97461a0e5b568364391ceb3318d9c9"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_48",
+      "op": "poseidon2",
+      "output": "1442c269e82f9efd9c21c9cb1d1e7fa48a6bcd020ce3da808f1140b0c2dc7e6c"
+    },
+    {
+      "inputs": {
+        "a": "c8dcf64c8da45365db8acb500e9f2998a96f3fba6b8cc36f767ab55cf8ead3",
+        "b": "0978db73251b380b1a266ffa1278816e44eb8eba00daccd644e0d2dc2c4d15"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_49",
+      "op": "poseidon2",
+      "output": "0854cb462c8f5f7c291458bffb2ada7ad005bc68943d43e83ba36a9b2badecd0"
+    },
+    {
+      "inputs": {
+        "a": "101f19d9bb304b541042e8c527af21bc80d0591817b28824a074cf412337c3",
+        "b": "19aabd9c331737af90030b879b073946f801a5bc1f54449dbafff4dff621f2"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_50",
+      "op": "poseidon2",
+      "output": "0d68710eb4c7c838fdb66346d109925d901f20a0a8eb63cd64104a396d4573d6"
+    },
+    {
+      "inputs": {
+        "a": "842e27f3ee7b2ce04f03931afb979ae26f189b8e8dc8d95442ef6130761d00",
+        "b": "5304389bf56eca2b9c62316ff639c0aea49310109b8951a7c0596e9e1a7b1b"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_51",
+      "op": "poseidon2",
+      "output": "202620494cfe59cdd4d11170d79137dd797e7accd332ad7ae63615bc739e48d6"
+    },
+    {
+      "inputs": {
+        "a": "f0b3b49878733e35858e3c79819c2a59043b52f12e9d35e35b93476f735894",
+        "b": "9cfcd78edcfe7999e5c42dcf00d11a9123b1710d363d9218dda081bebbf5dc"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_52",
+      "op": "poseidon2",
+      "output": "1d72aa521876f2740168a90fcbdc8fb57fd0594f94af67739d8804983e0ae7ca"
+    },
+    {
+      "inputs": {
+        "a": "41297c8e69c5fb13a8f683c620b48b3947e6b66c750fcd6dc2d02df28db66a",
+        "b": "612be9472c9900e2fc823f8acf6f167bc618b05ad662dc832fa7e09a6cfc10"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_53",
+      "op": "poseidon2",
+      "output": "0a65e406c586af2b94621cc626b6a4a24aba97cccf6457afb47db323d70e53bd"
+    },
+    {
+      "inputs": {
+        "a": "affe6462b8f74d5b33b5db60aa5893a9c3b1686c98e404e939fb61d802e46b",
+        "b": "5bb09617e3d3f4dedd37bb3dd27e54072ed071a99467ae7a5b9fe6a4b5b982"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_54",
+      "op": "poseidon2",
+      "output": "1960f1f147480759c255debdc0e3cf507f9bc64250417673ed21d9bf9220780a"
+    },
+    {
+      "inputs": {
+        "a": "011f9e028f05b277e3ec417494c72db2a94787436d7907d9def32fa15db28e",
+        "b": "3a9f2236b98cef614f76fb229bfc73484fbdb95f7723bc9e31b59508d9f6a5"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_55",
+      "op": "poseidon2",
+      "output": "0e41ce2a47347db70da6032b84cc78c42c0e1088f56cd570507e17eaee50ff08"
+    },
+    {
+      "inputs": {
+        "a": "e8eab50d7619416357421a51d78bbb192283514d81e2e690932c5eff82a5e7",
+        "b": "058f25487bae35b9cebfe5c27ac7b2b54d9ea795a796bcc186178117208a38"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_56",
+      "op": "poseidon2",
+      "output": "178b40a032f0cebc14571f50ee225423b78e80264b0d120a6fade3c50d6e085a"
+    },
+    {
+      "inputs": {
+        "a": "4e205aac6c2d5e57ecf523c149675ecee186635fb909f6252d44727c91c001",
+        "b": "5ee6805a006b6154d14477611b6df263baf2563bf30eb22e1602fb6e134c4f"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_57",
+      "op": "poseidon2",
+      "output": "0a4e2f0e2a89be5d01d88d087687091fc09f6a992cd62135e41a36f4f28e697f"
+    },
+    {
+      "inputs": {
+        "a": "8e58eb84ce12e0e58242f6c61bda6161769c4f986d7a158850b4324150ed51",
+        "b": "440a6cd643303cbc8706d9cc488250f1957e86c2257daef562e6710539e077"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_58",
+      "op": "poseidon2",
+      "output": "05f97287d533a5af20cbac1eca626a547ff6cfe1e03bf2b5d47cea2f427e4c40"
+    },
+    {
+      "inputs": {
+        "a": "3e32b94a99bf17def68b03aa46927b17b77d8a940360b8baeabc0771371cd3",
+        "b": "8738f9639f64ba4606573670a0872df44a415b28615016972854ecc8f29079"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_59",
+      "op": "poseidon2",
+      "output": "099ac20f31c8c9675c084cc2eff66da6a450e9fe4a2086c5c57f2d8eafcb0fec"
+    },
+    {
+      "inputs": {
+        "a": "2923c612a782eecf6f9a9ef005d3c1159e6b4b4bf87971a227b1e2301036e3",
+        "b": "52947f398e6fea647dcec0cd65361e3583a75d1cf8a1be9d38c0958c661f59"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_60",
+      "op": "poseidon2",
+      "output": "2ed96fb8cdc53249d05ac850e6f39f7a23146748def62a9056afb65fe9cf0556"
+    },
+    {
+      "inputs": {
+        "a": "b42101556034b37bf481ab28211d773cc410be636de75057a81c733cb2bb4f",
+        "b": "9a64cb2e94ced24525adcddfaf17ec68b8325b2534036c18b37948c58e1bc8"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_61",
+      "op": "poseidon2",
+      "output": "2ade0bc1365c12ad95b69fb91f0ef7deb70bb0b508484988d42aa261f6148f22"
+    },
+    {
+      "inputs": {
+        "a": "cb2007163e5dcc83080c1aa3daac24a8749f6451d3854b8f194cb265f83d98",
+        "b": "0d3579b9bba7901eb98d8243bbd54439e89bf052f0b1bba2cba6a27d0bbf1e"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_62",
+      "op": "poseidon2",
+      "output": "301e2de7fe40807fab27a3738457098f383b2f8a2edb1e439db888cbbaae098f"
+    },
+    {
+      "inputs": {
+        "a": "ed57c594b2499ce5b3a3afe082dca302b0becc5fa342e05e9f90ea2b20b43f",
+        "b": "abfa9a3d1a61ef99620379f3d3cd328ae0a625ed34b4f230591eeda10de5d0"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_63",
+      "op": "poseidon2",
+      "output": "0734ff4a8863a24dfc98b602401da2fa946bf1d762c8e9b0b14085af0c517d50"
+    },
+    {
+      "inputs": {
+        "a": "17b81623c5bd2d1b8f77b286c869a21633df554a437a16023a8e9004f84376",
+        "b": "10ec269d4cda15ce8e122b81d476e6517d9c27237ae5de2d529a49efe568eb"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_64",
+      "op": "poseidon2",
+      "output": "2edc47c20e1a5dadc07fb3ec3301b9e65230156c0e64ca8858a53fdd6b6865e3"
+    },
+    {
+      "inputs": {
+        "a": "61d252ff48a52d78493d0f39148e9136a97d86a62b0f02f6006fc59ce90b7a",
+        "b": "e195599175ce06c4ea16534232127f58ce5008fe8dfdca18ca7bc53e9629d3"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_65",
+      "op": "poseidon2",
+      "output": "0791a00717ae24f295402c55ebe73b45151b60a3a1df0801ad6d31ba48069a7c"
+    },
+    {
+      "inputs": {
+        "a": "2f950e022a5fb7d8f4065e3770634967e64c613a6183cb3ae3a69ce13783c2",
+        "b": "05319c6fb501a9f20eee87042c9a1128f6c70f126d574fb233ddaa71895ae7"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_66",
+      "op": "poseidon2",
+      "output": "02cfadad6c6e17c50bea4d6514553c88beefa47cb5ead7aead0e0b84b1934fa8"
+    },
+    {
+      "inputs": {
+        "a": "1fdc57d50f41b5ee8d65ced69344ea13fb14e80ea8e7320f4c9fb37316f60f",
+        "b": "70c5bd53639d12d616cf407e724ec00be9ee09707f305ef76209e90eeee811"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_67",
+      "op": "poseidon2",
+      "output": "07311ff7b2ff5e31e876cebc99f1be522f7238ed95ee7d5d7b5caf9e80108505"
+    },
+    {
+      "inputs": {
+        "a": "9e5198140088bd2f0f0a141876118648b8da3dbfe0bdd4a930b8b5c8258660",
+        "b": "2572d0c826c0e6e7fd7c600339afbb9e70c792bd181c33101327034c64d02d"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_68",
+      "op": "poseidon2",
+      "output": "068742a8b15cb61f5a6a6848e118cc831bb121653353694308f25df993b5db60"
+    },
+    {
+      "inputs": {
+        "a": "159f9e7f6e6c6542cce9223cdd2b3b6a04b661951b4cf70ac6887ea42e88a9",
+        "b": "3bf46115a57d638d99ba3310e193402387d7c7f9b24fe352044fdf46a9c766"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_69",
+      "op": "poseidon2",
+      "output": "2952bc9fddc27a6e37a8af41922a8adfe613e31a19b6ca85842529e1b67175e8"
+    },
+    {
+      "inputs": {
+        "a": "38ee6eabcbbeaa12135ffc6bdf4fe6be6a2b0016a5c60900b089e612daef7a",
+        "b": "49664a96fcd47703164495cb7db6aa4531b45a32e4a6c8af03f378215bea82"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_70",
+      "op": "poseidon2",
+      "output": "16fcdad3b8290ab1092380fa2ce86e2d84e814ef792069efc336563e3ac359fc"
+    },
+    {
+      "inputs": {
+        "a": "65ed1ef42de97607e800c339d6505f324b1138c112a8c9241decfb302efb82",
+        "b": "b75579527e81f88675b74baafa95cba400143a5c5ea866ad6e44d9bc7b3252"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_71",
+      "op": "poseidon2",
+      "output": "0149ba5e2c3abffabe70b9aa16259fe985c675cb54483fbb293d41b741ae9a39"
+    },
+    {
+      "inputs": {
+        "a": "5d302d67d4363e9d4057a801f214a00a00e9ba9179a0ddb7a5cb02fb71a9a9",
+        "b": "16d8636794d6e17f3b070331e57746a7c06e08b3537862f0a84f2d1541aa48"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_72",
+      "op": "poseidon2",
+      "output": "14b0dee41037dd8a8d8a9315d55c5bc83ae6282735155bdbe53fc4d250359875"
+    },
+    {
+      "inputs": {
+        "a": "d559d35f3e2be17416f48892fd98ef0331375c219d61d55daecb65eaa7be1f",
+        "b": "70f5f537d094fadb2fe0b336e2014430fc46f167522f7f76cfcc85cbdb699e"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_73",
+      "op": "poseidon2",
+      "output": "067d907b976a348a96465f004cd135e94e7278c0632e5d738ee168d9302c7cc7"
+    },
+    {
+      "inputs": {
+        "a": "b2448d613af59006bd4835bdf5a717761e903e6de277b29fd588a0995b3c08",
+        "b": "b889dec8d14a5b4fa28fe8ed203b38995abaf46ba2c55909c588039fc35bb2"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_74",
+      "op": "poseidon2",
+      "output": "12e117d2bd9fd67f5d9d9b97d665739cdb89c2a15b31f6bbe3cfcf2889cec02d"
+    },
+    {
+      "inputs": {
+        "a": "c546b48f6b02534e35f41e0613dc71be2484733bda298714de7dedb1154ccf",
+        "b": "35a119326dbaecc8d101cdbedb5619c064332bd380f301fbfb16f1d524f81c"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_75",
+      "op": "poseidon2",
+      "output": "2b515648d774f31399dc06ecf3dbd59edefd138924afea8b918c0b1ea67c0378"
+    },
+    {
+      "inputs": {
+        "a": "daef8656eb3876a3b0597171cd3959b8eea0682b3083249a960f513a5919a2",
+        "b": "1a431b8ac0d95d9f2219ab73dfcdbe84d76c72f16f17bed3576f41de6f2772"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_76",
+      "op": "poseidon2",
+      "output": "2fc3db720ed4bee36b73f4736edeae3a2d58b5ae84003fc1379fa95dfd110f42"
+    },
+    {
+      "inputs": {
+        "a": "506ffb453e4e240316b7d0d4c574be7eed26a4e0f0d4a5df046520f9579d45",
+        "b": "968fff10857d1e232f3f5eb9c94293c542095000401cd2203982d36641292f"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_77",
+      "op": "poseidon2",
+      "output": "05c00fad1c9f2a09248e0c00b758016f2a3f30913b567102ec5ffcfd21feae7e"
+    },
+    {
+      "inputs": {
+        "a": "b45d13ec72d6267848ae7d904dbefb909b29d7087c49929816b0ff2eef098c",
+        "b": "10e8133f37cf1c2699720685e49ca86277cb96e02007c4f66e708967fddaf9"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_78",
+      "op": "poseidon2",
+      "output": "10f49e806e6b492d59aa095735df0e132e8cebe329f63a965b951af10aba7a9a"
+    },
+    {
+      "inputs": {
+        "a": "f7ed4643a175c95d4e28ca525c6ac3bdb3e114693c7aece4002a05aab22f7a",
+        "b": "ad6e00ed62d8bf1f47499d2dd602368b457be4de2bfe45acf4ba2792126160"
+      },
+      "kind": "crypto",
+      "name": "poseidon2_79",
+      "op": "poseidon2",
+      "output": "22cbb9356b798be76190a0ff507a06da49c112207e5631594cdf4bafda9713b8"
+    },
+    {
+      "inputs": {
+        "input": ""
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len0_0",
+      "op": "hash_bytes",
+      "output": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    {
+      "inputs": {
+        "input": "d7"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len1_1",
+      "op": "hash_bytes",
+      "output": "05130c2453fb0ed936e0e99378ca10b15efc66d2d003a7ac2c8e78d8c2ba29db"
+    },
+    {
+      "inputs": {
+        "input": "17875c65cda998858c1963bee3c60132e9baf91ff76c46e7d9251b95b0be"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len30_2",
+      "op": "hash_bytes",
+      "output": "214418022c57a108efc6793abfaaaa9f3661d95f4c620ead1431260c4f3ab42c"
+    },
+    {
+      "inputs": {
+        "input": "2a8549bce0cf2985c208536f908f0567b279c868c955d0e49df445cb00572a"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len31_3",
+      "op": "hash_bytes",
+      "output": "088926cc7d9cdcf4e3a734689e51b56eaf6fd8a0e1eb6be77a379638f674c6ee"
+    },
+    {
+      "inputs": {
+        "input": "e0d03f5cf86e2644d083b14723f21f5d130ea0753ca2b41793d91c7604732410"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len32_4",
+      "op": "hash_bytes",
+      "output": "2c3f6a0dd9cc3a2277413f2603a2a6588accf925fc9ebcb75fb32bf22b42b0e4"
+    },
+    {
+      "inputs": {
+        "input": "99ac51fcadedc4a690c2e5c2bcb1ecd90bb2c0762b9c594a1e223d5ccdc85301a228c7df65815a56163c581ec78dbca909c354c3981bcfc676e4f20b9a38"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len62_5",
+      "op": "hash_bytes",
+      "output": "2ce20545e3cce55ffd104df45536c6436e8a2ce3783bc781b13b5ec7b1040e36"
+    },
+    {
+      "inputs": {
+        "input": "71210ac019641dac4dcbd7e937430e31108e93952f15ba014b526eecefd315fc96a0d35da7f1b973c7ea4b679dab6ea909fee7a1def69ffcbab81d84c37c0a"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len63_6",
+      "op": "hash_bytes",
+      "output": "17288d125a56ea17df354416aae207be1cd1984f8562b62bd174cd5800743076"
+    },
+    {
+      "inputs": {
+        "input": "027e743834897875bb3291cffaa0b89842ec9b42ecdacb5b3e3461482c3ae205401ea3997972328dabb55532043371c94710a94d5a3271d09a7e827cc9eb823e44de9c31fd675bbe4e3569bdd7eb106efe9d462e165709aba778a4b935afa543015c6016"
+      },
+      "kind": "crypto",
+      "name": "hash_bytes_len100_7",
+      "op": "hash_bytes",
+      "output": "20d5c9ea31512752be12bae29fc094de3d1c568152c8e3c8a69302cbe2d49933"
+    },
+    {
+      "burn_tweak": "02f10ec55ed20b593e28ef19b0649f026a2377cf3fb6bae7c62380ad471e1e12",
+      "inputs": {
+        "asset_family_id": "b3ce09d50d7b54f6851536cb43ed66ec8e1460ff30c1c5ac8820ee64924657c4"
+      },
+      "internal_key": "cf2292b1341b38f04823d7226ed96f0908c820a007d11d999f4f9fc8151920db",
+      "kind": "crypto",
+      "name": "burn_sink_0",
+      "op": "burn_sink",
+      "sink_script_key": "ebcb4faa4f46d59cc966ad4dd24571e8095559b4cc9f38fea174274a27901c54"
+    },
+    {
+      "burn_tweak": "5b51887038f7f45d5b1d8ee85d4d37735795839144865e313adcde6fef16659e",
+      "inputs": {
+        "asset_family_id": "8b161f934279c4b182aaa352b8022b50be615eaecedceb8b68784bc559c56270"
+      },
+      "internal_key": "3865a5db436829c9154c7a3e8f6d1cd505535a1c20ef10926e363fc9c8eac6fa",
+      "kind": "crypto",
+      "name": "burn_sink_1",
+      "op": "burn_sink",
+      "sink_script_key": "9785a6a8f72cd31faca3a62a1a3392b71977032808000d05f02f688ea3cc92c6"
+    },
+    {
+      "burn_tweak": "ddb01e5b30283f71f58d53bb7986a6e6eb14be6cdbfab74364745f8f92419b38",
+      "inputs": {
+        "asset_family_id": "f50092b4e5f9bacb20a6947b1e0029528b00443ddc87f25c494e1d56c79ed6da"
+      },
+      "internal_key": "d85484481481069ea072e53f52a41dbc4903a8b336f62678ed56b8736ed0c0f8",
+      "kind": "crypto",
+      "name": "burn_sink_2",
+      "op": "burn_sink",
+      "sink_script_key": "6d74cf979dd2a63d0e09577943176ec35ddf697a004c4e3bdae87e0a850b7547"
+    },
+    {
+      "burn_tweak": "321505d7f4f0e755a88283871614bc03e06353253a3a8598a01dee34744bc5cd",
+      "inputs": {
+        "asset_family_id": "acaad8966dfcb092b7f82825005004df2a109eb0f6cd5594bd31d4fa7904b71e"
+      },
+      "internal_key": "a2e55635ccf31f9e22916676636e1e768149a8830c5b9acd5d5200664712d429",
+      "kind": "crypto",
+      "name": "burn_sink_3",
+      "op": "burn_sink",
+      "sink_script_key": "1e5c91da8843a58edd31193fd230f16397a7547e7813bc5b37249040c81484f1"
+    },
+    {
+      "burn_tweak": "a1cf57410252c300629a4fd7488bdda99fc09fd1a14814cec75edef5c2484730",
+      "inputs": {
+        "asset_family_id": "df1ca31453320187d71e1d73f892906aa70e6ab6070ed991705b2da74aa00e03"
+      },
+      "internal_key": "29f4a36f7c36e63902d1bdec80165e2f7dfa52437542a7a7f9a8b2be9a1c040b",
+      "kind": "crypto",
+      "name": "burn_sink_4",
+      "op": "burn_sink",
+      "sink_script_key": "a238831c58ad522aa88a3422aa79942b90bab0ea1f6392097ee4faf4485b39a6"
+    },
+    {
+      "burn_tweak": "158093088bbea2b934e3783e102199e7341e97b22629e4e3ce334b9743d8d4b2",
+      "inputs": {
+        "asset_family_id": "87846a4eb8a6f92c1640e4539601c8d27078decf9c978f234d192f39dbab45aa"
+      },
+      "internal_key": "72615e7179d0e28c8f2280c64727fe439e6980ce4737a508bcc76652ef8ad4fd",
+      "kind": "crypto",
+      "name": "burn_sink_5",
+      "op": "burn_sink",
+      "sink_script_key": "fab3db27664e34d49b648f6d4b24c45b8048172ed92b8e6f2bc6161b94d8c306"
+    },
+    {
+      "burn_tweak": "285293b97fd227e8afb033e245b18af876c4d73668f11f338553b7a87c4c417c",
+      "inputs": {
+        "asset_family_id": "189a54e024ca0fae6b0d3396be622deb34fdeb4d89ad52146f2a39ae488c35a2"
+      },
+      "internal_key": "b8614d5cadec138f000ebd6185ad43455efa18426d0141a2e11fe06a988575b8",
+      "kind": "crypto",
+      "name": "burn_sink_6",
+      "op": "burn_sink",
+      "sink_script_key": "c99d43a003af88cacb17ce4b84edae0ba2e17460a5680816c0dc815657dac0c8"
+    },
+    {
+      "burn_tweak": "f163f7cb151501c5679625a94d815d7d99aff91f05103105b1c42b6b61d43f8a",
+      "inputs": {
+        "asset_family_id": "ca903a6886ed80735d976337d7ab82e5538e5c0f8ef305b3a0ac36a4bc586089"
+      },
+      "internal_key": "691825edd3011534e882d59455e3c3eb00de5540cb85d7afefc21640c54d8c07",
+      "kind": "crypto",
+      "name": "burn_sink_7",
+      "op": "burn_sink",
+      "sink_script_key": "c62a4e1b3e31f04b794ad0691f56c9d98128de249f03dea4adff413cc4bb1988"
+    },
+    {
+      "burn_tweak": "489c8d5283a7c4c6a1e4851c0c0e425a52471598194e4637e546c7072c54652c",
+      "inputs": {
+        "asset_family_id": "dee0b3d8ef7915013cb3c32da28be77ade39ed5bee8b523eefdb6e975891b2a6"
+      },
+      "internal_key": "b8727916703592d35b4fa7a08e171a0a0611b4fb1257c95a5a7729592db1c918",
+      "kind": "crypto",
+      "name": "burn_sink_8",
+      "op": "burn_sink",
+      "sink_script_key": "53bcb092009e7d900af234b30dc19cb09e968b287f9e9e4eb5af8742ac39e9af"
+    },
+    {
+      "burn_tweak": "9d17f0f7b5e0bfb218ed68e7c4e60fa3d40cf7d14b701224d8d0d05643d25f5e",
+      "inputs": {
+        "asset_family_id": "ae6216494e68348160aca7b04e0ee1729ed8b7a529305165dbdea680475ed2c1"
+      },
+      "internal_key": "30f28e321513ea6fdac43c9bd06e1f9034063044eaf883c046831327f897b54e",
+      "kind": "crypto",
+      "name": "burn_sink_9",
+      "op": "burn_sink",
+      "sink_script_key": "4dae2820ad30ddb0990f96e4c2b0a43c4bcb5e8221e4d22b3097ec678866d5ad"
+    },
+    {
+      "burn_tweak": "c40e811853ac446a5f0feef3e88585e9b12fd67279e59f5f48df78a7e489b637",
+      "inputs": {
+        "asset_family_id": "82b107d608c1df614e01b11db13524505c76f551aa8dcdd559272a6b6c970d74"
+      },
+      "internal_key": "bc20dbdd5614da913f65bf633e0dfdf2604a57ce0281076672b8fdc550c155c1",
+      "kind": "crypto",
+      "name": "burn_sink_10",
+      "op": "burn_sink",
+      "sink_script_key": "6614fe9997c3f939e3b432f87952a5240db4706e97d4de38ca83a0773cb118f9"
+    },
+    {
+      "burn_tweak": "3c82eae2c75a92c7b10dab78b4b1b3c699aa2adfb7c30d843009ff5dbd4ecd8c",
+      "inputs": {
+        "asset_family_id": "0d678dc113f4283dd7fe17a059d85eed0b3474d0e6c89ca6fbd00f9ffbeb4a87"
+      },
+      "internal_key": "98040563e65755d3fcea3b73b7119208a05495758c26b281354c7e535ac68ad5",
+      "kind": "crypto",
+      "name": "burn_sink_11",
+      "op": "burn_sink",
+      "sink_script_key": "c90e2eddbf560b0e5f0aa2d677a3c2fddc9b743efee4a754d686d72f620c46db"
+    },
+    {
+      "burn_tweak": "0ccc6c2ee5f11f1170d9f4d395e4170d364a87ed364b1e0e096c99f84a49d1ed",
+      "inputs": {
+        "asset_family_id": "441f9defd009206c608c181873585e296a81c1038876697d4b4863c987d9f366"
+      },
+      "internal_key": "691ed7f5f57846c56d03cf1654ef25169eea74098485d0c82f64a05f8bbec792",
+      "kind": "crypto",
+      "name": "burn_sink_12",
+      "op": "burn_sink",
+      "sink_script_key": "bc1482bb15bed98f4abb3b6c9b641cbc17f6ed7de14673d98590921b98ae1ae2"
+    },
+    {
+      "burn_tweak": "6fe4e48015ea58e59d73ad8107ce7ae1fefcf8ead3985f6ebaf0e0b1f298d9b3",
+      "inputs": {
+        "asset_family_id": "142d707388239591410397c7a458e31d08ccf07c0bf87adcb0e472dd015a47c4"
+      },
+      "internal_key": "981ac579e8638f1974d3f610326676d82509e4e0e2d807e4e3d1ae58abad699f",
+      "kind": "crypto",
+      "name": "burn_sink_13",
+      "op": "burn_sink",
+      "sink_script_key": "d737a678977eacc3c0cf29dec2163bfb94ffee7a32eb27c0264c698d083a140a"
+    },
+    {
+      "burn_tweak": "1d5efc8dd317af2d3e92c6faf6ccee271da2cbb62aaabf3121358682d4ef18ed",
+      "inputs": {
+        "asset_family_id": "bb87c4f54c224ae947a751c7b35057b48a53193eb4e4306fc61389a33b6cdbcb"
+      },
+      "internal_key": "c1acb19039c053f5cde27dc9e128d0ab5dc020040280038346d71916b79d0dda",
+      "kind": "crypto",
+      "name": "burn_sink_14",
+      "op": "burn_sink",
+      "sink_script_key": "86961c176499390fb26775741c268b10985937130c38fc756ce1524c855c64d9"
+    },
+    {
+      "burn_tweak": "3b9a1c04c7cedb88f683d766d245bbc2c6b720fe42c67c6b0e3aa1d734181919",
+      "inputs": {
+        "asset_family_id": "9e568e5e6cbbf65404e7bf77cbeecaebe796982c92b4f15c41bedcb5396b1a62"
+      },
+      "internal_key": "78ef87325d588d14cec69d9bdf3ed9042351ea80c49ef79bc56465c5efc7030b",
+      "kind": "crypto",
+      "name": "burn_sink_15",
+      "op": "burn_sink",
+      "sink_script_key": "a36ed39e3dcbf317e3accff8288e6d912a7c84eea3c0446583a77d9060cdbcd8"
+    },
+    {
+      "burn_tweak": "832debe6fd9d23b31152d0aec18c52398233e0a84d6630ba6be74ba2cdb68d50",
+      "inputs": {
+        "asset_family_id": "2f5385bc0c95e8be1fce585533e5e26fc39a53194f959ffccf3b6b79267658f2"
+      },
+      "internal_key": "640d339e80f213f2c0bdf16f323fe2d0b0a961124fb511563f70c15311b35145",
+      "kind": "crypto",
+      "name": "burn_sink_16",
+      "op": "burn_sink",
+      "sink_script_key": "cae6bb6088f3f4a3a121c0de2b0ce7380182a4c9d0a11eaf03695db38d9ec4b4"
+    },
+    {
+      "burn_tweak": "31844a777b98debfc885e4b3e6965d25655e9db222659c4d7c05b5c54e67a399",
+      "inputs": {
+        "asset_family_id": "947f59df069fc2de9a4f0f1a820e22f17cca42dbab07ec366b5bc0131aeae40a"
+      },
+      "internal_key": "043ade8f3e9d53af2746a65338dd2d78205f94d5c228b3ff1832aa8e592f2c8d",
+      "kind": "crypto",
+      "name": "burn_sink_17",
+      "op": "burn_sink",
+      "sink_script_key": "b896817806e2114144cadc4273d49a2c8579c929b068df2c9cf63f7e0371acfd"
+    },
+    {
+      "burn_tweak": "61e6d9c460aa1d1dafb875188fba047dcc62b37a45e824672a801129c4a44652",
+      "inputs": {
+        "asset_family_id": "cd156c37410038814b21a38d49d9bdae2128ddd0a97a3f3ecb383211e1230f69"
+      },
+      "internal_key": "fd430db5a0bc6bc39c9b54c7de0c6edcf1f40529e0625b41e39841203c41d718",
+      "kind": "crypto",
+      "name": "burn_sink_18",
+      "op": "burn_sink",
+      "sink_script_key": "2defd9f3720b34caf511f236ab33aeebbcd725b5229b1dabecc9dfa8d310d1bd"
+    },
+    {
+      "burn_tweak": "775fa2167a09942268b4dbf719065302a9a4cffec4d3c4ccbc7261d4b08c422e",
+      "inputs": {
+        "asset_family_id": "424ee321e2dcb814d94dc5ea9c2165f4f69bf28ac56f18bf3344c685fb24bc67"
+      },
+      "internal_key": "5ef19f761317443a2d88a63e3a4bf25b93f435572463c6b2dd78da4af4c7ddff",
+      "kind": "crypto",
+      "name": "burn_sink_19",
+      "op": "burn_sink",
+      "sink_script_key": "1cf1245b891b31a2910e880c15f7ffabb684a639f26dc97e9729fafecbac40d2"
+    },
+    {
+      "burn_tweak": "5857b8d124e084bb78fd9c6256e5f386d8153e9b97261cd95478f5fdd11fdf95",
+      "inputs": {
+        "asset_family_id": "a888a5e098d6681ece6952d0526d5250d21980b916a3b5675f9d814d18bb58d3"
+      },
+      "internal_key": "6f7cc4db71d00e57df18db7d47d76d2899ff604ee4f7b42305bfa42a47648aed",
+      "kind": "crypto",
+      "name": "burn_sink_20",
+      "op": "burn_sink",
+      "sink_script_key": "fd71d4968a7647d51835b05e5d49f51ccaa473d5000a29f73f7e190eb8783ed0"
+    },
+    {
+      "burn_tweak": "8d990631c6738898ce59a0bebc2da9290b33303a4df7ab06eb286b57548521e4",
+      "inputs": {
+        "asset_family_id": "09e595cda9b23beeccac04a6b4d715cc4969449d9be308f10018e71f4d809095"
+      },
+      "internal_key": "4196a139103d5fc912d8020cfb5af0aa6593d3b1948ab0d6a42bfdabbc4e979c",
+      "kind": "crypto",
+      "name": "burn_sink_21",
+      "op": "burn_sink",
+      "sink_script_key": "70788d070e0ff8c46cf917f52722773612566178a64b60fb3b215c866aed7dc5"
+    },
+    {
+      "burn_tweak": "5501f882bb9eb98e326040afb79951a8df9d2fad8c4f230e6e4b4bc88eac56a3",
+      "inputs": {
+        "asset_family_id": "dc17521734ab7bc98fd65f9ad333cddf4e3a779980309e57f2d033954a749fb5"
+      },
+      "internal_key": "7990e1e675cc404b643d08309e6dec23ffa5dec28bda709ad1f0cd05ba9e9eba",
+      "kind": "crypto",
+      "name": "burn_sink_22",
+      "op": "burn_sink",
+      "sink_script_key": "4765c7b44954167b76efff33246913c3649e187b1976f92108a2b54f95e0ffaa"
+    },
+    {
+      "burn_tweak": "e7952ece1a1ed0e30c2ca8bd5a5f6484ec5da258ffca834288da2dab8efb1398",
+      "inputs": {
+        "asset_family_id": "779857ba01a5c176e655ecc720225f500d9f182838e18db0bcfcfaf47e845052"
+      },
+      "internal_key": "4c3e3718e2151ce250f723d4a6ed5e6c51bbd6326de11eeeefa7059a2ac1accd",
+      "kind": "crypto",
+      "name": "burn_sink_23",
+      "op": "burn_sink",
+      "sink_script_key": "99c5cfe0ad7174f04e76b408979e92ac468091f130a2e26a03554fc02a5acccd"
+    },
+    {
+      "burn_tweak": "cc06b73b5d71f9ca1af1b139f24a6cc918337f4d19da7577a1d9819e6dffeca0",
+      "inputs": {
+        "asset_family_id": "a2f52c72c80ebb91bb3f261c3a67b241ae4a5525e45f7237401178cf7ab1d676"
+      },
+      "internal_key": "bbdf71b743d375cb1ad3db63fef01d156a2ccd34229cc643e276e7c75618c906",
+      "kind": "crypto",
+      "name": "burn_sink_24",
+      "op": "burn_sink",
+      "sink_script_key": "40c00e086468662e1e77dcae36c47797005d4cc8c54b863e4740a302529b8d26"
+    },
+    {
+      "burn_tweak": "f027aa11a0f6d983dd906c77dbb4065c7b960949293b02a0da7b27f5e225e95a",
+      "inputs": {
+        "asset_family_id": "3b3f35993a319f801e6d00ec64861efd7a1858edc746ebd7b6c275d5fb8f96e2"
+      },
+      "internal_key": "deb1b4c75bb527f9adf1093fcc72c149c393d75e439ffcc39c41673b55f43242",
+      "kind": "crypto",
+      "name": "burn_sink_25",
+      "op": "burn_sink",
+      "sink_script_key": "fc728a7e5407bd53d69af16e063bc7e1c1019c47287d43d5a6516a030daabbf8"
+    },
+    {
+      "burn_tweak": "19a573adf70da9fcfadd158ab938f0605a3eb2764147e811e6028e69a4779456",
+      "inputs": {
+        "asset_family_id": "1acd9d36f7cd42f2136ec33970bc33fdbcb41fc10e302f9dce6cc339944257e8"
+      },
+      "internal_key": "e7a1f36d370481a05ece1de5d31f525d550d06f229f9be14ba4681347e222d05",
+      "kind": "crypto",
+      "name": "burn_sink_26",
+      "op": "burn_sink",
+      "sink_script_key": "32d94cfaa6cb3d59e707af07ba965ebc3099d2c5f8fc636236bcb870f3b1ba83"
+    },
+    {
+      "burn_tweak": "087c280a993349978d27e27679dcade3538fa50d344daaba73c3d1d01e15b815",
+      "inputs": {
+        "asset_family_id": "a2e940053163969e5a0f0d2941d7ad6a0ce67e1c1d695268825314c06d513673"
+      },
+      "internal_key": "a6786bd31599641ebb41320e349bdbfdfef02f99821d4ff2f2fc5326a6de9cc7",
+      "kind": "crypto",
+      "name": "burn_sink_27",
+      "op": "burn_sink",
+      "sink_script_key": "8f74bfc273118d19b1db4604bdda4f57fa6e26b6deb7e1215814b499caa24399"
+    },
+    {
+      "burn_tweak": "38e340b54ea916564b22c482359ce394e3a24b9610b6d90bf99331c94f57027f",
+      "inputs": {
+        "asset_family_id": "5a13f0012057af95e9fb25f46c6c53a03c8c922b6f6c89dbe84f90f0eac2f7fe"
+      },
+      "internal_key": "50a5d4024c860d45c069fb6c5b5477243bdc238cfabb29fcb3c6d10c464086f2",
+      "kind": "crypto",
+      "name": "burn_sink_28",
+      "op": "burn_sink",
+      "sink_script_key": "a8c46b8a58627ce53ac281d5b67c5f9c216a3d91b99a755e9b6aa7f8a8856f44"
+    },
+    {
+      "burn_tweak": "9d997a5e55e5e1a9716f2ba92948f80edd7534d42f1f2d4188848778d32b5bfd",
+      "inputs": {
+        "asset_family_id": "541e13fe469191e370fe87657eebcb98d9cfcc93ffb97585c220a565d3e3e6ef"
+      },
+      "internal_key": "202c8e16c2a88535955f3e549391b91f3a8b5f570a9c5a3b6c3dad28d5dbfa15",
+      "kind": "crypto",
+      "name": "burn_sink_29",
+      "op": "burn_sink",
+      "sink_script_key": "78772aa33b726d5405d27923f9195c6473ee2014cb38b5266cfa06d58303adf6"
+    },
+    {
+      "burn_tweak": "300fe5fbfd1d50c0cb45a45490969f3573c433d42f6aa2351592be97bdb99a10",
+      "inputs": {
+        "asset_family_id": "ef50e658213d21b4509c8bbf8258e4d1f30411740cd74f4ac86f9dcf8134214d"
+      },
+      "internal_key": "54e53cf43c0ef6f98667ea6945f552aa3b9c2164185527a2ba3158183ae9bd93",
+      "kind": "crypto",
+      "name": "burn_sink_30",
+      "op": "burn_sink",
+      "sink_script_key": "0a9a8395688475ff85ed35f562bff4cc1ec9f6ed5ef66e656f0e62edea457388"
+    },
+    {
+      "burn_tweak": "0a110f86f2dc7df1c64bdd46af6cf9153cc18b6c542f2f5514ce1d030227b833",
+      "inputs": {
+        "asset_family_id": "f282af1bd6f23851443a49c20f916059506ef1f9e2ec4343663ca9e4aea236f8"
+      },
+      "internal_key": "e02c897688eca2e16a1b91f445f028f2823c8aa20fa9bb39f7eb614fd2a155d1",
+      "kind": "crypto",
+      "name": "burn_sink_31",
+      "op": "burn_sink",
+      "sink_script_key": "7e6da28792bf0b856a220365cf36ba705acaf0eed2f59ac18d10ad027d11b568"
+    },
+    {
+      "burn_tweak": "fa633af912c426f1e9a94c26a88caa8239d36401b5a5b3e8953d07352d328236",
+      "inputs": {
+        "asset_family_id": "d3c7a1621c2942cd32725248748b507194a1796cb1f7f34e53f86f259943b940"
+      },
+      "internal_key": "62fff75052060214d74879de6c2d8db814c01104a384ad727ec8146703fb1e1c",
+      "kind": "crypto",
+      "name": "burn_sink_32",
+      "op": "burn_sink",
+      "sink_script_key": "3f46eb5862aeb0266f956cbc93741231628c9e9b7554467db2713dddbf10190e"
+    },
+    {
+      "burn_tweak": "00b80d59146e1230dde58d854cc84e0a31e9e90fc3703d3987bbc86417b9ef3c",
+      "inputs": {
+        "asset_family_id": "97a36306bd71cee10e08584ebfdc84317e4715cb888dc7d70a60b8b7040e4286"
+      },
+      "internal_key": "0ba287030d372cf09eb846f2c5b26bbc8e3500dfd624553f8bc6aa27ed0017e1",
+      "kind": "crypto",
+      "name": "burn_sink_33",
+      "op": "burn_sink",
+      "sink_script_key": "97f82c7828d52cdc39725b689aa3487f67137698d4f8cdce3351aef45148ef95"
+    },
+    {
+      "burn_tweak": "c1e59d83f27acc665ddf94a142402bb03da5317709f257f17e734798f588c895",
+      "inputs": {
+        "asset_family_id": "a4d68a0e83a14242d29568556c189cb8947f1619ccecd04bbf4780fc724bef5f"
+      },
+      "internal_key": "de71aaf42ab38e9c3b968a4efcc47c67105a26c9d2f61333414c65f7a173b625",
+      "kind": "crypto",
+      "name": "burn_sink_34",
+      "op": "burn_sink",
+      "sink_script_key": "e0422cf720ccbc5d196b789e4f08e648599beab5ac58abbc7af175d6d3289570"
+    },
+    {
+      "burn_tweak": "9896e6f8be2e05636eb6fb1cb574cd1e9073a0d9a5e7f188e584dc3f59960f4a",
+      "inputs": {
+        "asset_family_id": "0ccf831609e03e7af3d1f363045889b60f081ea4b9b4997e4c889c84e99b00bd"
+      },
+      "internal_key": "70fb93b560728adc69e4013e02861a4ad77051e0f86a2a4560c4ba2889f3fd51",
+      "kind": "crypto",
+      "name": "burn_sink_35",
+      "op": "burn_sink",
+      "sink_script_key": "7f0a051c10c045458a522a73611cb6bad2ef09279f1213e04fa11d1d6b97763e"
+    },
+    {
+      "burn_tweak": "91714593e86ed2e0edfd211d0040d0cad51a7e30506b7044ada56d5ef9949d24",
+      "inputs": {
+        "asset_family_id": "669af6722c4e7bfa931a56c422e5680aec22bf01b3e6bf85645118f00e858658"
+      },
+      "internal_key": "b447253c2cf0bc6eb349b693816eb5eff9b58a4c8697f8e6dba852da78d00c62",
+      "kind": "crypto",
+      "name": "burn_sink_36",
+      "op": "burn_sink",
+      "sink_script_key": "04531a92f6a25d82b77ef0e22b093b0dc248462e9b0a8c0159b1d9f6bf0f7f77"
+    },
+    {
+      "burn_tweak": "d2bcef8a5d13da2e2e520fc26d7be6cc7c6c951a3ef550b4bce446929aaab3fb",
+      "inputs": {
+        "asset_family_id": "02091112da7f9de8af50cc7188d74649ee5daf06b47c910b7b71d53387152835"
+      },
+      "internal_key": "11a8c42f68726bcf32a2e6cb54dfb12cd6616bfc525ec71da69184f7be40c181",
+      "kind": "crypto",
+      "name": "burn_sink_37",
+      "op": "burn_sink",
+      "sink_script_key": "73af96cc059bbe11e6c80763b68a85cc3d7bac8111bb664284c6d8d7107f8865"
+    },
+    {
+      "burn_tweak": "cf655ff4554b188e1a18fe58c26bff6d6902cda3fc5d09506e5ba754926a8e7e",
+      "inputs": {
+        "asset_family_id": "ea1f0c748506b714a31bf83cae5b4dbd511ba4ad892b606cd0cfa4672dce8f52"
+      },
+      "internal_key": "9201be7974b9e4ef7fae05a0f41013f9b3b44a3b3cab119b2bb050d6b235ceee",
+      "kind": "crypto",
+      "name": "burn_sink_38",
+      "op": "burn_sink",
+      "sink_script_key": "a0a3e01bd03ba3b32fbc770857c5a35f857b9c7247f689bee44ddbb868ee4e25"
+    },
+    {
+      "burn_tweak": "500c2df136908c97c19dae9d8c6893449ca6cec9a30db906dcbf6c6be051c80d",
+      "inputs": {
+        "asset_family_id": "3669c16b6396d411795f5d47b71cf40fd975b726446ec2db15ddf1c3f6ba3ed7"
+      },
+      "internal_key": "3358aeb7d6ba76d20f687d0b01d10fd5a0b9cc95d85fcd4942afee3fddf042f2",
+      "kind": "crypto",
+      "name": "burn_sink_39",
+      "op": "burn_sink",
+      "sink_script_key": "9ff981dd31c50a60e61f6dfb2a0987de11b887861a15d2bf34d3d5e9e31927e9"
+    },
+    {
+      "burn_tweak": "661291c5925ec7e01e8617a3d728178be461b353e341f9b0714717806188879c",
+      "inputs": {
+        "asset_family_id": "c3dde141b7e8d68b9ab089419cd56c443cc8ac39896801b245e508d91ef93fa2"
+      },
+      "internal_key": "c75c39d4da85100cb1813cad443fd81d718faa56a92a1100ecd43a6c9f3df061",
+      "kind": "crypto",
+      "name": "burn_sink_40",
+      "op": "burn_sink",
+      "sink_script_key": "18523a29b65c9daa208723743968dd18242fe8e2ca577afecfe2fbe73650629f"
+    },
+    {
+      "burn_tweak": "278aee014ebe438e8d712c12fd057d74ea01b318abb68a153d022e65ef4be656",
+      "inputs": {
+        "asset_family_id": "3cf86387f671a254602d1375ee067967682d32088900a8a6dc07eb0a25d47406"
+      },
+      "internal_key": "bc0e82598d77426306226ce9f28809fb332c45e5a846764c2fdde28ff0944134",
+      "kind": "crypto",
+      "name": "burn_sink_41",
+      "op": "burn_sink",
+      "sink_script_key": "f09d1b8f6cada4cfff28c29071ee75263a6ce30301fd245b665d4f4dc52875bc"
+    },
+    {
+      "burn_tweak": "6299d71eac6a635e2ba8a06dd850763842595e584beba5b275cbb1c58b1756e3",
+      "inputs": {
+        "asset_family_id": "edc9fefeb3d0170bb67b1e2e1d95780fdefd41675c2fca233f481f31074496c5"
+      },
+      "internal_key": "5886f207a944e3c50b2d76dc2550475b09f779ce831a3d4ee9c6bc72c4893de1",
+      "kind": "crypto",
+      "name": "burn_sink_42",
+      "op": "burn_sink",
+      "sink_script_key": "4fb6179ae07478d742250a6bc6fa4c49297e328b35d99cf63d51cfcb3633bebb"
+    },
+    {
+      "burn_tweak": "b920be086d67bd209f0a9e8ebe3cb1e8670019b5b989bcbcefb7117889d56250",
+      "inputs": {
+        "asset_family_id": "9b33b6724e9c81ec2fb8de8c86e70a12d2b070a90b098a265c79c6f630cb67c7"
+      },
+      "internal_key": "10fc41572cd4e042fb90f0dd5fc3ed00383f1c4114fddb1cb036e7769c589bcc",
+      "kind": "crypto",
+      "name": "burn_sink_43",
+      "op": "burn_sink",
+      "sink_script_key": "18abdc87d06c897a220fb4dbb74e175a48aaa5dfacd70b69921a2d368008ff0a"
+    },
+    {
+      "burn_tweak": "135a91b26cfb12d66ac2b570c4f3c101c337e2ad63ba9c88d37d22ddf4dccfbc",
+      "inputs": {
+        "asset_family_id": "469b84d216366f691eb26fe1d5ef521579d4206c1c7d37b926e5ef2f56bd868a"
+      },
+      "internal_key": "0b8c8f6f10779893e3447c5eaa38dc64f43e2f05a18326c8eda2883da3dbc8cd",
+      "kind": "crypto",
+      "name": "burn_sink_44",
+      "op": "burn_sink",
+      "sink_script_key": "59281225dc43341023876f16c4dca9a622946d429430a4d3d4f1757ba0a82c6c"
+    },
+    {
+      "burn_tweak": "5647b413a325895fad8a22251c85b8041b194b4bd1501568003a9abc57173eb0",
+      "inputs": {
+        "asset_family_id": "609ee742545b3ad19931f72399a7b77ed894cd850ed5ed0d08be656facc10bab"
+      },
+      "internal_key": "6401bfdeb0a600601b7405fcddfa4bddd737b4bc202654c02cbb4796665037c1",
+      "kind": "crypto",
+      "name": "burn_sink_45",
+      "op": "burn_sink",
+      "sink_script_key": "d0371ce883d9beafb74b67eb1d7994cd57ac676fb8abaf247b7220eaf8d092ac"
+    },
+    {
+      "burn_tweak": "8b200fdf62ca3ce734c405801c8e7cde4ce0b915e592d07fe744a6fc7d63a9b6",
+      "inputs": {
+        "asset_family_id": "5ce226cb84ba14ab871f9719feabb55ec71c801817f59c2ebd28d82526ae7ed4"
+      },
+      "internal_key": "941c76e12257bcbc413f88ae1d3fe3bc8c72ac491d1c0101e3587887bae23cf1",
+      "kind": "crypto",
+      "name": "burn_sink_46",
+      "op": "burn_sink",
+      "sink_script_key": "fbe84dd7bc2d8ce83a838c8ed946b6ab023a840fe38ce77ee0e9b9c89e7765de"
+    },
+    {
+      "burn_tweak": "83fbc588e9d667cc20d5f27c636b81c7b713902b81ef043774a65ae057a541df",
+      "inputs": {
+        "asset_family_id": "3d0e775b426ea47fa44dd3dc9b3b2087c147e57a0b0aa861b4113e80fd9947ae"
+      },
+      "internal_key": "1525a3d0d41276aa3f8637b9f9359a8ce344cfcd94f8a4e64e186f738051c0db",
+      "kind": "crypto",
+      "name": "burn_sink_47",
+      "op": "burn_sink",
+      "sink_script_key": "46352af0bb8b3ef1e297df4bd1f91acbb16a2e02e92ff2d811af74f3ae21444c"
+    },
+    {
+      "burn_tweak": "315e791359ff5a0c78227ad0778b379a67bd9b85cbad892495909ad1f1306ad5",
+      "inputs": {
+        "asset_family_id": "04baf75f8b3d1bf41984861123228ac68412c7bb4f0ccf0875b2849354106ec6"
+      },
+      "internal_key": "17a1e31f30ced992ddfe975855b6641a426edce204b7553b06b725a56b940299",
+      "kind": "crypto",
+      "name": "burn_sink_48",
+      "op": "burn_sink",
+      "sink_script_key": "44b4d9d62035bd7aed127d678a54eb14d478a51cfe4395a0314fc6e27bb80d89"
+    },
+    {
+      "burn_tweak": "625639790dcedd8244b291674eb8dad8dbfa582a3575c023d0a5388605aed43b",
+      "inputs": {
+        "asset_family_id": "887bcf3228a0ad4aa83efa979a164abcc7a8c521b844be3d4385fe9fb56211cd"
+      },
+      "internal_key": "f90cb81d2ce7bfc6e9529d0024ea0827aaed9cb2574307278b78ed4acec0675e",
+      "kind": "crypto",
+      "name": "burn_sink_49",
+      "op": "burn_sink",
+      "sink_script_key": "ea52ba669ffbf6f6bc68085caa00c8a785176e89f32a4cef855352d7b8e350ae"
+    },
+    {
+      "burn_tweak": "37edf8f153e9ed785455c6f945684b25ff94fe4d0590e7f631ad292e9dc2cdbd",
+      "inputs": {
+        "asset_family_id": "eb62608342d397752f4289b845eae94cd6a4218d0d4d3a743b8431f56e189b5e"
+      },
+      "internal_key": "042e9a4cd25916c479f8bba9057497b4e59f5223a65ad2fd1a7b4eaaa526473e",
+      "kind": "crypto",
+      "name": "burn_sink_50",
+      "op": "burn_sink",
+      "sink_script_key": "2776ea83692cb9ae3aef8e2aa06dcc0933737140b74178c053d02f609fae517c"
+    },
+    {
+      "burn_tweak": "93858840df0a72c177d71fadca99a5184eed5a9a8b2c7226ef184d33fc5d515f",
+      "inputs": {
+        "asset_family_id": "6be12090ba605d33af01190fca885adfc25ce286d8ad2049f63344d08a5027bc"
+      },
+      "internal_key": "12785ae3cd5b4eeff901806c909098fc019b847f0d5131b4e7cdfc765ee7bced",
+      "kind": "crypto",
+      "name": "burn_sink_51",
+      "op": "burn_sink",
+      "sink_script_key": "16ae5e93ea8392d8b2e6fce0f7ae16ce9b4b2c3e22776981694fdeb80c8e93cc"
+    },
+    {
+      "burn_tweak": "d7e1ff12f9898800780033a2f7e2a592addc22131a0803d023bf9682d75def30",
+      "inputs": {
+        "asset_family_id": "a7cf351b0cd041935493e76ad3119b277951f6916102cf0dc90977295e6aac6c"
+      },
+      "internal_key": "1071ca6264f8028e7dd8920ffa0c6c38b672796b0644aa4c6611e6e2da5d4382",
+      "kind": "crypto",
+      "name": "burn_sink_52",
+      "op": "burn_sink",
+      "sink_script_key": "2bc5b9c01dc4da64b018d4b27df98c5f03080f63a4ec7e7756c0470fe1928581"
+    },
+    {
+      "burn_tweak": "b0c75440ff9eb46e42b63f3546ec91cefbc4e371c68636471efe885f5577a941",
+      "inputs": {
+        "asset_family_id": "ee030ef4b8475badb54a1662104629baa6e25afeab325dd84aaae639cb2bab1f"
+      },
+      "internal_key": "9c460da9931e90bcd72aebf6632185e6f836a5543c2df8d068777ef85a2b2e69",
+      "kind": "crypto",
+      "name": "burn_sink_53",
+      "op": "burn_sink",
+      "sink_script_key": "c752ae6e530a354bf51bc6abe29d32caa5be0f6c65871897d1ccfc1e33a44c4f"
+    },
+    {
+      "burn_tweak": "c7cbd13a927551ce44969d528bd1d0ff36d1363a85584dd9999aea21471d09b6",
+      "inputs": {
+        "asset_family_id": "c3e2eeaa64634311425e4e54ca55b32e2ace97eec21fa16a670ddc644637e3dd"
+      },
+      "internal_key": "fea8b62c8960f37e414e10c42ddf7bb15b50aefc428dde60c0a13a6a14fb834c",
+      "kind": "crypto",
+      "name": "burn_sink_54",
+      "op": "burn_sink",
+      "sink_script_key": "6695f10b07b66628bfad2eba8619c97490c652ac63d7dc9aef55161c9f60f3ca"
+    },
+    {
+      "burn_tweak": "38e4362aadc73109d930e5e98a70dec28fb4b5741ca9bc215095acc0b71d592f",
+      "inputs": {
+        "asset_family_id": "eb21a2aebe57dd58a88117122406b8cda4652a3f3acd5e530086480b47ccee98"
+      },
+      "internal_key": "a848570b9c4f9ec5cf2a46262cff30567fc1781bdc43e3df099a6d4556d3f592",
+      "kind": "crypto",
+      "name": "burn_sink_55",
+      "op": "burn_sink",
+      "sink_script_key": "69e4506808d2e59c31fdc3363379ed1905bd74500656fefbde27b6cd1cfb8698"
+    },
+    {
+      "burn_tweak": "c208fa56f1bc5cef7c938d9663af1e888d6772b76edd6dd8ef1051df9912eb56",
+      "inputs": {
+        "asset_family_id": "99fa7cb73203fc34854e3b0a3fca40caef36838316f16e6a0b88834ad980652e"
+      },
+      "internal_key": "a77b8d83b19da30dc97d6bc01add94a53f61151b105aa9c140d4cbbf49eb0493",
+      "kind": "crypto",
+      "name": "burn_sink_56",
+      "op": "burn_sink",
+      "sink_script_key": "d237e1c6984c6ea33edcb3fc9c66a1fc6644b0b1bbdac96497c96e52f76e4d09"
+    },
+    {
+      "burn_tweak": "d12ed4180dfae1d0dc3e5373b0358a0316a75f1fb97647966cfb7e972e4566c4",
+      "inputs": {
+        "asset_family_id": "1b21996fb691943935ae7f560de8b6d5c82bf7f0368884c4b1aa4b0a17360759"
+      },
+      "internal_key": "0d6687c57ad4c1bb9a11b0bbff46cd75ad81b24f3b9309e69bf4da8b6c014a1e",
+      "kind": "crypto",
+      "name": "burn_sink_57",
+      "op": "burn_sink",
+      "sink_script_key": "fa56357197984d7b2ebe20d677f9c06c7bd738bf01a136d61502fd06d38b4990"
+    },
+    {
+      "burn_tweak": "85a80d7a6a6ee090cb6575e552db0da0da662bef93f3fac45f89f5937ae7aae7",
+      "inputs": {
+        "asset_family_id": "ce2805430e561b974aa57bb753741e6c8160016563cfb3564389f981ce3d5f1c"
+      },
+      "internal_key": "3121121517354b728b02921c8f32ae3445735eb1ba4a90474c70d4e489a68e76",
+      "kind": "crypto",
+      "name": "burn_sink_58",
+      "op": "burn_sink",
+      "sink_script_key": "32da453a4d45e07a136b7f094bb09b404cf7d2376cfd27ec534d1c88faf3cf8e"
+    },
+    {
+      "burn_tweak": "96cb2adcfd7a7249c74130afe72c94e61610e9ba8ae1cfa854bf4469aea7ef2b",
+      "inputs": {
+        "asset_family_id": "fe83529d92f465c1f6542ae9c3fec02aa7ef81c29718f0a64486dc383e957243"
+      },
+      "internal_key": "08bbc5f5c9b7acfa397e7a80abb647cc6969ac950f75a7303475c6b439f7eaad",
+      "kind": "crypto",
+      "name": "burn_sink_59",
+      "op": "burn_sink",
+      "sink_script_key": "8e4bdf3c280de919608cec64cbd6501a9d9a4d7c4d258215a4a425cb6776ea59"
+    },
+    {
+      "burn_tweak": "d6510fcc0b5c3f63aa15c6a86721119a648d3761dda448a7c0e28f9e4cca6e0e",
+      "inputs": {
+        "asset_family_id": "237b4e1c2ebea9e5b3bbc46fd74dc9ebf3ba60741c097854aba098b7e8c0c638"
+      },
+      "internal_key": "f53f9d889fc6a5b25a0cc08fa1884700f64a6c1eab017c15a5d8a9b2b5dd9422",
+      "kind": "crypto",
+      "name": "burn_sink_60",
+      "op": "burn_sink",
+      "sink_script_key": "c520ef4bc541e2882b8cd3b9fc63dd0d93305ecaf827a9aa654786f82c0ad2b9"
+    },
+    {
+      "burn_tweak": "6526b57745f1dc3000a30477e82165f2484b4200c3130954467db1f90cabcd5b",
+      "inputs": {
+        "asset_family_id": "5b39fef0a4f3470bda09ad77cfe880a797585598e3fe26478d7d4bd5d6cec2c3"
+      },
+      "internal_key": "af5506897ba4744baf202ac3900314df3d6996760bda6c5e35f0820fe0052cca",
+      "kind": "crypto",
+      "name": "burn_sink_61",
+      "op": "burn_sink",
+      "sink_script_key": "9358d8a04dac996fbff9262acce904df0d271b4a227443b81c28078a88bb8767"
+    },
+    {
+      "burn_tweak": "d542e250bbdfb73ed5e1cc681dbb0afcd451551e8025219f85cee5f2dbf4d412",
+      "inputs": {
+        "asset_family_id": "561f1c1f2d04c806b70964211d27a9269bfe4dffd4ac3b77b3b69c5a9bcfbd14"
+      },
+      "internal_key": "529184f8c3dbcf97807aae4ffbe6cbfa99f133d03eb7714d31847939cffbfb39",
+      "kind": "crypto",
+      "name": "burn_sink_62",
+      "op": "burn_sink",
+      "sink_script_key": "45f8e83bb0d43c8c9bbc22638bf2394cd2489f2607adc2f6062955dc35ae758c"
+    },
+    {
+      "burn_tweak": "726eb3c216eaf3a8949d9857da18e16976310d66d12ec99aebee729d9ef51442",
+      "inputs": {
+        "asset_family_id": "e1f8c91f633ba91a9bdce225ff3271bf9f45f0602a4befb1e03fdfd12562c108"
+      },
+      "internal_key": "cb357b3a1874efbf35980c1b2a8a3a8d0aa9c5b7c3a98415887108b26b082d28",
+      "kind": "crypto",
+      "name": "burn_sink_63",
+      "op": "burn_sink",
+      "sink_script_key": "b1e0a89a58e35fa0306ad97f08130384a21f9a51126cbfe3d0c4bb83f9004ace"
+    },
+    {
+      "burn_tweak": "f930eab0157bdd1289a0ed44a464ae664b402af0bd9232ca792a7a8b15026081",
+      "inputs": {
+        "asset_family_id": "03f229a1f920b31694c1319b5c5cfedd18b598e1ea72669b7c5d919f6c2727c7"
+      },
+      "internal_key": "3331e4f74309dc3c1390b6e7d796a6d70085956cbf3fe3d827207434b74361d7",
+      "kind": "crypto",
+      "name": "burn_sink_64",
+      "op": "burn_sink",
+      "sink_script_key": "c0ee3d415defebe785d09843184fccf6265dcfdbda79b845e9a916b800ff858b"
+    },
+    {
+      "burn_tweak": "f98e7d32f01ab35b2f30cc671a62206cb03a2f5509cd806805ab9ecb5c3240ea",
+      "inputs": {
+        "asset_family_id": "20d7effa459694a6b6830ab465c18bc6739f8e02fb00b85a09f42b88ad79aaee"
+      },
+      "internal_key": "4fccb1c8d93642febf706c83ee856a31703b5a656b35b26b728e9d1d4c3fdd23",
+      "kind": "crypto",
+      "name": "burn_sink_65",
+      "op": "burn_sink",
+      "sink_script_key": "af29fc96530ba810b16eebc15419c3f2bf9f15dd5a20c1cfc1e87dfbb446e024"
+    },
+    {
+      "burn_tweak": "8b3ab893f0cf174ad01da88f5244a15ca1084459ce0be4a0f23768126202fcd3",
+      "inputs": {
+        "asset_family_id": "f3fe46a977f78ecd850ec8f349920da394d6bbc25a365672be16e9ab0d93cca7"
+      },
+      "internal_key": "cf45136e7bfbfddda41535ad6c51635f5a27183ce1d05756d7cbdbcaa672c061",
+      "kind": "crypto",
+      "name": "burn_sink_66",
+      "op": "burn_sink",
+      "sink_script_key": "139a2055fc3b8b1d62df613c8b22dd8396580d2ff7b7190da4282bc5f7830fa3"
+    },
+    {
+      "burn_tweak": "6cdda88ed1598deba36a6cf70e45a26da6735ba86249f94083fc2d9751beab46",
+      "inputs": {
+        "asset_family_id": "970cbefa259553ec5e50aa248f63cd9808b427b57500d933fcf36e8bb6fdd0e0"
+      },
+      "internal_key": "ddb8ebf6e1c11daeb62dffbcc7170595aade8b6af4733d41e723b9ba45e90126",
+      "kind": "crypto",
+      "name": "burn_sink_67",
+      "op": "burn_sink",
+      "sink_script_key": "5b7737b615ddb1485c6c53c53b2c58157f40c2d3f767e83320d068ececc166d5"
+    },
+    {
+      "burn_tweak": "3a6fe4e5d58f130f6fc40e121292fd92f37bbc46be9de68b8660e05eaf062677",
+      "inputs": {
+        "asset_family_id": "919a5c200011e62ae0ebb051ce6d67eebebe4097c91be752edaa4cc1177f5315"
+      },
+      "internal_key": "0a7823c063451ab082b786bf31952872bc6ef98d35908d182f68d4dd88d545c4",
+      "kind": "crypto",
+      "name": "burn_sink_68",
+      "op": "burn_sink",
+      "sink_script_key": "5b2a3979f66435625213f23302b224f69b2ae6bf71bec6c6c0cae189f3f74e4f"
+    },
+    {
+      "burn_tweak": "6c83b00d32bb759e47388e53d10e073637e33b872cb0d8a35dda933cade40816",
+      "inputs": {
+        "asset_family_id": "fce569e32beb28621ec9a01cf3dc50d74fb2d1f5466b867dc58694d911a4a1b0"
+      },
+      "internal_key": "72d0c2ad1923e7240c6274b2b2d623bdbea3973409f39da554d3ef4e4700e404",
+      "kind": "crypto",
+      "name": "burn_sink_69",
+      "op": "burn_sink",
+      "sink_script_key": "2fecbcd4e036922466904c3e767c8774c30210c3a19028609a14a5fdda25badd"
+    },
+    {
+      "burn_tweak": "58f321217d7bf69c85088b23ae439f1bb863b722d9c8554e1f41520e6e81d86b",
+      "inputs": {
+        "asset_family_id": "0592ac484e1b43a7ec9b115d9cf67838b04cb2a24a6153847a5f63edd7b7ef0f"
+      },
+      "internal_key": "1d140aab80c40dff645ad9e5aa24569b53207e080082b142367982638c6e95a1",
+      "kind": "crypto",
+      "name": "burn_sink_70",
+      "op": "burn_sink",
+      "sink_script_key": "2a38480a383126d9855a8c191c952718774ebf68c1fa5d5c3355481cf0e17e31"
+    },
+    {
+      "burn_tweak": "979bfc57ec60ed1523517ffb5f21a1fbfee789ec4cab8c0e020e96203ba56f2a",
+      "inputs": {
+        "asset_family_id": "1abc571a158d5387871f6f1b13ce8b83fb48bfa8667824cbcc58d6c67049ec51"
+      },
+      "internal_key": "560dbde89c32882b156ad7833fc10dcc102bcbf1ea62b05ccd6eb7a7400c760c",
+      "kind": "crypto",
+      "name": "burn_sink_71",
+      "op": "burn_sink",
+      "sink_script_key": "d421f4610fb5d9105373fafd1c62d407237ed145bfdc017baf789babe916e72a"
+    },
+    {
+      "burn_tweak": "d8290050aa17186d6976069d2aa814092116c2648045f67ca152a98c1b306906",
+      "inputs": {
+        "asset_family_id": "01bad8cc55546b51324856a08ab4235911f8cf7a39bdbf2d35e36cadb12f009e"
+      },
+      "internal_key": "555435b55189bac1986f07abb815bf1320ab5db3fa080bfea36e0b5904241026",
+      "kind": "crypto",
+      "name": "burn_sink_72",
+      "op": "burn_sink",
+      "sink_script_key": "245f29a80039b96c302608fdfef92747b816fda38b8684003191c0c09303678b"
+    },
+    {
+      "burn_tweak": "28afc13fdbefa86441d28b77a867ae425e084567522a4bef6bfb2301e79484c7",
+      "inputs": {
+        "asset_family_id": "5d5d85b423bfe7cca92df788b80798f3fc4baeea73a285c53478d4afb6c8a82e"
+      },
+      "internal_key": "64a44fc8b49e7c390c24d0974425f2dcfdede2026f5844064d32db033f31e97b",
+      "kind": "crypto",
+      "name": "burn_sink_73",
+      "op": "burn_sink",
+      "sink_script_key": "4809e4fbfc33b2c1266a40a8f53cbe94b3ae8efe3091560dcdd6945b521bfcb0"
+    },
+    {
+      "burn_tweak": "3382e16af5835f349917d5410b9c6cfb5a4938974184b8355e4ae9543f6c7a00",
+      "inputs": {
+        "asset_family_id": "ef60f5d7257686de8cf8039891d61f0510cbb5fc38b0bc9553629c204d634e15"
+      },
+      "internal_key": "4fb0cf5d36b85073810be1d9da289ea725a9fd481c0129ff6448a3b9889c5c8b",
+      "kind": "crypto",
+      "name": "burn_sink_74",
+      "op": "burn_sink",
+      "sink_script_key": "2cc18727b83a343817930c68049e14f737c6df4b1e9d160b7f9866320abca09e"
+    },
+    {
+      "burn_tweak": "b9d7a48b3106c6428df0a1ee04185002af57a3cb76ca4c94157778f85222dd63",
+      "inputs": {
+        "asset_family_id": "8641e162f59e0df3bf66aa8e0d77fb632c374ccea3dd8a6e03ca3e3d8f8e48d2"
+      },
+      "internal_key": "f01be757cbe3debc5f7935dd4369e2ed1df9e1701ae62191bbbd2a8db0241c53",
+      "kind": "crypto",
+      "name": "burn_sink_75",
+      "op": "burn_sink",
+      "sink_script_key": "19612fb409f691e58b3b03c48c55008472eb93d7fb511ff520df5befec66cdaf"
+    },
+    {
+      "burn_tweak": "8867b7987021b48c60d97a2277b2af914435a5595389578e3e137c81f84388d2",
+      "inputs": {
+        "asset_family_id": "a3110f8380172bdbfa95e3c87b5ebc97b0d7d210470a6b724f96eeaed222b972"
+      },
+      "internal_key": "890887b235bbc69515ce73c0a7d305512266beb34fef026386c62abe7e9373c7",
+      "kind": "crypto",
+      "name": "burn_sink_76",
+      "op": "burn_sink",
+      "sink_script_key": "c15639cac7cb3c65aaae8f91b1066354c8a3bd3fc42b884895c1dbff232f5ca6"
+    },
+    {
+      "burn_tweak": "c0d7ee1c00e612262a7bbe646aab5aae0f1d5ff5cc59438392eff431d36b9b42",
+      "inputs": {
+        "asset_family_id": "9d9456e94d5592f3c6d13f470e81e4cce361437868a103c63ca08c2c300151d5"
+      },
+      "internal_key": "be85d37585be8f4b982dd61193019d151ebaa050d0731f0a3bb8c5180909e7a8",
+      "kind": "crypto",
+      "name": "burn_sink_77",
+      "op": "burn_sink",
+      "sink_script_key": "c0f32e2d6be937cddae06f0c13b483b0a3b9f177c1c2b90e70c55502161cd1a5"
+    },
+    {
+      "burn_tweak": "e22b1163144cae6525b49239a61c98e534ae0cdd710f1824825bbd776bfaf14e",
+      "inputs": {
+        "asset_family_id": "9d05134b6033023d32d1d75beaa87e493a65bf9f00152cba4533f4de9f51d3e0"
+      },
+      "internal_key": "c7bf3200f5e46eb4698ee7007e65a00b84fe348d0c714b373916db760250d7d5",
+      "kind": "crypto",
+      "name": "burn_sink_78",
+      "op": "burn_sink",
+      "sink_script_key": "d3ab53a04000ecd49898d0d79c3ebaa7f60cc04e10875db07708b6a6ad69a981"
+    },
+    {
+      "burn_tweak": "50a2eca29099febd80772f155907dc4d9941fe1443d39b8aa216c585ff521e74",
+      "inputs": {
+        "asset_family_id": "7f0e177da3acd7ac9988ea8ba98c4bdbe2fe62d5a4f862f6dc38d30c037ce3e9"
+      },
+      "internal_key": "71d09f149455438231fa0c46631944297329ca462ec0894926e1113330843a73",
+      "kind": "crypto",
+      "name": "burn_sink_79",
+      "op": "burn_sink",
+      "sink_script_key": "f7335299611b37e8ffbddf0dc8e69b0a402a79b707d6cd8305c71d704da119ba"
+    },
+    {
+      "inputs": {
+        "internal_key": "b5a3b87a2a984f7af140d3565d1d6853cd396e9342d8ec7451ce9ce93b214963",
+        "tweak": "25a10c81da2b8fe6cc3f70be654055faba0fc3d7f84f51e7d36f47f702e9e5b4"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_0",
+      "op": "tap_tweak",
+      "output": "9a42b478514333ce5930718835b5a13ed129c3093f996a24342388aac36ba98e"
+    },
+    {
+      "inputs": {
+        "internal_key": "4c4dcb8158670742b53e933f0b5ec6041a04c8215c0089d5e51bfdbcac7ff23d",
+        "tweak": "df2aaa44ba4b3de3d43afb38d6614a567d2c55416f459db9e0c07ec664943192"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_1",
+      "op": "tap_tweak",
+      "output": "fb663700466a71d6ef3573c0065ed0e6e8196bc41bc08f3924bde87aba43ff39"
+    },
+    {
+      "inputs": {
+        "internal_key": "baebc95665a4c93a76c623552436caacb0b184565520539b185b31d03753eb4d",
+        "tweak": "8283d305fe6ce926ddc9e3c5149347c2c613bf2e4396a8c267f2694f41a2ebe3"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_2",
+      "op": "tap_tweak",
+      "output": "7328d9e2de03220903e95b0b9503515e43d69e55aad0d0c0c848b606a231a25b"
+    },
+    {
+      "inputs": {
+        "internal_key": "1fc21998aa7f24035fe53d136097fddff9085f7090bf61476731f49a74568ab9",
+        "tweak": "74a2481c96575073af3eaeb0985f6176152fd3dcbe71c3f65a4967ddcddd1d0b"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_3",
+      "op": "tap_tweak",
+      "output": "b7b955409dd4e556ba882f7599129674cd15ad397841b2e28f0fe60e0c058b5c"
+    },
+    {
+      "inputs": {
+        "internal_key": "0365312847d7806025e2275302e781b1b5c3a197e87346d88312b178ea271c44",
+        "tweak": "18752d71716e6935e45dcc536bc3dfeaf3d67c32b2668edf7a42b29e4877dbef"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_4",
+      "op": "tap_tweak",
+      "output": "ece28faae595a82b77e951eaaab3db6529d88a3d4690b614d3d0e44a2fc3cc4e"
+    },
+    {
+      "inputs": {
+        "internal_key": "e6b5a185d9e69ad63bc499a8bda3289b57dbe83fd30f0b47b1303932e3714834",
+        "tweak": "7b627f1186a292fb9a9a6826b2eab19327f97b9636011b77553bd4c60f14a1f5"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_5",
+      "op": "tap_tweak",
+      "output": "e60c557ef0ae9aa0e27258e646acd08c79eb49a7e4967954684115493df211e4"
+    },
+    {
+      "inputs": {
+        "internal_key": "4f3b4c314ccff37aa5a9c7460372c1e80d7cde33774187b2159768b7d16cead5",
+        "tweak": "9c2d75e80a6b90fd488b745d8ea12c65ac7a7d1945d5e0c0a93ed07768eaebfd"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_6",
+      "op": "tap_tweak",
+      "output": "a3204cc40b5752a30adc5b4319d10dd16cfa3c54343390270b40c41853f836fe"
+    },
+    {
+      "inputs": {
+        "internal_key": "949f2589bb41cd0a1f956ea8a7e18c5436674d4c34bedc8285e24cd18f077500",
+        "tweak": "0be3e846693505e8b29c9d4ef39581e2efd88ec8539a874282e0241e58a43988"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_7",
+      "op": "tap_tweak",
+      "output": "b5da35aa2ea4a3ae747a1be9347982253cbec44a4ece249a1d5a31965666db01"
+    },
+    {
+      "inputs": {
+        "internal_key": "a5228e29acfd0695f5a93f29d247f7307472f56c7851f500263678d9df74b61e",
+        "tweak": "1355477d19fc7e6a9183aa3ab45829eecfe34f19019d58c4c759173415286d0f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_8",
+      "op": "tap_tweak",
+      "output": "e13e38399678d77df71271560ee4a40a1049e5af4c927c6e2a8493570711e1ce"
+    },
+    {
+      "inputs": {
+        "internal_key": "14da149bcf8aa633d4c7f4da7cb23a5c42efb9092736a0d5f2d0e8c30e61c2f4",
+        "tweak": "612825ea49e5a7b44811055a2f1d8dd1a060d5545e6bdd03b0708af2a44e0036"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_9",
+      "op": "tap_tweak",
+      "output": "b2b3c66e2a6ea191654bdde810004fc36f78100b5442894e245d3abb61bbbd72"
+    },
+    {
+      "inputs": {
+        "internal_key": "e913bb5e1e7eae25d1255f78d4b5130cd72724f87ab4cd7d22facb6234b608c7",
+        "tweak": "73fc5fc406b3787f70e205deaad2db9ac57408a6b305af4a90e781e427420feb"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_10",
+      "op": "tap_tweak",
+      "output": "a300a59a795ffbcb67365cce9e5d8d6817f8dd0ca3f4889f7d142769c72dcff7"
+    },
+    {
+      "inputs": {
+        "internal_key": "e3db6520a61b8c49fee4275258364d302edc6927cf96179d76d0338a2f9b33e9",
+        "tweak": "ebe3b5f96d888879cf539d6f83448d5643f9f9704415f4254875fc1b7a7dbf13"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_11",
+      "op": "tap_tweak",
+      "output": "5d54fb4e958a3d8c687b1431835dc71703a9011028355e4ee4094fa803d18fb8"
+    },
+    {
+      "inputs": {
+        "internal_key": "7bc8fbd7fb886aa63ad78d1b1ea9aaa03439eedbb74ad67ef3edaf277fc1f495",
+        "tweak": "fe247c1e7a690e0d2a17a3ac09b325ecc472b9fbea2fb1aaf5a2adb8dbd63623"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_12",
+      "op": "tap_tweak",
+      "output": "c0b4a9ad87d734a18d6e66003d3fe2e9ca8e9386d90eaeb83b4b0766b8fc58d5"
+    },
+    {
+      "inputs": {
+        "internal_key": "3fe4346d25ac6fb106a2d514558047dba5a3c55b92e621a716828f6538b18026",
+        "tweak": "4e9fc12ac9b86f826dd705f450dc958ea7c8b78643893640fd49151db8c6dc28"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_13",
+      "op": "tap_tweak",
+      "output": "fe1b39da70ddac01ef9bbd1e7bb302d2b0e1e37516566fb71839784658fd478e"
+    },
+    {
+      "inputs": {
+        "internal_key": "328eb020e4e40bd54d65d4f96ef23a3412c50daad75f8b7d63e353c2fa673cc1",
+        "tweak": "04efdea3faade6ccafee365ff9e9fdd6b62e1648ef2bfae6422ce8cf6f5a7fe9"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_14",
+      "op": "tap_tweak",
+      "output": "501fdf0385e44ab8d56e479b73ced8b256f34d5e37e665595945535d3d776f49"
+    },
+    {
+      "inputs": {
+        "internal_key": "fb96a8dc0089056e2e12ccc18996560c3aef63b94b41319aa12a00c6d795c784",
+        "tweak": "f1171df69940d2faa29c3c8c7d60614b0e3eb41fe93db7f8d7de1898eafeb24b"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_15",
+      "op": "tap_tweak",
+      "output": "36c2b1fe00775588720c5a0b5612f7754fe0c10bf4c38140e3b9d78d543ad37a"
+    },
+    {
+      "inputs": {
+        "internal_key": "ff39d81af28845a53e0a1edf03614e98a755d0a56005f63c0be9b1a0242ecf4f",
+        "tweak": "fe309699fad8d60b2f1967517e31bcfbd8f12aca1ec0dbed267b48397feaa9be"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_16",
+      "op": "tap_tweak",
+      "output": "fbcd78474c87a763579e500772dd926189719fee292d19ecda32fac0ae87c68c"
+    },
+    {
+      "inputs": {
+        "internal_key": "18cfd280f562d2c76660527b2126bdeed04429ceb4d38f5ca41c638f1288825d",
+        "tweak": "d156e3ea9cf814770047aaa0b1c68359aa4ceb6efa57f63184c4b536e4d74116"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_17",
+      "op": "tap_tweak",
+      "output": "f132f6a71b3bb7f8c5d433f26762ad40a288d7974c151760b26ff064d44efad1"
+    },
+    {
+      "inputs": {
+        "internal_key": "bc8109cba7cee64be8ad699e759042649fc50d43e46741c8729b7abaec5037f0",
+        "tweak": "e8c16cc8af9f1ab3a3a18fe351675bea728c98ac696b8d2e4fa9d78bd0217e19"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_18",
+      "op": "tap_tweak",
+      "output": "a5551d8ecf9d00a0316e589f68e429e6e806033e8d10c381e450ebdd8a9f2158"
+    },
+    {
+      "inputs": {
+        "internal_key": "a2d7f00663b44fc15b26b4a70558a0ab98b3832a7e15738c71d28a7cb3b28a2d",
+        "tweak": "dd914d95af350a2c15b6534590b70fe83d643d97ae20adaad964452506f99e4d"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_19",
+      "op": "tap_tweak",
+      "output": "f19ed0780993cdf2c037e88bac9bd1ee5449be707e70d8b4b0f210760deb1375"
+    },
+    {
+      "inputs": {
+        "internal_key": "34055b9e3ad12dc587477b33a6f461ef1dbe87131ad13a9af23e883604bc1d5c",
+        "tweak": "7f120ad66f4fee98f8a7e0bc86a2e6a2f0b39442f2274bfc2efec05b6925cc66"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_20",
+      "op": "tap_tweak",
+      "output": "d4794f4a2609273c2c6b34950e230fa88abbbdd90992f6427c4305f3808bfc2b"
+    },
+    {
+      "inputs": {
+        "internal_key": "addd0a9d2f291cb78aec6c7adc846c306a845e7a30b293b6e6c369fe7bbeed67",
+        "tweak": "5ab79b80a36b8d9662b6659eb9f3d7b41ee868f5c08b21b43477919f1c20dc4f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_21",
+      "op": "tap_tweak",
+      "output": "42c6f111d94105d2f09aa61292c316b8ae4fef9ee4e29af1418b7f21dda50669"
+    },
+    {
+      "inputs": {
+        "internal_key": "6da98e2c1eb018b544d659c76bccd4edac0a987cfe57184ce5d84398d16abbbe",
+        "tweak": "d60b4a61d3f1060aad3c42a1f9517ec7b5450d2f4a8edb386d30da80bcb9a4ac"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_22",
+      "op": "tap_tweak",
+      "output": "e6437e9aff11f544a55022d73cbee16967df107dc128874d28a906fd6a83db50"
+    },
+    {
+      "inputs": {
+        "internal_key": "44f82145393c62dc578d9c7c14ccfa7a916288662b2fa664bf2af27fa0a09816",
+        "tweak": "ad1f1a285d7e0362c349a0414a33e581c318fccfea06ac12c839da20122a87b8"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_23",
+      "op": "tap_tweak",
+      "output": "32dae9c9b4f34a1e0987f796feb47c63ff554466ceee7ebe3cade3894dd1faa4"
+    },
+    {
+      "inputs": {
+        "internal_key": "e076717e31426f06a705b40c48071830ab8f79046e30016cfbad624221dd1d28",
+        "tweak": "ef43ebed1799ccb1eeb5ee02e3a53a050447d1efaad1ea963e12f186d3763909"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_24",
+      "op": "tap_tweak",
+      "output": "a7b37a911b79889ebe588e3ba7a45197013600abe88444841b62e3e603ac6ccf"
+    },
+    {
+      "inputs": {
+        "internal_key": "4be740643695cbff5d91f9ba5bd0d591b293ca1933163e6d54435f07a631cca2",
+        "tweak": "c9cbdb907fa00825020f2d29d4c851b1aad8b9dda0555caa07ded35f71ad57aa"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_25",
+      "op": "tap_tweak",
+      "output": "ea010cd0d8b89072a99edd7dc60ff4c3a2b8fc26d1bf23a26af50eb7db590794"
+    },
+    {
+      "inputs": {
+        "internal_key": "1fbd64b0534aa75ef6aa8cd6dcb5e5bbd5524608bca02a35d3463ca5d449a89e",
+        "tweak": "a5d0459d72643a9a3b989e773b4517b2897fdfb93161240ec83da8c4f13293ac"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_26",
+      "op": "tap_tweak",
+      "output": "1be2a093c7b351783cd4893e4bf15ea6ca36d1667cc5af894dbcd540191acced"
+    },
+    {
+      "inputs": {
+        "internal_key": "6e8ea77188008e511a954f587a4663839e10913f31519df313dd347db00aedc2",
+        "tweak": "e58070cf10453e2d4b5846d0c023a3fb48e687213bba5cf8bf193ff4d0844e8b"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_27",
+      "op": "tap_tweak",
+      "output": "03d765c9710eff75d770d6121f528592e224d3a43deb1053763903e37a403ca7"
+    },
+    {
+      "inputs": {
+        "internal_key": "a6544551809b59fc0945cc9a5864c9665e649675c86ea57f3edd46960bc75ab7",
+        "tweak": "19cfbe780fc6b0dfe957fd5ea9420e2a389061fd7cb56232a4d6d3f0e6a04c64"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_28",
+      "op": "tap_tweak",
+      "output": "31b3da87dbf24f900a46ca25b458a1f3c7a40381259e7f1f0eb318fd9e09b3c6"
+    },
+    {
+      "inputs": {
+        "internal_key": "22a8485ff8f4dfd1145c149c05d3e9db92e6f7ea6b5d5e1d04c8ee233dd17d02",
+        "tweak": "bed47709eba239b2473837ade220ec5f4bcabc77fc9b50ad9ca2f56a2dee7539"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_29",
+      "op": "tap_tweak",
+      "output": "4479bd082319925526756808f5478460b6c3f39c5ddf3515a4715b3c97f0d488"
+    },
+    {
+      "inputs": {
+        "internal_key": "6b2c5ecbc7e96d4e3e910e245cdfb188693eb0d93abcf6a927837e22666121fe",
+        "tweak": "eebe1f0abb9e24113a0b85a31cde22aa4653fe1fe308900deca6028b42a8fa44"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_30",
+      "op": "tap_tweak",
+      "output": "f062547bf6d2c004a7d8b079383be5466087654070e3c81c399488ead70f0650"
+    },
+    {
+      "inputs": {
+        "internal_key": "759731c41e1ec9ffad9b0057804d1582ba3f852c6b24ae3128143e9fd308c91c",
+        "tweak": "0a353b706d130a7aa1c87f8921456cdf2ca4bbf174e6ed25382798a992add6a6"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_31",
+      "op": "tap_tweak",
+      "output": "a47863d4964d59b89f8bc8ac492a3296ef5615c72af1c0f4668e0f5d6f635df3"
+    },
+    {
+      "inputs": {
+        "internal_key": "dcf34f82ae706784c18fa63d92a891fcc06a080e45083fa6bc9c833665248ea7",
+        "tweak": "404d15fe57ebd2b7f41ffc81d3037def0e151ca275d6385138b7ac4dd514f7c9"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_32",
+      "op": "tap_tweak",
+      "output": "d0fb386ef0d625813f79825da7b2041a7f849726764af45ba46ecd34237861c8"
+    },
+    {
+      "inputs": {
+        "internal_key": "629f9c9fe05f5201ee9edd629a50871ec12d5ae5b80171bb787f5421aabda4ce",
+        "tweak": "db804a1dcd1ccbd8c9e833f4364e845114c412125a6dfe48ad841560e890077d"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_33",
+      "op": "tap_tweak",
+      "output": "1f449de1e638b2abd2bcc3dff5604beb2c3326f9689ee70daf690ebc767654f8"
+    },
+    {
+      "inputs": {
+        "internal_key": "663340191525322723e5cafa4537d4459f2d6ea09795b365b5a41300796398d7",
+        "tweak": "e83904a52670473a31e65291489e2f15defefadc0e0555698cd2fc803e809b5a"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_34",
+      "op": "tap_tweak",
+      "output": "89a9e50ae3e86cc81e61389d21bf678d4b36255ae952ed787c8c93c56a193257"
+    },
+    {
+      "inputs": {
+        "internal_key": "376c1f9ecfd56bbe471aaa76e1126377f0a2dcf06aea8c52d36dbd97b8f92a04",
+        "tweak": "65f56e14a821c771a02a07464a128236b93d1df7348eb90ac14f4da6a55b3ba1"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_35",
+      "op": "tap_tweak",
+      "output": "881004c4a557c1889d3f7d596618f3d6e1c04f0073eabaaec9b32724f4a6e151"
+    },
+    {
+      "inputs": {
+        "internal_key": "b1d838755b347d82a4f55cc3bcac836403cad8f5055d3b1efbdbacf509e3fe6d",
+        "tweak": "2fe4356d8a2885e4bbafbd967f01cafbf11b941e6c9decc8f8b9bf09ababd332"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_36",
+      "op": "tap_tweak",
+      "output": "fac15084568723178895fab184c170c68a967e056cffc92be2725766943d781c"
+    },
+    {
+      "inputs": {
+        "internal_key": "0c522b971339cce52ac278767ea8d52532f26ee2f9116c1ad63466281a4cc0dc",
+        "tweak": "4b6491494bd5d1192c2ad2a002f2df58d863d9d790d6ed27f4042b7d21fb2862"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_37",
+      "op": "tap_tweak",
+      "output": "d1096b64a45dd5e7f2bf688220ef492547ee7009fa53568815ee7b4e6931faf8"
+    },
+    {
+      "inputs": {
+        "internal_key": "250594a4a03cf1c7dcd23274868ca73328ba6f8be17a701f7ebab9e2db4bad3a",
+        "tweak": "39513e7c9a6fcedb0105ff9d0e649236c0e21e3c2446b048fd645871de077b0b"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_38",
+      "op": "tap_tweak",
+      "output": "a2388faba2e3edd1727b9f32c6902842ea94c7e7b3c952cbeecac7b10013c65c"
+    },
+    {
+      "inputs": {
+        "internal_key": "a597c44628444a0493bfb6002d50a70d1dd9eca4134a357b94c926236890907a",
+        "tweak": "f5df87ffda9afa884dbd17e5a5c7cad86505196cd44287df8cb4edaef6305394"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_39",
+      "op": "tap_tweak",
+      "output": "050d32d9da3dd2c84c35df00d783d65df44f07b9e6d3fe4886a28c955db38395"
+    },
+    {
+      "inputs": {
+        "internal_key": "d7a321bbb0a1611907bac5c1d23881c8ce7197de6491a8f6c5908316812ae887",
+        "tweak": "537d8b7bebc0619e700cdbcac386dd9eddfd4702cd4cd2045b7340f351a105dc"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_40",
+      "op": "tap_tweak",
+      "output": "c2dcda6bd1f28966da61d9d9c40db756c9b859523045a3bc4a56c31440243b51"
+    },
+    {
+      "inputs": {
+        "internal_key": "5fb449e8e89b3c64c6e479df3c6d00d824aaec1e96464f51038ad928eba74ceb",
+        "tweak": "a09c8bc302a2d851d3f03306d65cceec61e6d5875770238c0c7a6c22fe33470f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_41",
+      "op": "tap_tweak",
+      "output": "96140657c77615cc14d9299db8a9448578cd7d264244491855402487b3849cb4"
+    },
+    {
+      "inputs": {
+        "internal_key": "71d5868d8543b4a590f86e27a07c7ba4690f6641ab3d8b780c47138a0cf8c12c",
+        "tweak": "2cd444d536cc4f1648449c6b321b675810f0e9e00b31d7b8838ca4f319f324e1"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_42",
+      "op": "tap_tweak",
+      "output": "560db215f706d92b0b08da45702bc7c4a92d1bb0db6af8ee7da1b11977564f9e"
+    },
+    {
+      "inputs": {
+        "internal_key": "835493dc3dc9e6e41617a77a9dfded0346c7b964343ce51587389bae2d86c3b3",
+        "tweak": "042ba420f6893a77fabcd1e093002b85e7db49c3633190cff6f3ce3f59c3f40a"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_43",
+      "op": "tap_tweak",
+      "output": "7e923f348b99d9ab1a991affbd66f26d093f847d519ef76e192a4e721d7c0914"
+    },
+    {
+      "inputs": {
+        "internal_key": "d4f4752d2b9187ea1c2a357685e235d955dda4d042fa4c4ee263ab52a3271b18",
+        "tweak": "a0acd34afc6fca8617372cacd581dd298b48f0690b0982abdf6936167f911406"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_44",
+      "op": "tap_tweak",
+      "output": "af92bdb434164c31d932f405d264b5be0e3361bc00985c9b55ffb514ee0ba671"
+    },
+    {
+      "inputs": {
+        "internal_key": "172ab1f7f11ffbb4a408eddfc952de65ade4bba5088ecc4f5fa9d724b244f912",
+        "tweak": "41d0efde0fea3d73f6d2edd94ce54db9349f17f3fe15561ee56ce29311412e3d"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_45",
+      "op": "tap_tweak",
+      "output": "23462b35750939a7544bb942badedeece78dc845a0af8366c08c55fdebbd038d"
+    },
+    {
+      "inputs": {
+        "internal_key": "538c31e2f26d117eff31a1e6be865481b287db47b0b9bf2a8050ecb96be1a751",
+        "tweak": "776224c6666633c154be5038b46d0acb6d4ec2950ade4344687c0ace05fd4238"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_46",
+      "op": "tap_tweak",
+      "output": "cfa7f85864708bcee9d58d0aab715365af8d411935c452dc9d05b7ce8bc4d401"
+    },
+    {
+      "inputs": {
+        "internal_key": "233aa643afa17c98636e96d353c281390789e499c38ebca01e92fb0bea4f3027",
+        "tweak": "573278be8790d65c305a21a37bb027204709fd1a3cb81cd368c1befbfdad77fa"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_47",
+      "op": "tap_tweak",
+      "output": "69aaae1f8ecb53d28308da8af219a91d055b7cfb7f8f67fb6401839a36605f60"
+    },
+    {
+      "inputs": {
+        "internal_key": "f9f40198255a2bd0ba9e5fec213398b3f6923ac03592a48df55beb7a5b9caa11",
+        "tweak": "5c28f5fd7ac050c9aa13737f62468ddceb3e01d598a6c6650098960c8cdd2b1a"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_48",
+      "op": "tap_tweak",
+      "output": "34c7767bf1d22dce123395e531e3635cacc0e708e51056a94b22d298f3c4c622"
+    },
+    {
+      "inputs": {
+        "internal_key": "502ebeef1fb58e5918d72279ad489412a063c491e5dfcf2e14d052d1584d3d28",
+        "tweak": "d39b5e81ea66c3b996c802d7afc8992db5439052e287341ec389b0c1da51a949"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_49",
+      "op": "tap_tweak",
+      "output": "d262d936a966708cdf362aa320ce6b4e733302ad24bc27d0790146e08d161520"
+    },
+    {
+      "inputs": {
+        "internal_key": "891fba38e40e84bbb76297fe0e5074147a993455e9d19ffc762a363861c8c2fd",
+        "tweak": "e1c9127d844aa779ae342b698d5e5fead2be6ad970c1a0ce6a115ed2b6700488"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_50",
+      "op": "tap_tweak",
+      "output": "ce682894b97ccd6f405765c6eff733929d2813adc8550d5b8b0997761fa38643"
+    },
+    {
+      "inputs": {
+        "internal_key": "0eab9051a87a2a6c0ea7001df37f558d3456a095e705d4e0c9a6770b9b5cb8ef",
+        "tweak": "d79b90d59a669eb4a1dbe5bee434e0ddc3a0d56e8d630cac1c94afe045ab9ce8"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_51",
+      "op": "tap_tweak",
+      "output": "6309db8918b8210adb1884a3df1e6c8eefb69c8e96dd710cd15851376ea6f41f"
+    },
+    {
+      "inputs": {
+        "internal_key": "1e6bd1d13c342de9bcf625513f3d9b2d2d594730c457ffcd018ce411af6c73f8",
+        "tweak": "a8b1d07c97ede09cd88e96c210c9508074329888eebcba51190ccff5a9eb995e"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_52",
+      "op": "tap_tweak",
+      "output": "7fe0625c31ffe92487897204311d0ad920ec26045be7835cac6c3a0df5dedbfd"
+    },
+    {
+      "inputs": {
+        "internal_key": "c9accb7a8c56ad304ae7cbb00438bf0ef3c6361b088967a047d90e83408a348e",
+        "tweak": "8ff1de39ee8ff5612ba5745ae563386f885105037d0bebffb20e610727ff681f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_53",
+      "op": "tap_tweak",
+      "output": "2a50bf9aa0251d51dedfc3cfae95f4fce783177da61e2024818431e021a70987"
+    },
+    {
+      "inputs": {
+        "internal_key": "044b4c866551bd8624a267cc983ebbdb3446b29cd5b05c241a70207530bcd21a",
+        "tweak": "d40ecffd9d5851d1becbc70f3d6c39a50d9eac77397ed0b026e472384743ec34"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_54",
+      "op": "tap_tweak",
+      "output": "e5d074243f02c1d70edc1cd13478bd3a92111fd0ddf8c17915660b31f204486f"
+    },
+    {
+      "inputs": {
+        "internal_key": "82bc02aa244ac5912eccbc0c7b61906bc36108162663a4e5f73fe7784b6a2409",
+        "tweak": "dd283066094bea36991f809ae37c2683a4c5f6ef1257642b922f419bdf013d31"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_55",
+      "op": "tap_tweak",
+      "output": "b1dcf42ab8881844b2b489a2a4176ab95bf1f4cc22d4225d046b1a80b90c7526"
+    },
+    {
+      "inputs": {
+        "internal_key": "f33e9feda0419308996ae81e61a9d687dab67ef8b5e7f222ca15dfc4f575b68f",
+        "tweak": "a14fbec8079e917df58d9eb266f2f8c1577bd2c160c6ba4db82b872d4f73f6c8"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_56",
+      "op": "tap_tweak",
+      "output": "e10562d06800562603bdf1ed3cba1459cea3c535b0bfb609b58fba35cacc6bc9"
+    },
+    {
+      "inputs": {
+        "internal_key": "cb9cab583d9662beb41990f3f1d97b90d204c92059b433fb75345fb1bdf408cf",
+        "tweak": "e689f17fadbe1b27aeed0a0a99c07f25738e7a30e3de176414c11e3adc5d45a2"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_57",
+      "op": "tap_tweak",
+      "output": "4e19e1434410ffb817241a8455ee3c4cc64b3e54da567a20fef0fbbfead739b5"
+    },
+    {
+      "inputs": {
+        "internal_key": "cc7d42a77d8b9dbef7e5b39f1d0d46991c87bb721665052b3c6b90bbba4dc7a2",
+        "tweak": "b4b94c2abf96af9a50b2a35f236fe257bb02f914b8089d5ed6f70d3d4736eb61"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_58",
+      "op": "tap_tweak",
+      "output": "a5aeda675333557c8923ccba8c42909609242a205c19ee5011d647a707c8294e"
+    },
+    {
+      "inputs": {
+        "internal_key": "7d58c46b63f8660f597358d92449538f66d4e74d51904ef5098301f81c674c89",
+        "tweak": "4b9154b3e81a5d82a382070758521308317f9eb40ba58dafd57ce92e5b0e4324"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_59",
+      "op": "tap_tweak",
+      "output": "241f228912ab0c31c0b95b6fae41d793d52c276425f804025ee0c71e6dff6763"
+    },
+    {
+      "inputs": {
+        "internal_key": "6995db40b4c1b6ecb2bfa92aaf924febcbe565d8ef3f376599af53da135e1ee6",
+        "tweak": "04c417c4ee08082b51b929de2ab165366eda43ee1c869375591533b0db3567c2"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_60",
+      "op": "tap_tweak",
+      "output": "494ab8864f9ea1d09c577966a8f35f44a7c2a2e09a5c7d85ac90ddf74c4300e1"
+    },
+    {
+      "inputs": {
+        "internal_key": "b4a3ca0917ac66fd1516d6da50181d534c399681246ddb053f36c04bc39bd231",
+        "tweak": "60d2993dcfee286fd4b4817da005272e63b7f9f28e85042fcf849b4c59888260"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_61",
+      "op": "tap_tweak",
+      "output": "299f5aa431324b163bc7a04a013b378cfd54d9b47e5233657bcf3cb1dcfcdf2d"
+    },
+    {
+      "inputs": {
+        "internal_key": "e0ce4bff728547cbc5fc169e3372f5b97f3fb69ca584e95873dab474643dd9df",
+        "tweak": "d5be467cf6752ad7c77fc972e8227f15320d5028e5d4c09bf515c9786c4d930f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_62",
+      "op": "tap_tweak",
+      "output": "8d534a6ea1c8dc79df453f85829627b349083ad0745d5d8dfd9011f9b00e951b"
+    },
+    {
+      "inputs": {
+        "internal_key": "653f8dcfe688e9b79978b4560d4c7bf80f2e26bec8d94d47b44eeac5ca2e535b",
+        "tweak": "7134eac19035219ca7d1fe1bcd9699fef90d4e69c25de0c2b9a82da906340feb"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_63",
+      "op": "tap_tweak",
+      "output": "1ab6a7024be9086e3db77d85795b692d5e38a6c447d6bbf5ef2408592d07889d"
+    },
+    {
+      "inputs": {
+        "internal_key": "2c5f321b19ce98f8ede36887c2c0956119c63417256584a1f6255a322fc9d8eb",
+        "tweak": "197463fc7179ded1c6b2e4c6fae0dfdd85c32c645048ebc361de093ae4f29c6d"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_64",
+      "op": "tap_tweak",
+      "output": "cd6e9eea6153cb4a80285f925ec525a92ce47868309550f14dd9b9b9053fed6b"
+    },
+    {
+      "inputs": {
+        "internal_key": "96c55005241c4f659f78be03f1d3c4923a9af99f89c2d8f60be5ef2385455b64",
+        "tweak": "05814bbb90164b6526d40c9be6a12fbe0d64b95b0cbe751c9ea09c9872eddd7c"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_65",
+      "op": "tap_tweak",
+      "output": "2967dd7b9775c5745e9bb3293457ab28ee234de243b1d3aa4ab25bba1633ab73"
+    },
+    {
+      "inputs": {
+        "internal_key": "46d89f67643f7282a9fc68776b94f0fcf771b5ceca219f0a3dda095de212f906",
+        "tweak": "470efa7fc8ba49eb5f67b9bbe2fd03785cfd8a52579d75c781f9fec88f3b8e14"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_66",
+      "op": "tap_tweak",
+      "output": "b4d7e590ca2e7dd32409b28b79fdb4317485402b6c42d8848f72dbb8238c7614"
+    },
+    {
+      "inputs": {
+        "internal_key": "d63f2c72ea488bed709a423175214b5a1979b7b676c738cc912d24e4e4375e7d",
+        "tweak": "f35215e2707c5af68dd8544435b594e3a533e1ddd8eeaf3cf5a215dc7cd50de2"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_67",
+      "op": "tap_tweak",
+      "output": "e73cfc690513ce25e719dedde71a63e4607dab0735fea093b77eb45c6d110299"
+    },
+    {
+      "inputs": {
+        "internal_key": "78ed35d3306b3b840cc352acc08632e877f3008fa4e65894feba6355cf760be2",
+        "tweak": "df8b45100c86963246d32bdcc32cc723f1b4aaa218478c69c94dffc6e9ebfbe3"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_68",
+      "op": "tap_tweak",
+      "output": "97d151d98e2f29e2580106a839b4d5ad700357b0708139e7bb59dd38e63c7a70"
+    },
+    {
+      "inputs": {
+        "internal_key": "187990916b367d99b084b046ef86015362ac9c8ef109d7015ffab0e48ebf1ba5",
+        "tweak": "1000ca185d8f3229ba173bffd1e0bce492c637e3e5e99eab101dfc902d53a184"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_69",
+      "op": "tap_tweak",
+      "output": "7dcf59776ffb15da4411eeb0ae36e118b4c1c64c820ab141ff3070649b5e2580"
+    },
+    {
+      "inputs": {
+        "internal_key": "9de029acb328716c2b5602e871350462925979eb888251967427134e955f8084",
+        "tweak": "56a90a9b511db88f4fba813daae726e7f0d6d11ec388b5489197ef01421dafd9"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_70",
+      "op": "tap_tweak",
+      "output": "88c2d53b3d242bade6b45bf1da505309968c8fcb032c4d672da5aad8f4ec2851"
+    },
+    {
+      "inputs": {
+        "internal_key": "8214b4bd16a1a0a7814f31109d0e3edc2c330cfb7cc93f5c94164e216cad7333",
+        "tweak": "e42138039627feb3b46147437b51d7647ba7da83f884e54118b3c2bbf1c9dc69"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_71",
+      "op": "tap_tweak",
+      "output": "c14a6031ee8c076583d69d4a09c7d37ebbb2402ab40020e45273b15de0f5b621"
+    },
+    {
+      "inputs": {
+        "internal_key": "29a641613a15e3f00560eae9b617b176c927ba6a34b22110744bafa25d431fec",
+        "tweak": "29223e8143a3a168d8e3584523f9b9bdd7c243e5322340b6cf088cfbfaa373aa"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_72",
+      "op": "tap_tweak",
+      "output": "54d24b821b7279fd0a854a776f4113e9cf0e9dd23a36f9810ec6b31a8da532a5"
+    },
+    {
+      "inputs": {
+        "internal_key": "893c75bc1f77e38c370c123869cc5bcdca7e8d466e7cf66dd80137926cc9ef5f",
+        "tweak": "07a5f085b4cb7cc038c3f5b885331d73de387f0dd74ab944b7d53b0a194e10d7"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_73",
+      "op": "tap_tweak",
+      "output": "54589608c5e2d4286e652c4ff5266ccaaa4d78a916275eb5d8707420f9a1bc00"
+    },
+    {
+      "inputs": {
+        "internal_key": "9fa744199d234c81d74c0c38b06a62b0da4cb955aaa70ddd1426147268f09d9c",
+        "tweak": "f29a5f45db1f18a4b0c191676f183b1b31fdacb8272cc61c0dfea018ff75c2ef"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_74",
+      "op": "tap_tweak",
+      "output": "4cef524ef8603d067c41d24af662f36c3b1ceb657e9a04f87b22ac5b3a7e9821"
+    },
+    {
+      "inputs": {
+        "internal_key": "ea7f707b6a48970466d1533b0035bbfd56c0c01b6ad863e7d25294bb7419e65b",
+        "tweak": "ba495e37fbd2b944b4fa5b2e003ff7651313d2aec953a113d1cc66c56fff07dd"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_75",
+      "op": "tap_tweak",
+      "output": "4a19d5a7eddbf092d8f21e12e9000a1c07ee27a0ed05300d547e987032d138dd"
+    },
+    {
+      "inputs": {
+        "internal_key": "c089a4695b8185f673b8e56c32f752bc8df1e49c11e3d26ba91ee6815297a9e6",
+        "tweak": "51a7f3fef0d3233a13226c3dca0385ba23d01f18248943d5145f3be49a1563c2"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_76",
+      "op": "tap_tweak",
+      "output": "53562b7512a034e5a75e7e5e37dde61a9beeee1f0883fcdad3cfa4e5ed17ae43"
+    },
+    {
+      "inputs": {
+        "internal_key": "efe5f9a61c676b49415a24100cec3e46d899a3deb305e380fb58ae30beb5023b",
+        "tweak": "4362bd88073fa3001bd3ee98add64597d497eccc4862eeb65e0791ddb8efa235"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_77",
+      "op": "tap_tweak",
+      "output": "059eb175435d828d6b90622339fbd03253ab90ebc800568cad9b23596025b2d2"
+    },
+    {
+      "inputs": {
+        "internal_key": "7e10e87aa662e21f3c7e6c7fce413a7b68653d545b15ee9514ac634b2623288b",
+        "tweak": "d7725e1152d2e7ff4660c78a17e2edbc02a659ca460db065bf8a2c721ca8c67c"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_78",
+      "op": "tap_tweak",
+      "output": "430df8a56a431bf8998a3d16ba3007b3e4937de17b6e191b1b19734655ed77e0"
+    },
+    {
+      "inputs": {
+        "internal_key": "3a04d52c7ade5c59399691c1990028198db4deee4f7e5090b4a1a709595bfbc0",
+        "tweak": "bf444ee29e629238463e4f0d9742e4ba61886b4df023d9951dddce75e84e178f"
+      },
+      "kind": "crypto",
+      "name": "tap_tweak_79",
+      "op": "tap_tweak",
+      "output": "cd50afa8b30791a9206969e70f050147abd5f7b3f6c79652fc2cf4ed09062e9f"
     }
   ]
 }

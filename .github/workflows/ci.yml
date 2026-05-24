@@ -27,6 +27,10 @@ jobs:
         with:
           node-version: "24"
 
+      - name: Install TS reference deps
+        run: npm ci
+        working-directory: ts
+
       - name: Regenerate vectors
         run: cargo run -p satusd-vectors
 

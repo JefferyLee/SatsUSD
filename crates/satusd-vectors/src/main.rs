@@ -6,6 +6,7 @@ mod fixtures;
 
 use std::path::PathBuf;
 
+use satusd_crypto as crypto;
 use satusd_types::derive;
 use satusd_types::domain;
 use satusd_types::encoding::{canonical_encode, Encode};
@@ -276,7 +277,69 @@ fn main() {
             &empty_lock.lock_anchor_outpoint, &empty_lock.lock_script_key, &empty_lock.redeem_intent_hash)) }),
     ));
 
-    // Domain separator registry: name -> 32B zero-padded tag.
+    // ---- Crypto primitives (cross-checked against circomlibjs / @noble/curves) ----
+
+    // poseidon2: two field inputs given as 31-byte BE values (< Fr, no reduction).
+    for i in 0..PER_TYPE {
+        let a = d.bytes(31);
+        let b = d.bytes(31);
+        let out = crypto::poseidon::poseidon2_be(&a, &b);
+        vectors.push(json!({
+            "name": format!("poseidon2_{i}"),
+            "kind": "crypto",
+            "op": "poseidon2",
+            "inputs": { "a": hex::encode(&a), "b": hex::encode(&b) },
+            "output": hex::encode(out),
+        }));
+    }
+
+    // hash_bytes: 31-byte-limb pack + Poseidon fold, over varied lengths.
+    let hb_lengths = [0usize, 1, 30, 31, 32, 62, 63, 100];
+    for (i, &len) in hb_lengths.iter().enumerate() {
+        let input = d.bytes(len);
+        let out = crypto::poseidon::hash_bytes_be(&input);
+        vectors.push(json!({
+            "name": format!("hash_bytes_len{len}_{i}"),
+            "kind": "crypto",
+            "op": "hash_bytes",
+            "inputs": { "input": hex::encode(&input) },
+            "output": hex::encode(out),
+        }));
+    }
+
+    // burn_sink: asset_family_id -> NUMS internal key, burn tweak, sink script key.
+    for i in 0..PER_TYPE {
+        let afid: [u8; 32] = d.arr();
+        let internal = crypto::nums::protocol_burn_internal_key(&afid);
+        let tweak = crypto::nums::protocol_burn_tweak(&afid);
+        let sink = crypto::nums::protocol_sink_script_key(&afid);
+        vectors.push(json!({
+            "name": format!("burn_sink_{i}"),
+            "kind": "crypto",
+            "op": "burn_sink",
+            "inputs": { "asset_family_id": hex::encode(afid) },
+            "internal_key": hex::encode(internal),
+            "burn_tweak": hex::encode(tweak),
+            "sink_script_key": hex::encode(sink),
+        }));
+    }
+
+    // tap_tweak: a valid x-only internal (a NUMS key) + arbitrary tweak.
+    for i in 0..PER_TYPE {
+        let salt: [u8; 32] = d.arr();
+        let internal = crypto::nums::derive_nums_key(domain::BURN_SINK, &salt);
+        let tweak: [u8; 32] = d.arr();
+        let out = crypto::nums::tap_tweak(&internal, &tweak);
+        vectors.push(json!({
+            "name": format!("tap_tweak_{i}"),
+            "kind": "crypto",
+            "op": "tap_tweak",
+            "inputs": { "internal_key": hex::encode(internal), "tweak": hex::encode(tweak) },
+            "output": hex::encode(out),
+        }));
+    }
+
+    // Domain separator registry: name -> raw ASCII bytes (no padding).
     let domains: Vec<Value> = domain::ALL
         .iter()
         .map(|name| json!({ "name": name, "tag_hex": hex::encode(domain::domain_tag(name)) }))

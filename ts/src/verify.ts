@@ -7,6 +7,14 @@ import { fileURLToPath } from "node:url";
 import { dirname, join } from "node:path";
 import { Encoder, bytesToHex } from "./encoder.ts";
 import { encodeByType, structHashes, deriveOutput, sha256Hex, domainTag } from "./satusd.ts";
+import {
+  poseidon2Hex,
+  hashBytesHex,
+  burnInternalKeyHex,
+  burnTweakHex,
+  sinkScriptKeyHex,
+  tapTweakHex,
+} from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const vectorsPath = join(here, "../../integration/vectors/vectors.json");
@@ -41,6 +49,25 @@ for (const v of doc.vectors as any[]) {
     }
   } else if (v.kind === "derive") {
     check(v.name, deriveOutput(v.type, v.inputs), v.output, v.type);
+  } else if (v.kind === "crypto") {
+    switch (v.op) {
+      case "poseidon2":
+        check(v.name, poseidon2Hex(v.inputs.a, v.inputs.b), v.output, "poseidon2");
+        break;
+      case "hash_bytes":
+        check(v.name, hashBytesHex(v.inputs.input), v.output, "hash_bytes");
+        break;
+      case "burn_sink":
+        check(v.name, burnInternalKeyHex(v.inputs.asset_family_id), v.internal_key, "internal_key");
+        check(v.name, burnTweakHex(v.inputs.asset_family_id), v.burn_tweak, "burn_tweak");
+        check(v.name, sinkScriptKeyHex(v.inputs.asset_family_id), v.sink_script_key, "sink_script_key");
+        break;
+      case "tap_tweak":
+        check(v.name, tapTweakHex(v.inputs.internal_key, v.inputs.tweak), v.output, "tap_tweak");
+        break;
+      default:
+        failures.push(`${v.name}: unknown crypto op ${v.op}`);
+    }
   } else {
     failures.push(`${v.name}: unknown kind ${v.kind}`);
   }

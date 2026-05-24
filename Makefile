@@ -16,6 +16,11 @@ test:
 vectors:
 	cargo run -p satusd-vectors
 
+# Install the TypeScript reference dependencies (Poseidon / secp256k1).
+ts-deps:
+	cd ts && npm ci
+
 # Verify the TypeScript reference byte-matches the generated vectors.
+# Requires `make ts-deps` once (or npm install in ts/).
 verify:
 	node ts/src/verify.ts
