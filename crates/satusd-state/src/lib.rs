@@ -7,3 +7,4 @@
 pub mod mint;
 pub mod oracle;
 pub mod redeem;
+pub mod registry;
