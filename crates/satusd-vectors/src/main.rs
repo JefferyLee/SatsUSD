@@ -92,7 +92,10 @@ fn main() {
             "LockRecord",
             lock_record_value(&v),
             &enc(&v),
-            json!({ "redemption_nullifier": hex::encode(nf) }),
+            json!({
+                "redemption_nullifier": hex::encode(nf),
+                "lock_record_hash": hex::encode(derive::lock_record_hash(&v)),
+            }),
         ));
     }
 
@@ -313,8 +316,11 @@ fn main() {
         "LockRecord",
         lock_record_value(&empty_lock),
         &enc(&empty_lock),
-        json!({ "redemption_nullifier": hex::encode(derive::redemption_nullifier(
-            &empty_lock.lock_anchor_outpoint, &empty_lock.lock_script_key, &empty_lock.redeem_intent_hash)) }),
+        json!({
+            "redemption_nullifier": hex::encode(derive::redemption_nullifier(
+                &empty_lock.lock_anchor_outpoint, &empty_lock.lock_script_key, &empty_lock.redeem_intent_hash)),
+            "lock_record_hash": hex::encode(derive::lock_record_hash(&empty_lock)),
+        }),
     ));
 
     // ---- Crypto primitives (cross-checked against circomlibjs / @noble/curves) ----

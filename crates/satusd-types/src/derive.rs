@@ -5,7 +5,9 @@
 use crate::domain;
 use crate::encoding::{canonical_encode, Encoder};
 use crate::hash::{sha256, tagged_hash};
-use crate::types::{IssuerPosition, OutPoint, PendingClaim, RedeemIntent, ReserveClaim};
+use crate::types::{
+    IssuerPosition, LockRecord, OutPoint, PendingClaim, RedeemIntent, ReserveClaim,
+};
 
 /// `asset_family_id` (§5.D1).
 pub fn asset_family_id(
@@ -60,6 +62,12 @@ pub fn issuer_position_hash(p: &IssuerPosition) -> [u8; 32] {
 /// `pending_claim_hash` (domain `SATUSD_PENDING_CLAIM_V1`, §18.2).
 pub fn pending_claim_hash(c: &PendingClaim) -> [u8; 32] {
     tagged_hash(domain::PENDING_CLAIM, &canonical_encode(c))
+}
+
+/// `lock_record_hash` (domain `SATUSD_LOCK_RECORD_V1`, §18.2): the SMT element
+/// for the §5.D17 lock state machine (lock_record / consumed / refund sets).
+pub fn lock_record_hash(r: &LockRecord) -> [u8; 32] {
+    tagged_hash(domain::LOCK_RECORD, &canonical_encode(r))
 }
 
 /// `mint_commitment` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): binds a

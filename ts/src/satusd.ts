@@ -300,6 +300,7 @@ export function structHashes(type: string, fields: Fields): Record<string, strin
           B(fields, "lock_script_key"),
           B(fields, "redeem_intent_hash"),
         ),
+        lock_record_hash: sha256Hex(domainTag("SATUSD_LOCK_RECORD_V1"), encodeByType(type, fields)),
       };
     }
     case "IssuerPosition":

@@ -6693,6 +6693,7 @@
         "redeem_intent_hash": "81301614075595d0c12257ccc5767932f4b9cc389bdee05beb939c6c412e79b3"
       },
       "hashes": {
+        "lock_record_hash": "cf7abdcc0da78ca3f4870df43268165e9530765ce071c53c8076c62dafb81e30",
         "redemption_nullifier": "96cfc421698a7697a5e81c59ea2fb286426236ca56c2cdc377dc6c5866d9a1ab"
       },
       "kind": "struct",
@@ -6720,6 +6721,7 @@
         "redeem_intent_hash": "dfdcbf4bb37ea713c98cce624d2bb9173546ffee068db95001852690e53a4b1a"
       },
       "hashes": {
+        "lock_record_hash": "d0e30f3bd9f4383b9d820c8a079d898bb005cf19e06fd8b273aa74013936e5f7",
         "redemption_nullifier": "2da797f6e523a7035955024139f7dae05e3467e53617e21b59544050f25db3af"
       },
       "kind": "struct",
@@ -6750,6 +6752,7 @@
         "redeem_intent_hash": "7c5e317c5f1181e2bcb911dce1773638d623a31bef962388354069a162ea1316"
       },
       "hashes": {
+        "lock_record_hash": "bb2a68ee90e45e697c761755167198f44781dc46e7117380293a59f953d04518",
         "redemption_nullifier": "cf74927c887fb83d5b91a4f376c8a34fd9c4614ef3f7fc8a3c89302ef2fa5887"
       },
       "kind": "struct",
@@ -6779,6 +6782,7 @@
         "redeem_intent_hash": "ddf9fb69d28a30357b5c62d72ec8e523ad96f6b6f9c68de59026a4d8580e9bff"
       },
       "hashes": {
+        "lock_record_hash": "b5a73d12b3029937edae21c420b97d5780a5c1b9b6d7b9446327f783405062ee",
         "redemption_nullifier": "96391ee9326e15414d8f88461467f4e4d07f0e39068709e3757c2eeb55dbc691"
       },
       "kind": "struct",
@@ -6810,6 +6814,7 @@
         "redeem_intent_hash": "4db11a03de54420ec9d14da2b2c3a933f52949f75236e2a0609d0207fe958879"
       },
       "hashes": {
+        "lock_record_hash": "8a1c3ab2444a25f467157fde4dc93fcf6cf06ca100c7d584744a4bcd48570f92",
         "redemption_nullifier": "de8e70ecc43bc5979d324905bb3b0f79d751d087d838f1be1c72e258a8953860"
       },
       "kind": "struct",
@@ -6841,6 +6846,7 @@
         "redeem_intent_hash": "ba1bd256b6bee2eb50af18812a2185615e70d45c2f6faf987dc4fb19eb359621"
       },
       "hashes": {
+        "lock_record_hash": "b21c1e25a1bb78d006797fa251b416e3a4174f1436e6c9440a1db5486a962dc1",
         "redemption_nullifier": "ddfb36567b5e1bb480a3a1663602ac1c6ec711a26726f0b90678ac3c3a0c7c4c"
       },
       "kind": "struct",
@@ -6870,6 +6876,7 @@
         "redeem_intent_hash": "625539fd8aa58f65b16e9c485e20db9a23716014abebf6d2c92b2aed94e3665a"
       },
       "hashes": {
+        "lock_record_hash": "c1fb15191efebcb4892b1bf7ca28657386b7e9c7a09d23577b54b610422465e0",
         "redemption_nullifier": "9af8067d192faed0b31ea2bdb9642b23fcc5aa1668437c8577277e7b07229ffd"
       },
       "kind": "struct",
@@ -6900,6 +6907,7 @@
         "redeem_intent_hash": "f041824366bb57336f91b5e01034cbef00300202876b3d9822ee87944233ac11"
       },
       "hashes": {
+        "lock_record_hash": "50e7f3a8c31104835fd853a4159372bf6fe909ef1f53b0d8179d331f139af4f4",
         "redemption_nullifier": "77c42f0c4ad18e9f251a4b119d74c3dd92ff0990a49d92c934716cc0fefb6cf7"
       },
       "kind": "struct",
@@ -6930,6 +6938,7 @@
         "redeem_intent_hash": "e05ed5e21ef1ead2f7f79abb57fde43742ee8fe85101a6aefe9abbc210f338ad"
       },
       "hashes": {
+        "lock_record_hash": "32dc761e0c6e2e9b65e9720eb558701a0be415d65c8f49f6b265de3d9148e339",
         "redemption_nullifier": "caff6b92574d601828bd6d83562a473a6e52398558d21848b2b3f99243aaac0c"
       },
       "kind": "struct",
@@ -6959,6 +6968,7 @@
         "redeem_intent_hash": "b0508d0bb7045e6507c14bd6ac2df19ddf6817bdbd4991e06b7a11428c05ffde"
       },
       "hashes": {
+        "lock_record_hash": "f83b6657e4c2a0036bb398dab66b68e0a3effce14f793de1544385fff68deb38",
         "redemption_nullifier": "c30d50aaea5c2616c8418b63c2e92b7f9118a4be9ef9ca6fd54ab8ca9b3ed3c8"
       },
       "kind": "struct",
@@ -6989,6 +6999,7 @@
         "redeem_intent_hash": "672d2d1b69ab5f9566bfd358be31927eeff21cd48de7a4e20cadb166fb797677"
       },
       "hashes": {
+        "lock_record_hash": "15d1edf9acefec08c7e8f27ce3171ba7060d4c7f6c9c95a3c9da57ea8c056351",
         "redemption_nullifier": "065d3a9e034cc7c7aac93d713fc1b4846b8902d83e00a0cb8812de2506eeb169"
       },
       "kind": "struct",
@@ -7016,6 +7027,7 @@
         "redeem_intent_hash": "3b3d031bf6426e42e442d1396af0e192988feb481c20f8631f7951400c9a6564"
       },
       "hashes": {
+        "lock_record_hash": "cf436a9afe4eb1eefe24231aabf5fdab10fef696eb9b630ddd9b24850db64176",
         "redemption_nullifier": "0c514e5ac0171e2c4febfb288bd3899e8ffb8b74f3acb9f68a579503f6d8d74a"
       },
       "kind": "struct",
@@ -7046,6 +7058,7 @@
         "redeem_intent_hash": "aaff2b74c3a7f877df0e0f98e597641bd207874bd8873b440e19aa14c8d20b82"
       },
       "hashes": {
+        "lock_record_hash": "95977bab7ff3a6092957b6bf4c886c01f09584895274e218afb0a06f51834e86",
         "redemption_nullifier": "1023d9dcba7046e0462691cecf4c2324947b2e67fd32fe906a5ff23ee554d9a3"
       },
       "kind": "struct",
@@ -7075,6 +7088,7 @@
         "redeem_intent_hash": "8763b240fb449ecd669bdffccfaf7db7a0ca47735be8cab9dbf3cf5a658ed5d8"
       },
       "hashes": {
+        "lock_record_hash": "fcdadea0e0aa00e1e7e7b78b20e65656531b3c47b62a57ed502f8812dd81582c",
         "redemption_nullifier": "68001ba77327c5c9e599a24eabb2283978082119b12e41d33979ba73beeec6be"
       },
       "kind": "struct",
@@ -7104,6 +7118,7 @@
         "redeem_intent_hash": "ad5566b7c156510e821a1dd862397f5763bd92e8621dc56087256102cb4671e7"
       },
       "hashes": {
+        "lock_record_hash": "6de347910d1f184b21704887ed560749f952463c31a3a1c5a4e4ac60029c5137",
         "redemption_nullifier": "8b1f0e4997a4c153ef29bf53ff3e54735f9f00fc0a0217c25fef5c4217b5c242"
       },
       "kind": "struct",
@@ -7133,6 +7148,7 @@
         "redeem_intent_hash": "084c917cb35116b36b7c95d78c97c3f88f850b5458996d48e7dc48031602a655"
       },
       "hashes": {
+        "lock_record_hash": "92826a232f9e51caa89be403a8bdacd7f823454112f30b4906671c74fa4497b0",
         "redemption_nullifier": "b84b8755fe19b7b2432dbae72d015f78b8bf6378a184924c6e59fc37dd844a74"
       },
       "kind": "struct",
@@ -7162,6 +7178,7 @@
         "redeem_intent_hash": "6f9a75423a0bdcaac9e9f0202349ca2f5961849c0d8cd04f1f293b15b7aa3a8a"
       },
       "hashes": {
+        "lock_record_hash": "1fa1a69f5ed7a7c66b433d414f741810702f45ff922dfda265b410ba1d0b16ac",
         "redemption_nullifier": "6ee800d6fdd38d748783a0e2d70c5b7553b4cdd6bc767409ea3cdcab63337ef8"
       },
       "kind": "struct",
@@ -7192,6 +7209,7 @@
         "redeem_intent_hash": "df9290e95f29cada8b4562d515fd85055aa7fe57e762e5ea45eabfbdf1f7cd7c"
       },
       "hashes": {
+        "lock_record_hash": "f911b6e82fdc3862050b58a24f4acf1dda7d0c1fc6c3ebc0bb855831480e6ebc",
         "redemption_nullifier": "b2c5ab2fc62f6566dde4b1a42ad0a9bfd565ffd13840cb439ab10c6c1b601141"
       },
       "kind": "struct",
@@ -7221,6 +7239,7 @@
         "redeem_intent_hash": "15ef0ebd47422e5e28caba66bc8a763cbde2be3ba1710d5516500523e052f6d9"
       },
       "hashes": {
+        "lock_record_hash": "a76a9c9f5935cf0ab3c13062b23ab59a7d7dd5669abcd8a8af8c4865e54d18a4",
         "redemption_nullifier": "cb8a7420cb0f6001ec80b63835638692fbd8ddd0202f32868c74691ce22bcb81"
       },
       "kind": "struct",
@@ -7250,6 +7269,7 @@
         "redeem_intent_hash": "f9aa55d36370b29e9eb9367077a07c506e1f9c5770aa2bcc402a240638b8b9a5"
       },
       "hashes": {
+        "lock_record_hash": "5a394da64b00f73f3b447fedc4e0bae1537aadf46f09db72bad6699e968657ac",
         "redemption_nullifier": "6e9fe74bd406b4bcd972d0061c9a26090d21cd99a4194e634d7fdf0c8cb4ac65"
       },
       "kind": "struct",
@@ -7279,6 +7299,7 @@
         "redeem_intent_hash": "4f28ecc2d7464f176e8b202acfa01c3db6bfeb32e11886ed59a7a77740741648"
       },
       "hashes": {
+        "lock_record_hash": "8f7c11dd59d29caf8f397986fcfeb890bc9833cd34714dd62d8b506137a04ddb",
         "redemption_nullifier": "6289304871880433df348a0ce314566d6b3ac11fbf105212db79a3be6026e6a3"
       },
       "kind": "struct",
@@ -7309,6 +7330,7 @@
         "redeem_intent_hash": "046638abdc75ec83697056a07d5c06922f02f31ee71a40f7f71d09ca279eb673"
       },
       "hashes": {
+        "lock_record_hash": "54a9d78bc93fc488cf775d222caf4c6805171e1192229158834af085e1338c79",
         "redemption_nullifier": "afa58fd9865b4ce533a84c3c97a89bac2e009993b4793af07675ea9a2c943fc3"
       },
       "kind": "struct",
@@ -7338,6 +7360,7 @@
         "redeem_intent_hash": "7422543042023fca31deb2216865fb7ab834fb8ac67e6973766120c21e22d20c"
       },
       "hashes": {
+        "lock_record_hash": "a9a6a6e1e9a93dfc02cf685d7c58a384327aa86687ba583aca3edbd97d798156",
         "redemption_nullifier": "1da260deda6b560cf4265b973f2d17b7f23f623542bcdb069217327a62d613a9"
       },
       "kind": "struct",
@@ -7369,6 +7392,7 @@
         "redeem_intent_hash": "54618aa650816d599b04c26ad82c9ddc68175fff4cf623c2fd15bcf4e4aa8026"
       },
       "hashes": {
+        "lock_record_hash": "ddb9c25fe05e437ce04ed17cca479101441c37c336d22970a833fc3e54473b20",
         "redemption_nullifier": "191a0dfc2104491015f17b4735fc16677fb7ec13bcc65f737c4f9266d6308fb6"
       },
       "kind": "struct",
@@ -7396,6 +7420,7 @@
         "redeem_intent_hash": "5abe29f2d49191f9a7f66b86d0b3750be1be05f4809a2efe9cedf3352a8a540c"
       },
       "hashes": {
+        "lock_record_hash": "04f77a71791798a72e718b444f79d3060bd8696ed43a62ae992edca2578babc7",
         "redemption_nullifier": "e2cb223ea5c289b1eeaea9d2e34e8cf7513e58ec20ef42ee6395a41ff3e770c9"
       },
       "kind": "struct",
@@ -7423,6 +7448,7 @@
         "redeem_intent_hash": "daf379f2d2635a051c38420df1b31b8e04e770518b116492c7e5b8557f283e47"
       },
       "hashes": {
+        "lock_record_hash": "e0d436f062d2ee57d1b2cba5c5be0bd774e71a32007dd4d61f6f74c98dd372ea",
         "redemption_nullifier": "68a29370a0b031c626f368e90220670a7d617c6318bca5f0d50ed45c7efbc483"
       },
       "kind": "struct",
@@ -7450,6 +7476,7 @@
         "redeem_intent_hash": "0c5d2c64ed68dcf883c3d76601856acfe034f56833dbfe7c5c38bd058452f0f2"
       },
       "hashes": {
+        "lock_record_hash": "ca549e37be40109cd232cf2550da7756d5f7e2174e5b827536b5507a16151bf1",
         "redemption_nullifier": "5bd1aaa0d97e148298e3d8a95812f6ed436ac536204de517ea2ba183b77aaf2f"
       },
       "kind": "struct",
@@ -7480,6 +7507,7 @@
         "redeem_intent_hash": "a047d2a55746c28f7c79f223861bdc1cd836d1d22f3bf3351e5dbd9c7253491c"
       },
       "hashes": {
+        "lock_record_hash": "32892115d9f4b1108694b812ba6d666b975170a5d173fa10fe436085fdeb293c",
         "redemption_nullifier": "1cf5ccb8d9d28fcf6658d1dd2d5c57e6828c937c39409b21e465f88adb558ef4"
       },
       "kind": "struct",
@@ -7511,6 +7539,7 @@
         "redeem_intent_hash": "803e93d0c161f6bcbc974e4f6bfd83151bde04024d924bc0ec5e677a76e24a8d"
       },
       "hashes": {
+        "lock_record_hash": "e7ed4724ba519adee7c8061d8d9f5e222df2be8473daab3c9d94703e194593a4",
         "redemption_nullifier": "74c164ee3bce98c5f7a391ca257f3ce545124e71e55ed690c5a05abbc955a6f5"
       },
       "kind": "struct",
@@ -7538,6 +7567,7 @@
         "redeem_intent_hash": "5bac5ed419ee4c68c330e8aa12d63deb02ecf5f388fcb71f5f7914b3f81eeb33"
       },
       "hashes": {
+        "lock_record_hash": "0d860f874b2dc0d853cfd5da27af79edab132adc8d16925f592ab11c86793bba",
         "redemption_nullifier": "ff910baae8dcc74225823b1337ba9dfb5e4425f05f323d3846e6208e87edff8c"
       },
       "kind": "struct",
@@ -7565,6 +7595,7 @@
         "redeem_intent_hash": "7935017a996732b57332e69e8ca0e6d84c43c90f589591e04e84ae2cda67153b"
       },
       "hashes": {
+        "lock_record_hash": "7f9fbe215f29de2e5ec395a2a0258456a1617324f742342faa25e2b2b9378d3a",
         "redemption_nullifier": "50ee0a70d0137defe9acb3a0f829a5e6adfbc63538aa93ac552f40c49129f2fa"
       },
       "kind": "struct",
@@ -7595,6 +7626,7 @@
         "redeem_intent_hash": "2dd4a8dd3b12e087cb897d0c4e0341d776343cdc2576728cf883c47a9f66e772"
       },
       "hashes": {
+        "lock_record_hash": "47c458912a20d6da53cfcabc124e25d550426eed50b5be1e8615ad432e31f265",
         "redemption_nullifier": "117f097cfe18207f27285d1ae4b362d68cfe3727a19c8812a48a9e263c25d15c"
       },
       "kind": "struct",
@@ -7622,6 +7654,7 @@
         "redeem_intent_hash": "30966fb3c340df0d72325f110910732cd60ae38f804975f0299cb7d3b2e8e200"
       },
       "hashes": {
+        "lock_record_hash": "90c8fb89a7eb5062fb878d858638dad66892f3ff779aa857d94d26f0d56eca20",
         "redemption_nullifier": "6f547945e6d6a2f0cef8cdc5a44e390ab1a2569ead9a005b7f39ff0eb5420c2e"
       },
       "kind": "struct",
@@ -7653,6 +7686,7 @@
         "redeem_intent_hash": "239e3b5470d862e2865b796a1248337af9e49ece90eaf7219b29234069053113"
       },
       "hashes": {
+        "lock_record_hash": "822aa88c4036d91e2788399894a997b407f880c480f6ae1cde9d6a68bb6fcd03",
         "redemption_nullifier": "2de7db508370e6347898f5823504b20340e09d0fa11c8c24bada6e8efca5e725"
       },
       "kind": "struct",
@@ -7682,6 +7716,7 @@
         "redeem_intent_hash": "32f14e04cf0050ca0629cce2a00fa4d07259c27e69f095f4aca44d95ae74e8f8"
       },
       "hashes": {
+        "lock_record_hash": "340f2b017b8575d67b15c6929cb999b3c07ba9cb2218396539a8b51337a1762b",
         "redemption_nullifier": "a6ec48f149d490d994bd2d89ada8b137eeecb447968824d8c837cf3911a2dd39"
       },
       "kind": "struct",
@@ -7713,6 +7748,7 @@
         "redeem_intent_hash": "9a8c30666711102f37ad052e88dcf8e5ea381bbbce5c794b3cf891a235c75e11"
       },
       "hashes": {
+        "lock_record_hash": "3f74d8b52610ddeaa08ccf2fe3b707560a7d1b41e9489b30c0d1b48f7e62afef",
         "redemption_nullifier": "c4a9f0fea2a00985aa9d351dfcecce2e9d37268f3927073a125a004bd56acbfd"
       },
       "kind": "struct",
@@ -7743,6 +7779,7 @@
         "redeem_intent_hash": "4e79ea015fed69634a623f8d462c1770452eed432a52e518cd003c69fded1cd9"
       },
       "hashes": {
+        "lock_record_hash": "91571f922949ee7d4ebf5302851423e785f1e7ff47fd510a881af7884c9c252f",
         "redemption_nullifier": "4a0898c3e05814e8e70b7f0163aa352bb5724820be7463bbcf138af52b4f8955"
       },
       "kind": "struct",
@@ -7770,6 +7807,7 @@
         "redeem_intent_hash": "57e613325a9a8faf45cab76ef7404c6902af0208319dca46f09182802f66a3fd"
       },
       "hashes": {
+        "lock_record_hash": "a2e2fc1f2b68f29a00c65e616276618b66ebe07b103f757539a8aa184a5edfef",
         "redemption_nullifier": "a3e3fb91fac62cbb671b4a57a01de0bb537b36c6793a80537ff53d34a704b3a8"
       },
       "kind": "struct",
@@ -7797,6 +7835,7 @@
         "redeem_intent_hash": "94d26bd769fa5c0be82f690bfbd3bbf13e1f7e5938220f16e675e1f2edf1fe4d"
       },
       "hashes": {
+        "lock_record_hash": "4e8c790f7376fa53ee4869b7d9c108540035af7db6dd76b107084d2d2d084675",
         "redemption_nullifier": "b2d04125068c24b5cb2df1640c179e2a5e6e585c7d823091ada3c340cceaad79"
       },
       "kind": "struct",
@@ -7826,6 +7865,7 @@
         "redeem_intent_hash": "bc5e890e69cbd84ff3e5d19aef2c1e193957207edc1284044f51d7b01f3bdf1b"
       },
       "hashes": {
+        "lock_record_hash": "9547e51011c3f2197816d2539d889cbb3e589a12a26169394bdca5dcfba3feb5",
         "redemption_nullifier": "6343fa9b18e4e9e345626061bffece6e44fbcd3ada0b604172c8639145a40dc3"
       },
       "kind": "struct",
@@ -7853,6 +7893,7 @@
         "redeem_intent_hash": "45cc0454cad8a1baa965de75664e1da34a540d7ca598c323dac6f8b313e68dd4"
       },
       "hashes": {
+        "lock_record_hash": "eec11df8d97a910c4dd202b9469891ed9466f7a07c06e9a0b0ad8cdf58e79914",
         "redemption_nullifier": "56b1c2992b7fc6804d748cb1413f69424c4d99ae8c7cd710ee643f1324d1076e"
       },
       "kind": "struct",
@@ -7883,6 +7924,7 @@
         "redeem_intent_hash": "835e23ad084899935d308534137d8474e24a77acf29eaab15409536377841188"
       },
       "hashes": {
+        "lock_record_hash": "5079b56b4a44b61a8b667e50baeb6604c2f9c71971424b9c874c802cad70eee4",
         "redemption_nullifier": "eb6b306963aa2935cadc9906c9d53090bb14c8e6931d01b0846dd24e2e9460e8"
       },
       "kind": "struct",
@@ -7910,6 +7952,7 @@
         "redeem_intent_hash": "7ccd3bb54128c3dcf5b3807bc90a496fecfc86fe194dcada6a452fcc71b50a9a"
       },
       "hashes": {
+        "lock_record_hash": "a52568e3fa9dc712d09724961a9da9ba274646470ac1a851456a615833b79886",
         "redemption_nullifier": "90069b06deb3ad84be530678ee7cac4cdb3fec0296b4e120f2d8b2abfb6a93dc"
       },
       "kind": "struct",
@@ -7939,6 +7982,7 @@
         "redeem_intent_hash": "92604eba3cefd8e4f721aae21eacc0c8141e5fff0c613961a9cb48d37d70788a"
       },
       "hashes": {
+        "lock_record_hash": "06e5326e42df04c835d16a5a62e54c6c897dd09a7a61799af42126ca5323be88",
         "redemption_nullifier": "9d8c6f2252923a01354c7e58d91fab280d7ec976c232bcd426a23bca8ef1709b"
       },
       "kind": "struct",
@@ -7968,6 +8012,7 @@
         "redeem_intent_hash": "ca6a21ba052e070697c0de2538b1f240d75722e86b39f1e499d065ad581a2059"
       },
       "hashes": {
+        "lock_record_hash": "c90a061bf4e85430db30855d40fe9fc2d2bc530627eb6d1eb94d9de1011916cf",
         "redemption_nullifier": "aa465703225173508c35c31f360e61e1dde4c1ba618bbcc67122f5b5ad4aa385"
       },
       "kind": "struct",
@@ -7995,6 +8040,7 @@
         "redeem_intent_hash": "09ea29de03cb29e3d066f7fee956006bb3454c6d20a3bf7609f3133189637212"
       },
       "hashes": {
+        "lock_record_hash": "f6dbe1f1febde6e74147dd9cd17e86a8c486ef4de467d5639ce2bd947d32eeea",
         "redemption_nullifier": "f72425526b218303ba85ef4f1d63900c368556c62ef1c6f036e0908430420f7a"
       },
       "kind": "struct",
@@ -8025,6 +8071,7 @@
         "redeem_intent_hash": "dd5b8cc4fd641bbb28703cec0916e998be42e7ce5acba4ea559d60c72a5e7b69"
       },
       "hashes": {
+        "lock_record_hash": "b9839549a6bdf0e7415850796d14445488cbcb55769b2cc1f00c8c70aa3f976c",
         "redemption_nullifier": "5d892bfbb20ddfcbe04963977dd71c88cf4416de3566e011c1145a6c5376e170"
       },
       "kind": "struct",
@@ -8054,6 +8101,7 @@
         "redeem_intent_hash": "83b48488765db90d9a5dcc42cb5b90ee04c40a12497ff6732f814144720abfca"
       },
       "hashes": {
+        "lock_record_hash": "14df1dfef2a024002ee19a203861a20f0ee0d579fe5727851405a6294890eeda",
         "redemption_nullifier": "60a608d9ef5cc386772cd22012b4f1bfbeba531816721013b02076263a7fc99e"
       },
       "kind": "struct",
@@ -8084,6 +8132,7 @@
         "redeem_intent_hash": "a54c646a40163c378ad1a3fbcb6d979042cf3d5511cbfd63ad41b8400658fa26"
       },
       "hashes": {
+        "lock_record_hash": "dab7f01ec0f10748e3f381e8e716094f30ae559065241e698fa18b876e88b07a",
         "redemption_nullifier": "ba9b45ed80e889bdc5f847c24b569ff3a247b947db427de25946f9ff782aea15"
       },
       "kind": "struct",
@@ -8113,6 +8162,7 @@
         "redeem_intent_hash": "d9b900743781cf6c4a1df1967cb429411ccfa56eadf6d683f9db8588bc1fc923"
       },
       "hashes": {
+        "lock_record_hash": "c29c5ed8550a7d06cefdbea4837688b0b33cd365e098c5f26e9b8fa6a67e16cf",
         "redemption_nullifier": "cddef0c5427c35d46978ce3117e311416527a01e4d1fc89c33246da7dc670be6"
       },
       "kind": "struct",
@@ -8140,6 +8190,7 @@
         "redeem_intent_hash": "7696c47e79c268d88f090f2001cf438faa7893617f50149fae25d8b337735201"
       },
       "hashes": {
+        "lock_record_hash": "60d3b2394cf680d2ea2abfb29f0d400ef148c51a8dd89a4576dd5e73183df3ce",
         "redemption_nullifier": "3d9fdb2bc27140ed50c10dc6506669c471726f28441b0dbb0bedfc81f98f2d14"
       },
       "kind": "struct",
@@ -8170,6 +8221,7 @@
         "redeem_intent_hash": "f210555c7b746d460591770c8566381cb49267c78cdf2fcfeac4c79c33209721"
       },
       "hashes": {
+        "lock_record_hash": "2822c3931f3f861be19a79c89c95e849efe1d2016f76b6fbe619bbea9f2d9c40",
         "redemption_nullifier": "b7eae96b92b7241c6f3f14d85d8c44d6d24d6341ed6e458e145bebb729a33b05"
       },
       "kind": "struct",
@@ -8201,6 +8253,7 @@
         "redeem_intent_hash": "ddd0a478d8152874c2ad8bebadf685e2c2903d80f2da3785760f3020e8afaf10"
       },
       "hashes": {
+        "lock_record_hash": "959e984ffabd8cc215de05574ef808de0a8cfa341b477adb8b9635b3141bdec6",
         "redemption_nullifier": "c882248b3278e33ec5ac50d4ec7bd38dd55917e72047306444d12fa04c21d59f"
       },
       "kind": "struct",
@@ -8232,6 +8285,7 @@
         "redeem_intent_hash": "e98086073214ed29afb9089f447551772d9ec250b6f6460fffdc9070a44af2d9"
       },
       "hashes": {
+        "lock_record_hash": "faad3519a8098f8144f4140f8249f1b02b9d24ea1f0699c2614572c05c37ec0a",
         "redemption_nullifier": "33a74df3d16398992e712ce04b5a6cbb7a67e79f0f4695e4ac3cc309d743bc1a"
       },
       "kind": "struct",
@@ -8259,6 +8313,7 @@
         "redeem_intent_hash": "d6708dd84efa20f697f199a5852edc3b8ba615a310c8326550ce730695a76d3a"
       },
       "hashes": {
+        "lock_record_hash": "b17208fcc671894c9f17305dbfd4bf49b82b83425f84c9a4c3d4d2afd214c28b",
         "redemption_nullifier": "adbe4636b691583e20b5081dd156bb29bfb36c158a75205886866a9ba1f71b99"
       },
       "kind": "struct",
@@ -8288,6 +8343,7 @@
         "redeem_intent_hash": "8ff430c4643b249753bcdafb389b529cde38f6a8d699cdc1c89d6e5855f1c76f"
       },
       "hashes": {
+        "lock_record_hash": "099144279c8f691410733741d46eb7659d5ab930d62b4e637a32c66b0f12b71e",
         "redemption_nullifier": "a8073b34ed34e7c6bec5df3f33b3409d49b9ba485379ee4fb8b917ef39e6c012"
       },
       "kind": "struct",
@@ -8318,6 +8374,7 @@
         "redeem_intent_hash": "e0ab3cd52d9c8c564b3446eb3e057e62c77518b102d7aeacfb789f6ed500da0e"
       },
       "hashes": {
+        "lock_record_hash": "632af038f42984fb35e3f7c908a652260b7d6c17a0c9c617c98edc22eee2c219",
         "redemption_nullifier": "2045dca2e4f4eb1839b71a982fad1ab13ab5230ee1fcf180536f6913f7230045"
       },
       "kind": "struct",
@@ -8348,6 +8405,7 @@
         "redeem_intent_hash": "b92cc7dac86a91d6422e6c5dc460c63042c485552bde7c641f1e297a860225d2"
       },
       "hashes": {
+        "lock_record_hash": "cea36ae8ba7f68c5b38a96af8640579d1a3a1d23f68c34f401d2968ddae07be1",
         "redemption_nullifier": "3fc0b641b9bd78cc5ab4b3955b2b100a10bc56f8a3150ddccdd41243796a4674"
       },
       "kind": "struct",
@@ -8379,6 +8437,7 @@
         "redeem_intent_hash": "ff4fa577b13e03205052f5e47431a9abfa32a9e62ac1fdf200383b376a866c65"
       },
       "hashes": {
+        "lock_record_hash": "2f10c6ae1319aed998c49c48c9969260cba6377f092588e5cce914c100ee4316",
         "redemption_nullifier": "93bdbd57c8af19138b8ba7c16b9e8805650866dfaad0da3c46072b3d39c0d246"
       },
       "kind": "struct",
@@ -8408,6 +8467,7 @@
         "redeem_intent_hash": "e490fe1c5686f431ffea6b6cff503df24a83c1470d643e799eaae45f3d9643c6"
       },
       "hashes": {
+        "lock_record_hash": "d7979ad66282b89518a77b31a31b431922b7ef103b0d02b50963ca26bdcfd84c",
         "redemption_nullifier": "a7377416d42603970246fa9409ea047712df61bffb00889d9c82764a85c39240"
       },
       "kind": "struct",
@@ -8438,6 +8498,7 @@
         "redeem_intent_hash": "4779b437d14fdb27bb6bf801ea09a2df3b77abf371b71d641856244998800491"
       },
       "hashes": {
+        "lock_record_hash": "052c31147e6990d1010def4f65f0b77b50c6eb532056bf0414ce3504524ea5cf",
         "redemption_nullifier": "ee71fdff08a324d791a6ed09e1049a36b0285f7518b70de2af5daeb164558812"
       },
       "kind": "struct",
@@ -8468,6 +8529,7 @@
         "redeem_intent_hash": "5526abed61584f0b239f6c10aae9f8b29f3f43bc2e0ac4fe26921db2bdec523b"
       },
       "hashes": {
+        "lock_record_hash": "345814922349505976e7ec74327d26e1ef1c16a2cd11a13ead6262d29445eb96",
         "redemption_nullifier": "38b0369f07b55e362f7c6eb469511e2fea5d472ae961d9c917611f57640750c9"
       },
       "kind": "struct",
@@ -8497,6 +8559,7 @@
         "redeem_intent_hash": "ad773bc2e657f94a670452b32571a98f1f7269ed98bfada67fc064b9fce3c357"
       },
       "hashes": {
+        "lock_record_hash": "a775c8b445d694e0dd90bad8a90d753970cac1c82c537a7e9548f55b439e2728",
         "redemption_nullifier": "318ae0c82bb196ca5ff0a3d193d0c243fba57f0b96a12d39b319371b30751ceb"
       },
       "kind": "struct",
@@ -8527,6 +8590,7 @@
         "redeem_intent_hash": "3c01bb78b74f244d2ac93aa49337bc86658a9a75fa8dbc7044b71834b8f1d96c"
       },
       "hashes": {
+        "lock_record_hash": "a2381ba5a611a25609c20ab6d2e84988d8628554c16aad8e1a2558e774b2f042",
         "redemption_nullifier": "e023eab4986b90a61adc55baa275e993ac665baf61d9a760e672c54fb36fda38"
       },
       "kind": "struct",
@@ -8557,6 +8621,7 @@
         "redeem_intent_hash": "83b406e41d448b63c3b47e845378b5ee890bc8f738ed4e6ccd66be0bc063f7fa"
       },
       "hashes": {
+        "lock_record_hash": "d5c198a094883d25d2c7001431b187f11a74c119f4cb77b7e46c5e365a5c8459",
         "redemption_nullifier": "1f8a5c34ed7c209bb5115b4ccefb16b5bbeb5ccfab21ee3ace322340806b5c0c"
       },
       "kind": "struct",
@@ -8588,6 +8653,7 @@
         "redeem_intent_hash": "ccb87d827a5d0be772dc1b7197a3eea4efbf6cadf3475b8ab2030716688676be"
       },
       "hashes": {
+        "lock_record_hash": "014a6085e89445467298fcf0414fd5cbcaac9725d88729dfc9bb339a671802fb",
         "redemption_nullifier": "776ea8f5e6921c33ee319300030b3c0435d29081732129eb8bb11aa46aae41c9"
       },
       "kind": "struct",
@@ -8615,6 +8681,7 @@
         "redeem_intent_hash": "a66c6547c0baa5ea1c298679eee9df96ad28793b962ada20cd24f18e9e161430"
       },
       "hashes": {
+        "lock_record_hash": "cbb91fa78078379ec38518542e5e13db7ebc84bd4685b62f7fcd007f0b2c85b7",
         "redemption_nullifier": "dedb2a8ed7210d468a97aaa15781ff734a5af8ab2e15664ca7daa0215a4369d1"
       },
       "kind": "struct",
@@ -8646,6 +8713,7 @@
         "redeem_intent_hash": "1925fd90170596bca3fc340e065e2b9581f96a702095f24fc5cd55fdbed32cc5"
       },
       "hashes": {
+        "lock_record_hash": "e33b8a6c22d4e9e07145f3c0acef0728182b1f5523f33b80d4bd8696969119c8",
         "redemption_nullifier": "32aee4f1bd55c026509b359a42e7dfcffe048f7a1a80bf480485499787785aeb"
       },
       "kind": "struct",
@@ -8675,6 +8743,7 @@
         "redeem_intent_hash": "25e2d17e0744fbace4bf4fed70bcfdcfebe63c573fe2d3808823d21bbc955a7b"
       },
       "hashes": {
+        "lock_record_hash": "661b03c8533ab9ecd9ccc6841fcfb539a81d8c8122bae9ab02ddd0f016ed3624",
         "redemption_nullifier": "4951741fc149df5c0a1920b4d0066bb689cf3b65f9cce4188f32e072526bc0e6"
       },
       "kind": "struct",
@@ -8704,6 +8773,7 @@
         "redeem_intent_hash": "4d630e558df4e84a465a3643155c59db5df773ad96dad7b7d41d8d3ac871cdd9"
       },
       "hashes": {
+        "lock_record_hash": "a3d6bf7ae949f9fd650b1ba6659e80296530486efb21bb0608ea06c71f0c810a",
         "redemption_nullifier": "eced13b994acbb65a36a3b759558feb801c0a7f67b855c5aa5744a3ce877b33d"
       },
       "kind": "struct",
@@ -8733,6 +8803,7 @@
         "redeem_intent_hash": "5466b355adc5d9a031a232ad19280ae1e69e186fa6609b4b0c1de3a9f0b740fe"
       },
       "hashes": {
+        "lock_record_hash": "c8f20b29c2889002526be1df2cfb6230d15edee604a89a79668b5c8c7ed4ae9a",
         "redemption_nullifier": "dbb83190db424d14fa8fd68675d33fbcbc5b80ebf171898eba9783f50f67dd37"
       },
       "kind": "struct",
@@ -8764,6 +8835,7 @@
         "redeem_intent_hash": "555c9daa5cfeb4a3dd52b9ec3ca1764c1a193beef44544d14df1d0dca3affb97"
       },
       "hashes": {
+        "lock_record_hash": "76f4d7ade3fa9c4a6537a094880660dcf19481620fc01cda6bf6f7bd72436229",
         "redemption_nullifier": "781fc1ff537944587846f6ae85ee8f030d226c16387a2ed1845a6489059e737f"
       },
       "kind": "struct",
@@ -8794,6 +8866,7 @@
         "redeem_intent_hash": "cf5ad1ffbbe1ae56584ef03db68f0112932fecaee0032b02e6f93bd27f3cc6de"
       },
       "hashes": {
+        "lock_record_hash": "d26d8655d1f2ec5ed545e4863cbc0afd07ae66c0f08e31db13b937df9d60a452",
         "redemption_nullifier": "8e96ffcffbfc23670b1eea45630e457c4973c8abd308ece5df81585e0d846f03"
       },
       "kind": "struct",
@@ -8821,6 +8894,7 @@
         "redeem_intent_hash": "318b05238ad55dcc92aece2313bdf6fa84cee322dbb7bcf5a36760dcb442ca28"
       },
       "hashes": {
+        "lock_record_hash": "d461fa0ab6ef837a897445149c7d3446c5cdd779525dbd290acad789b948adac",
         "redemption_nullifier": "dfab3f31074963ee4f49a74fdb3552357f72aa89bc9143e432de1612a5368419"
       },
       "kind": "struct",
@@ -8850,6 +8924,7 @@
         "redeem_intent_hash": "2d10d3624a4e48fc366be3403e08154ea2798c085048332d6f718c73a60cf7f1"
       },
       "hashes": {
+        "lock_record_hash": "35407501f9b959f3a95bb3c9eb8f415c53d928a06000f4adcd00264bbf0c8b19",
         "redemption_nullifier": "e70459fd19a2abd4c62ba704aae2b5cf911949fd6a20f9ed1d7eb4dd9a78cd9a"
       },
       "kind": "struct",
@@ -8880,6 +8955,7 @@
         "redeem_intent_hash": "b1b2f0b750226ab0990828d237de5312cc93766991acda109d86c3a3d1281b3b"
       },
       "hashes": {
+        "lock_record_hash": "6f352cb81f913c4233f458d60a96f4137bde4797e28bf7171fbaf526539a74d3",
         "redemption_nullifier": "e5f830fdeb4c25d545ff2dd6d8611530cf6682c41c345815a711501a7b61c3c4"
       },
       "kind": "struct",
@@ -8910,6 +8986,7 @@
         "redeem_intent_hash": "961fa25785c4dcdb20705cd6a4315480321390f9ac7e7e646eeea2baef8ec2e7"
       },
       "hashes": {
+        "lock_record_hash": "b33315ea2202887d66d36425aa0ab6400ca85b60864ae2227cf0cd7dd4fd6c1f",
         "redemption_nullifier": "65ec0574fa6bbd43cf7f6f7b2f5559af23bfdc9d90a032255825538b2b10ce4c"
       },
       "kind": "struct",
@@ -8939,6 +9016,7 @@
         "redeem_intent_hash": "3811233989997a1dffe176a585bbd45e831025b1847e283045cd1ea6caed21ee"
       },
       "hashes": {
+        "lock_record_hash": "7c3e4bf842d49afce0a3ee650f94decc9cb142fe47019dab8ffd655ec83ad74e",
         "redemption_nullifier": "124198195f8dea1f01fa92e222cae00b1b3c70208e63d5f646c21021f01d4ac1"
       },
       "kind": "struct",
@@ -8970,6 +9048,7 @@
         "redeem_intent_hash": "08c8f4253122f78963c15cfed76641b79a4358e333f866491ab06b89a4eba73d"
       },
       "hashes": {
+        "lock_record_hash": "3437f850760f6aa76fe90a82af78a6de94e1693fa783e3b676f94c1c22c5285e",
         "redemption_nullifier": "6157d22dfd1560b87368a4e0772c4bcc9c94cf6b08ef8fcb5b68d6ef3aa8e497"
       },
       "kind": "struct",
@@ -9001,6 +9080,7 @@
         "redeem_intent_hash": "5b94f9c8f8b27dd626051ff90ea63c09b4706c8bc55ab3d69c7268a247e66f63"
       },
       "hashes": {
+        "lock_record_hash": "a461e2c272d2733bfb1b9216c29025d7aae9d4b9a3bbc26bef9a6b565633e0d6",
         "redemption_nullifier": "87a44b677dc3c3404154ac6a75f3cb9ff338cb5d1e4096e77968951489572e5b"
       },
       "kind": "struct",
@@ -33316,6 +33396,7 @@
         "redeem_intent_hash": "621aaca1beb37383573020e905c9d2e76313088c033042c4c250894c0fcda493"
       },
       "hashes": {
+        "lock_record_hash": "15e628ff615ac6503106f69acf0b4b9f63f21cf43a774042c4b34e843f37ad0a",
         "redemption_nullifier": "960fd4dfb4d6285dfa37df156e6f2a7d8d5dcfdc81bf7c0d6f64ae8ad95fd206"
       },
       "kind": "struct",
