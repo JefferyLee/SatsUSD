@@ -76,6 +76,21 @@ export function collateralRatioPpm(reserve: bigint, supply: bigint, price: bigin
   return (reserve * price * 1_000_000n) / (supply * 10n ** 14n);
 }
 
+// Binary Poseidon merkle root over hex leaves (pad to power of two with zero).
+export function batchRootHex(leavesHex: string[]): string {
+  if (leavesHex.length === 0) return "00".repeat(32);
+  let level = leavesHex.slice();
+  let n = 1;
+  while (n < level.length) n <<= 1;
+  while (level.length < n) level.push("00".repeat(32));
+  while (level.length > 1) {
+    const next: string[] = [];
+    for (let i = 0; i < level.length; i += 2) next.push(poseidon2Hex(level[i], level[i + 1]));
+    level = next;
+  }
+  return level[0];
+}
+
 export function recomputeTier(reserve: bigint, supply: bigint, price: bigint): number {
   const cr = collateralRatioPpm(reserve, supply, price);
   if (cr === null || cr >= 1_500_000n) return 0; // Healthy

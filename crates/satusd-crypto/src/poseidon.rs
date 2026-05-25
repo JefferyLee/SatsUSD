@@ -58,6 +58,33 @@ pub fn hash_bytes_be(input: &[u8]) -> [u8; 32] {
     fr_to_be_bytes(&hash_bytes(input))
 }
 
+/// Binary Poseidon merkle root over field-element leaves (poseidon2 compression),
+/// padded to the next power of two with the field zero. This is the batch-root
+/// convention for §6.8 ReserveClaim batches (redemption/confirmation/burn/lineage
+/// roots), defined here so the M4a circuit's `batch_root` gadget can match it.
+/// Empty input → field zero.
+pub fn batch_root(leaves: &[Fr]) -> Fr {
+    if leaves.is_empty() {
+        return Fr::from(0u64);
+    }
+    let mut n = 1usize;
+    while n < leaves.len() {
+        n <<= 1;
+    }
+    let mut level = leaves.to_vec();
+    level.resize(n, Fr::from(0u64));
+    while level.len() > 1 {
+        level = level.chunks(2).map(|p| poseidon2(p[0], p[1])).collect();
+    }
+    level[0]
+}
+
+/// `batch_root` over big-endian leaf bytes, returned big-endian.
+pub fn batch_root_be(leaves_be: &[[u8; 32]]) -> [u8; 32] {
+    let frs: Vec<Fr> = leaves_be.iter().map(|b| fr_from_be_bytes(b)).collect();
+    fr_to_be_bytes(&batch_root(&frs))
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -74,6 +101,24 @@ mod tests {
         let x = poseidon2(Fr::from(7u64), Fr::from(9u64));
         let bytes = fr_to_be_bytes(&x);
         assert_eq!(fr_from_be_bytes(&bytes), x);
+    }
+
+    #[test]
+    fn batch_root_4_is_binary_merkle() {
+        let l = [[1u8; 32], [2u8; 32], [3u8; 32], [4u8; 32]]; // each < Fr
+        let a = poseidon2_be(&l[0], &l[1]);
+        let b = poseidon2_be(&l[2], &l[3]);
+        assert_eq!(batch_root_be(&l), poseidon2_be(&a, &b));
+        // 1-leaf root is the leaf itself (next pow2 of 1 is 1); empty → zero.
+        assert_eq!(batch_root(&[Fr::from(5u64)]), Fr::from(5u64));
+        assert_eq!(batch_root(&[]), Fr::from(0u64));
+        // 3 leaves pad to 4 with a zero leaf.
+        let three = [Fr::from(7u64), Fr::from(8u64), Fr::from(9u64)];
+        let exp3 = poseidon2(
+            poseidon2(Fr::from(7u64), Fr::from(8u64)),
+            poseidon2(Fr::from(9u64), Fr::from(0u64)),
+        );
+        assert_eq!(batch_root(&three), exp3);
     }
 
     // Printed for cross-checking against circomlibjs poseidon([1,2]).

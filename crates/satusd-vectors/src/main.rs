@@ -478,6 +478,28 @@ fn main() {
         }));
     }
 
+    // batch_root: binary Poseidon merkle over 4 field-element leaves (§6.8 batch
+    // roots; M4a circuit `batch_root` gadget matches this).
+    for i in 0..PER_TYPE {
+        let leaves: Vec<[u8; 32]> = (0..4)
+            .map(|_| {
+                let mut b = [0u8; 32];
+                b[1..].copy_from_slice(&d.bytes(31)); // 31-byte BE, < Fr
+                b
+            })
+            .collect();
+        let out = crypto::poseidon::batch_root_be(&leaves);
+        vectors.push(json!({
+            "name": format!("batch_root_{i}"),
+            "kind": "crypto",
+            "op": "batch_root",
+            "inputs": {
+                "leaves": Value::Array(leaves.iter().map(|l| Value::from(hex::encode(l))).collect()),
+            },
+            "output": hex::encode(out),
+        }));
+    }
+
     // Domain separator registry: name -> raw ASCII bytes (no padding).
     let domains: Vec<Value> = domain::ALL
         .iter()

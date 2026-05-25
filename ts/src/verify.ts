@@ -17,6 +17,7 @@ import {
   numsKeyHex,
   collateralRatioPpm,
   recomputeTier,
+  batchRootHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -70,6 +71,9 @@ for (const v of doc.vectors as any[]) {
         break;
       case "nums_key":
         check(v.name, numsKeyHex(v.inputs.domain, v.inputs.salt), v.output, "nums_key");
+        break;
+      case "batch_root":
+        check(v.name, batchRootHex(v.inputs.leaves), v.output, "batch_root");
         break;
       case "tier": {
         const r = BigInt(v.inputs.reserve_sats);

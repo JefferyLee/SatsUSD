@@ -17,7 +17,29 @@ commitment (no SMT, no signatures — those are M4b/M4c):
 ~1570 constraints (1035 non-linear + 535 linear). Public outputs:
 `[cr_ppm, tier, state_commit]`.
 
-## Run
+## M4a batch root — `m4a_batch_root.circom`
+
+A 4-leaf binary Poseidon merkle matching `satusd_crypto::poseidon::batch_root`
+(the §6.8 ReserveClaim batch-root convention: poseidon2 compression, pad to the
+next power of two with the field zero). Real batches (≤ MAX_BATCH_SIZE = 64) are
+the same construction with more levels.
+
+## Cross-check (Rust = TS = circuit)
+
+`check.sh` compiles both circuits (witness calculators only — fast, no trusted
+setup) and runs the circuit's outputs against the shared integration vectors that
+the Rust `satusd-state`/`satusd-crypto` and TS reference already agree on:
+
+```sh
+cd circuits && npm install && bash check.sh
+# circuit ↔ vectors: 7 tier vectors match (cr_ppm + tier)
+# circuit ↔ vectors: 80 batch_root vectors match
+```
+
+So the circuit's `cr_ppm`/`tier`/`batch_root` are pinned to the same vectors as
+the software verifier — a 3-way consistency check.
+
+## Run (full Groth16 prove/verify)
 
 ```sh
 cd circuits
