@@ -32,6 +32,7 @@ pub enum NodeError {
     InvariantViolation,
 }
 
+#[derive(Clone)]
 pub struct StateNode {
     state: StateRoot,
     issuer_tree: SparseMerkleTree,

@@ -41,6 +41,7 @@ fn bit(key: &[u8; 32], depth: usize) -> u8 {
 }
 
 /// In-memory sparse Merkle tree. Absent keys map to the empty (zero) leaf.
+#[derive(Clone)]
 pub struct SparseMerkleTree {
     leaves: BTreeMap<[u8; 32], Fr>,
     empty: Vec<Fr>,
