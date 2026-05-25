@@ -1596,6 +1596,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-ta-proof"
+version = "0.1.0"
+dependencies = [
+ "bitcoin",
+ "hex",
+ "satusd-crypto",
+ "sha2",
+]
+
+[[package]]
 name = "satusd-tapd-client"
 version = "0.1.0"
 dependencies = [
