@@ -29,33 +29,31 @@ pub const DEPOSIT_MIN_CONFIRMATIONS: u32 = 6;
 /// Why a mint transition was rejected. Variants map to the §13.3 I-tests.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum MintRejectReason {
-    BadStateLinkage,
-    WrongTransitionType,
-    ImmutableFieldChanged,
-    SupplyChangedAtCommit,
-    ReserveChangedAtFinalize,
+    /// Claimed `new` state ≠ the executor's computed post-state (covers linkage +
+    /// immutable fields + every changed field).
+    PostStateMismatch,
     Overflow,
     IssuerMismatch,
     IssuerNotInState,
-    IssuerNotActive, // I-05
-    IssuerRootMismatch,
+    IssuerNotActive,         // I-05
     DepositNotConfirmed,     // I-01
     DepositNotToReserve,     // I-02
     MultisigThresholdNotMet, // I-06
     PendingMintExists,
     ZeroMintAmount,
-    InsufficientCollateralAtCommit { cr_ppm: u64 },
-    NoPendingMint,                                    // I-07 (second finalize)
-    CommitMismatch,                                   // I-03
-    MintAnchorNotConfirmed,                           // I-03
-    MintProofInvalid,                                 // I-03
-    InsufficientCollateralAtFinalize { cr_ppm: u64 }, // I-04 (DL-27)
-    TierNotHealthy { cr_ppm: u64 },
-    ReserveMismatch,
-    SupplyMismatch,
-    OraclePriceMismatch,
-    TierFieldMismatch,
-    CrFieldMismatch,
+    InsufficientCollateralAtCommit {
+        cr_ppm: u64,
+    },
+    NoPendingMint,          // I-07 (second finalize)
+    CommitMismatch,         // I-03
+    MintAnchorNotConfirmed, // I-03
+    MintProofInvalid,       // I-03
+    InsufficientCollateralAtFinalize {
+        cr_ppm: u64,
+    }, // I-04 (DL-27)
+    TierNotHealthy {
+        cr_ppm: u64,
+    },
 }
 
 macro_rules! ensure {
@@ -119,53 +117,35 @@ pub struct MintFinalizeWitness {
     pub oracle_price_e8: u64,
 }
 
-/// Linkage + immutable-field checks common to both mint phases.
-fn check_common(
-    prev: &StateRoot,
-    new: &StateRoot,
-    ttype: TransitionType,
-) -> Result<(), MintRejectReason> {
-    use MintRejectReason::*;
-    ensure!(new.transition_type == ttype.as_u8(), WrongTransitionType);
-    ensure!(
-        new.prev_state_root == state_root_hash(prev),
-        BadStateLinkage
-    );
-    ensure!(
-        prev.state_epoch.checked_add(1) == Some(new.state_epoch),
-        BadStateLinkage
-    );
-    let immutable = prev.satusd_asset_family_id == new.satusd_asset_family_id
-        && prev.oracle_set_hash == new.oracle_set_hash
-        && prev.oracle_set_epoch == new.oracle_set_epoch
-        && prev.operator_registry_root == new.operator_registry_root
-        && prev.lock_record_root == new.lock_record_root
-        && prev.lock_consumed_root == new.lock_consumed_root
-        && prev.lock_refund_root == new.lock_refund_root
-        && prev.redemption_nullifier_root == new.redemption_nullifier_root
-        && prev.pending_claim_root == new.pending_claim_root
-        && prev.live_da_root == new.live_da_root
-        && prev.archival_da_root == new.archival_da_root
-        && prev.reserved_pending_claim_sats == new.reserved_pending_claim_sats;
-    ensure!(immutable, ImmutableFieldChanged);
-    Ok(())
+/// `prev` advanced by one epoch with linkage fields set; mutations are then
+/// applied to produce the new state.
+fn next_state(prev: &StateRoot, ttype: TransitionType) -> StateRoot {
+    let mut e = prev.clone();
+    e.state_epoch = prev.state_epoch + 1;
+    e.prev_state_root = state_root_hash(prev);
+    e.transition_type = ttype.as_u8();
+    e
 }
 
-/// Verify the new StateRoot's own `emergency_tier` + `collateral_ratio_ppm`
-/// reflect (reserve, supply, price). Zero supply ⇒ Healthy / cr field 0.
-fn check_state_tier(new: &StateRoot, price_e8: u64) -> Result<(), MintRejectReason> {
-    let cr = collateral_ratio_ppm(new.reserve_btc_sats, new.sat_usd_supply_atoms, price_e8);
-    let expected_tier =
-        tier::recompute_tier(new.reserve_btc_sats, new.sat_usd_supply_atoms, price_e8);
-    ensure!(
-        new.emergency_tier == expected_tier.as_u8(),
-        MintRejectReason::TierFieldMismatch
-    );
-    ensure!(
-        new.collateral_ratio_ppm == cr.unwrap_or(0),
-        MintRejectReason::CrFieldMismatch
-    );
-    Ok(())
+/// Set the StateRoot's own `emergency_tier` + `collateral_ratio_ppm` for the
+/// given (reserve, supply, price). Zero supply ⇒ Healthy / cr field 0.
+fn set_state_tier(s: &mut StateRoot, price_e8: u64) {
+    s.collateral_ratio_ppm =
+        collateral_ratio_ppm(s.reserve_btc_sats, s.sat_usd_supply_atoms, price_e8).unwrap_or(0);
+    s.emergency_tier =
+        tier::recompute_tier(s.reserve_btc_sats, s.sat_usd_supply_atoms, price_e8).as_u8();
+}
+
+/// `verify_*` = `apply_*` then whole-struct equality with the claimed `new`.
+fn verified(
+    expected: Result<StateRoot, MintRejectReason>,
+    new: &StateRoot,
+) -> Result<(), MintRejectReason> {
+    match expected {
+        Ok(e) if e == *new => Ok(()),
+        Ok(_) => Err(MintRejectReason::PostStateMismatch),
+        Err(e) => Err(e),
+    }
 }
 
 /// Bind `issuer` to `root` via the SMT membership `proof` (key = issuer_id).
@@ -186,21 +166,58 @@ fn issuer_in_state(
     Ok(())
 }
 
-/// MINT_COMMIT (§5.D11 stage 1).
-pub fn verify_mint_commit(
+/// The issuer position after a successful MINT_COMMIT (reserve + pending mint).
+pub fn issuer_after_commit(
+    prev_issuer: &IssuerPosition,
+    w: &MintCommitWitness,
+) -> Result<IssuerPosition, MintRejectReason> {
+    use MintRejectReason::Overflow;
+    let commitment = mint_commitment(
+        w.requested_mint_atoms,
+        &w.asset_metadata_commitment,
+        &w.deposit_txid,
+    );
+    let mut exp = prev_issuer.clone();
+    exp.reserve_deposits_sats = exp
+        .reserve_deposits_sats
+        .checked_add(w.deposit_sats)
+        .ok_or(Overflow)?;
+    exp.pending_mint_atoms = exp
+        .pending_mint_atoms
+        .checked_add(w.requested_mint_atoms)
+        .ok_or(Overflow)?;
+    exp.last_deposit_txid = Some(w.deposit_txid);
+    exp.pending_mint_commitment = Some(commitment);
+    Ok(exp)
+}
+
+/// The issuer position after a successful MINT_FINALIZE (mint, clear pending).
+pub fn issuer_after_finalize(
+    prev_issuer: &IssuerPosition,
+    requested_mint_atoms: u64,
+) -> Result<IssuerPosition, MintRejectReason> {
+    use MintRejectReason::Overflow;
+    let mut exp = prev_issuer.clone();
+    exp.minted_satusd_atoms = exp
+        .minted_satusd_atoms
+        .checked_add(requested_mint_atoms)
+        .ok_or(Overflow)?;
+    exp.pending_mint_atoms = exp
+        .pending_mint_atoms
+        .checked_sub(requested_mint_atoms)
+        .ok_or(Overflow)?;
+    exp.pending_mint_commitment = None;
+    Ok(exp)
+}
+
+/// MINT_COMMIT (§5.D11 stage 1) — build the post-state (executor).
+pub fn apply_mint_commit(
     prev_state: &StateRoot,
-    new_state: &StateRoot,
     prev_issuer: &IssuerPosition,
     issuer_proof: &[[u8; 32]],
     w: &MintCommitWitness,
-) -> Result<(), MintRejectReason> {
+) -> Result<StateRoot, MintRejectReason> {
     use MintRejectReason::*;
-
-    check_common(prev_state, new_state, TransitionType::MintCommit)?;
-    ensure!(
-        new_state.sat_usd_supply_atoms == prev_state.sat_usd_supply_atoms,
-        SupplyChangedAtCommit
-    );
 
     ensure!(prev_issuer.issuer_id == w.issuer_id, IssuerMismatch);
     issuer_in_state(&prev_state.issuer_positions_root, prev_issuer, issuer_proof)?;
@@ -245,54 +262,39 @@ pub fn verify_mint_commit(
         InsufficientCollateralAtCommit { cr_ppm: cr }
     );
 
-    // Expected post-state issuer position.
-    let commitment = mint_commitment(
-        w.requested_mint_atoms,
-        &w.asset_metadata_commitment,
-        &w.deposit_txid,
-    );
-    let mut exp = prev_issuer.clone();
-    exp.reserve_deposits_sats = exp
-        .reserve_deposits_sats
-        .checked_add(w.deposit_sats)
-        .ok_or(Overflow)?;
-    exp.pending_mint_atoms = exp
-        .pending_mint_atoms
-        .checked_add(w.requested_mint_atoms)
-        .ok_or(Overflow)?;
-    exp.last_deposit_txid = Some(w.deposit_txid);
-    exp.pending_mint_commitment = Some(commitment);
+    let exp = issuer_after_commit(prev_issuer, w)?;
 
-    ensure!(new_state.reserve_btc_sats == reserve_total, ReserveMismatch);
-    ensure!(
-        new_state.latest_oracle_price_e8 == w.oracle_price_e8,
-        OraclePriceMismatch
-    );
-    check_state_tier(new_state, w.oracle_price_e8)?;
-
-    let new_root = smt::root_after_update(&w.issuer_id, &issuer_position_hash(&exp), issuer_proof);
-    ensure!(
-        new_state.issuer_positions_root == new_root,
-        IssuerRootMismatch
-    );
-    Ok(())
+    // Build the post-state: reserve grows, supply unchanged, tier on current supply.
+    let mut expected = next_state(prev_state, TransitionType::MintCommit);
+    expected.reserve_btc_sats = reserve_total;
+    expected.latest_oracle_price_e8 = w.oracle_price_e8;
+    set_state_tier(&mut expected, w.oracle_price_e8);
+    expected.issuer_positions_root =
+        smt::root_after_update(&w.issuer_id, &issuer_position_hash(&exp), issuer_proof);
+    Ok(expected)
 }
 
-/// MINT_FINALIZE (§5.D11 stage 2; DL-27 finalize-time CR re-check).
-pub fn verify_mint_finalize(
+pub fn verify_mint_commit(
     prev_state: &StateRoot,
     new_state: &StateRoot,
     prev_issuer: &IssuerPosition,
     issuer_proof: &[[u8; 32]],
-    w: &MintFinalizeWitness,
+    w: &MintCommitWitness,
 ) -> Result<(), MintRejectReason> {
-    use MintRejectReason::*;
+    verified(
+        apply_mint_commit(prev_state, prev_issuer, issuer_proof, w),
+        new_state,
+    )
+}
 
-    check_common(prev_state, new_state, TransitionType::MintFinalize)?;
-    ensure!(
-        new_state.reserve_btc_sats == prev_state.reserve_btc_sats,
-        ReserveChangedAtFinalize
-    );
+/// MINT_FINALIZE (§5.D11 stage 2; DL-27 finalize-time CR re-check) — executor.
+pub fn apply_mint_finalize(
+    prev_state: &StateRoot,
+    prev_issuer: &IssuerPosition,
+    issuer_proof: &[[u8; 32]],
+    w: &MintFinalizeWitness,
+) -> Result<StateRoot, MintRejectReason> {
+    use MintRejectReason::*;
 
     ensure!(prev_issuer.issuer_id == w.issuer_id, IssuerMismatch);
     issuer_in_state(&prev_state.issuer_positions_root, prev_issuer, issuer_proof)?;
@@ -330,34 +332,29 @@ pub fn verify_mint_finalize(
         TierNotHealthy { cr_ppm: cr }
     );
 
-    // Expected post-state issuer position.
-    let mut exp = prev_issuer.clone();
-    exp.minted_satusd_atoms = exp
-        .minted_satusd_atoms
-        .checked_add(w.requested_mint_atoms)
-        .ok_or(Overflow)?;
-    exp.pending_mint_atoms = exp
-        .pending_mint_atoms
-        .checked_sub(w.requested_mint_atoms)
-        .ok_or(Overflow)?;
-    exp.pending_mint_commitment = None;
+    let exp = issuer_after_finalize(prev_issuer, w.requested_mint_atoms)?;
 
-    ensure!(
-        new_state.sat_usd_supply_atoms == post_supply,
-        SupplyMismatch
-    );
-    ensure!(
-        new_state.latest_oracle_price_e8 == w.oracle_price_e8,
-        OraclePriceMismatch
-    );
-    check_state_tier(new_state, w.oracle_price_e8)?;
+    // Build the post-state: supply grows, reserve unchanged, tier on new supply.
+    let mut expected = next_state(prev_state, TransitionType::MintFinalize);
+    expected.sat_usd_supply_atoms = post_supply;
+    expected.latest_oracle_price_e8 = w.oracle_price_e8;
+    set_state_tier(&mut expected, w.oracle_price_e8);
+    expected.issuer_positions_root =
+        smt::root_after_update(&w.issuer_id, &issuer_position_hash(&exp), issuer_proof);
+    Ok(expected)
+}
 
-    let new_root = smt::root_after_update(&w.issuer_id, &issuer_position_hash(&exp), issuer_proof);
-    ensure!(
-        new_state.issuer_positions_root == new_root,
-        IssuerRootMismatch
-    );
-    Ok(())
+pub fn verify_mint_finalize(
+    prev_state: &StateRoot,
+    new_state: &StateRoot,
+    prev_issuer: &IssuerPosition,
+    issuer_proof: &[[u8; 32]],
+    w: &MintFinalizeWitness,
+) -> Result<(), MintRejectReason> {
+    verified(
+        apply_mint_finalize(prev_state, prev_issuer, issuer_proof, w),
+        new_state,
+    )
 }
 
 #[cfg(test)]

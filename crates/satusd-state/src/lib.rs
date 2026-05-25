@@ -5,6 +5,7 @@
 //! is that software layer for the accounting state machine.
 
 pub mod mint;
+pub mod node;
 pub mod oracle;
 pub mod redeem;
 pub mod registry;

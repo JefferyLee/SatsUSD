@@ -38,7 +38,7 @@ pub const REFUND_SAFETY_DELTA: u32 = 24;
 /// `mode` value for an operator-routed fast redemption (§5.D2).
 pub const MODE_FAST_OPERATOR: u8 = 0;
 /// SMT "present" marker value for set membership.
-const SET_MEMBER: [u8; 32] = [1u8; 32];
+pub const SET_MEMBER: [u8; 32] = [1u8; 32];
 
 /// Why a redeem transition was rejected. Variants map to §13.1 R-tests.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -84,33 +84,27 @@ macro_rules! ensure {
     };
 }
 
-/// Linkage: new binds to prev, epoch advances by one, transition type matches.
-fn check_linkage(
-    prev: &StateRoot,
-    new: &StateRoot,
-    ttype: TransitionType,
-) -> Result<(), RedeemRejectReason> {
-    use RedeemRejectReason::*;
-    ensure!(new.transition_type == ttype.as_u8(), WrongTransitionType);
-    ensure!(
-        new.prev_state_root == state_root_hash(prev),
-        BadStateLinkage
-    );
-    ensure!(
-        prev.state_epoch.checked_add(1) == Some(new.state_epoch),
-        BadStateLinkage
-    );
-    Ok(())
-}
-
-/// `prev` with the linkage fields advanced; transition-specific mutations are
-/// then applied and the whole struct compared to `new` (immutability backstop).
-fn next_state(prev: &StateRoot, new: &StateRoot, ttype: TransitionType) -> StateRoot {
+/// `prev` advanced by one epoch with linkage fields set. Transition-specific
+/// mutations are then applied to produce the new state; `verify_*` compares the
+/// whole result to the claimed `new` (so linkage + immutability are covered).
+fn next_state(prev: &StateRoot, ttype: TransitionType) -> StateRoot {
     let mut e = prev.clone();
-    e.state_epoch = new.state_epoch;
-    e.prev_state_root = new.prev_state_root;
+    e.state_epoch = prev.state_epoch + 1;
+    e.prev_state_root = state_root_hash(prev);
     e.transition_type = ttype.as_u8();
     e
+}
+
+/// `verify_*` = `apply_*` then whole-struct equality with the claimed `new`.
+fn verified(
+    expected: Result<StateRoot, RedeemRejectReason>,
+    new: &StateRoot,
+) -> Result<(), RedeemRejectReason> {
+    match expected {
+        Ok(e) if e == *new => Ok(()),
+        Ok(_) => Err(RedeemRejectReason::PostStateMismatch),
+        Err(e) => Err(e),
+    }
 }
 
 /// §8.2 step 6.1 intent ↔ lock binding (shared by lock/finalize).
@@ -168,13 +162,12 @@ pub struct RedeemLockWitness {
     pub lineage_proof_hash: [u8; 32],
 }
 
-pub fn verify_redeem_lock(
+/// Build the post-state for REDEEM_FAST_LOCK (executor).
+pub fn apply_redeem_lock(
     prev: &StateRoot,
-    new: &StateRoot,
     w: &RedeemLockWitness,
-) -> Result<(), RedeemRejectReason> {
+) -> Result<StateRoot, RedeemRejectReason> {
     use RedeemRejectReason::*;
-    check_linkage(prev, new, TransitionType::RedeemFastLock)?;
     check_intent_lock_binding(
         &w.redeem_intent,
         &w.lock_record,
@@ -193,11 +186,18 @@ pub fn verify_redeem_lock(
         LockAlreadyExists
     );
 
-    let mut expected = next_state(prev, new, TransitionType::RedeemFastLock);
+    let mut expected = next_state(prev, TransitionType::RedeemFastLock);
     expected.lock_record_root =
         smt::root_after_update(&lr_hash, &SET_MEMBER, &w.lock_exclusion_proof);
-    ensure!(*new == expected, PostStateMismatch);
-    Ok(())
+    Ok(expected)
+}
+
+pub fn verify_redeem_lock(
+    prev: &StateRoot,
+    new: &StateRoot,
+    w: &RedeemLockWitness,
+) -> Result<(), RedeemRejectReason> {
+    verified(apply_redeem_lock(prev, w), new)
 }
 
 /// REDEEM_FAST_FINALIZE (§5.D17 finalize; §8.2): active → consumed + nullifier,
@@ -217,13 +217,12 @@ pub struct RedeemFinalizeWitness {
     pub burn_proof_ok: bool,
 }
 
-pub fn verify_redeem_finalize(
+/// Build the post-state for REDEEM_FAST_FINALIZE (executor).
+pub fn apply_redeem_finalize(
     prev: &StateRoot,
-    new: &StateRoot,
     w: &RedeemFinalizeWitness,
-) -> Result<(), RedeemRejectReason> {
+) -> Result<StateRoot, RedeemRejectReason> {
     use RedeemRejectReason::*;
-    check_linkage(prev, new, TransitionType::RedeemFastFinalize)?;
     check_intent_lock_binding(
         &w.redeem_intent,
         &w.lock_record,
@@ -347,7 +346,7 @@ pub fn verify_redeem_finalize(
         .checked_sub(gross_sats)
         .ok_or(Overflow)?;
 
-    let mut expected = next_state(prev, new, TransitionType::RedeemFastFinalize);
+    let mut expected = next_state(prev, TransitionType::RedeemFastFinalize);
     expected.sat_usd_supply_atoms = new_supply;
     expected.reserve_btc_sats = new_reserve;
     expected.latest_oracle_price_e8 = w.price_e8;
@@ -358,8 +357,15 @@ pub fn verify_redeem_finalize(
         smt::root_after_update(&lr_hash, &SET_MEMBER, &w.consumed_exclusion_proof);
     expected.redemption_nullifier_root =
         smt::root_after_update(&nf, &SET_MEMBER, &w.nullifier_exclusion_proof);
-    ensure!(*new == expected, PostStateMismatch);
-    Ok(())
+    Ok(expected)
+}
+
+pub fn verify_redeem_finalize(
+    prev: &StateRoot,
+    new: &StateRoot,
+    w: &RedeemFinalizeWitness,
+) -> Result<(), RedeemRejectReason> {
+    verified(apply_redeem_finalize(prev, w), new)
 }
 
 /// LOCK_REFUND (§5.D17 refund): active → refunded; the locked SatUSD returns to
@@ -373,13 +379,12 @@ pub struct LockRefundWitness {
     pub refund_exclusion_proof: Vec<[u8; 32]>,
 }
 
-pub fn verify_lock_refund(
+/// Build the post-state for LOCK_REFUND (executor).
+pub fn apply_lock_refund(
     prev: &StateRoot,
-    new: &StateRoot,
     w: &LockRefundWitness,
-) -> Result<(), RedeemRejectReason> {
+) -> Result<StateRoot, RedeemRejectReason> {
     use RedeemRejectReason::*;
-    check_linkage(prev, new, TransitionType::LockRefund)?;
     check_intent_lock_binding(
         &w.redeem_intent,
         &w.lock_record,
@@ -413,11 +418,18 @@ pub fn verify_lock_refund(
         LockRefunded
     );
 
-    let mut expected = next_state(prev, new, TransitionType::LockRefund);
+    let mut expected = next_state(prev, TransitionType::LockRefund);
     expected.lock_refund_root =
         smt::root_after_update(&lr_hash, &SET_MEMBER, &w.refund_exclusion_proof);
-    ensure!(*new == expected, PostStateMismatch);
-    Ok(())
+    Ok(expected)
+}
+
+pub fn verify_lock_refund(
+    prev: &StateRoot,
+    new: &StateRoot,
+    w: &LockRefundWitness,
+) -> Result<(), RedeemRejectReason> {
+    verified(apply_lock_refund(prev, w), new)
 }
 
 #[cfg(test)]

@@ -46,41 +46,33 @@ macro_rules! ensure {
     };
 }
 
-fn check_linkage(
-    prev: &StateRoot,
-    new: &StateRoot,
-    ttype: TransitionType,
-) -> Result<(), RegistryRejectReason> {
-    use RegistryRejectReason::*;
-    ensure!(new.transition_type == ttype.as_u8(), WrongTransitionType);
-    ensure!(
-        new.prev_state_root == state_root_hash(prev),
-        BadStateLinkage
-    );
-    ensure!(
-        prev.state_epoch.checked_add(1) == Some(new.state_epoch),
-        BadStateLinkage
-    );
-    Ok(())
-}
-
-fn next_state(prev: &StateRoot, new: &StateRoot, ttype: TransitionType) -> StateRoot {
+fn next_state(prev: &StateRoot, ttype: TransitionType) -> StateRoot {
     let mut e = prev.clone();
-    e.state_epoch = new.state_epoch;
-    e.prev_state_root = new.prev_state_root;
+    e.state_epoch = prev.state_epoch + 1;
+    e.prev_state_root = state_root_hash(prev);
     e.transition_type = ttype.as_u8();
     e
 }
 
-/// ISSUER_REGISTER: add `new_issuer` (must be absent) to `issuer_positions_root`.
-pub fn verify_issuer_register(
-    prev: &StateRoot,
+/// `verify_*` = `apply_*` then whole-struct equality with the claimed `new`.
+fn verified(
+    expected: Result<StateRoot, RegistryRejectReason>,
     new: &StateRoot,
+) -> Result<(), RegistryRejectReason> {
+    match expected {
+        Ok(e) if e == *new => Ok(()),
+        Ok(_) => Err(RegistryRejectReason::PostStateMismatch),
+        Err(e) => Err(e),
+    }
+}
+
+/// ISSUER_REGISTER: add `new_issuer` (must be absent) to `issuer_positions_root`.
+pub fn apply_issuer_register(
+    prev: &StateRoot,
     new_issuer: &IssuerPosition,
     issuer_exclusion_proof: &[[u8; 32]],
-) -> Result<(), RegistryRejectReason> {
+) -> Result<StateRoot, RegistryRejectReason> {
     use RegistryRejectReason::*;
-    check_linkage(prev, new, TransitionType::IssuerRegister)?;
 
     // A freshly registered issuer is ACTIVE with zeroed balances and no history.
     let fresh = new_issuer.status == IssuerStatus::Active
@@ -113,28 +105,37 @@ pub fn verify_issuer_register(
         IssuerAlreadyRegistered
     );
 
-    let mut expected = next_state(prev, new, TransitionType::IssuerRegister);
+    let mut expected = next_state(prev, TransitionType::IssuerRegister);
     expected.issuer_positions_root = smt::root_after_update(
         &new_issuer.issuer_id,
         &issuer_position_hash(new_issuer),
         issuer_exclusion_proof,
     );
-    ensure!(*new == expected, PostStateMismatch);
-    Ok(())
+    Ok(expected)
+}
+
+pub fn verify_issuer_register(
+    prev: &StateRoot,
+    new: &StateRoot,
+    new_issuer: &IssuerPosition,
+    issuer_exclusion_proof: &[[u8; 32]],
+) -> Result<(), RegistryRejectReason> {
+    verified(
+        apply_issuer_register(prev, new_issuer, issuer_exclusion_proof),
+        new,
+    )
 }
 
 /// RECLAIM_STALE_CLAIM: flip an expired PENDING/CHALLENGED claim to RECLAIMED and
 /// release its reserved sats (§5.D12). `current_height` is the chain tip from the
 /// L1 anchor (verified fact this chunk).
-pub fn verify_reclaim_stale_claim(
+pub fn apply_reclaim_stale_claim(
     prev: &StateRoot,
-    new: &StateRoot,
     prev_claim: &PendingClaim,
     claim_membership_proof: &[[u8; 32]],
     current_height: u32,
-) -> Result<(), RegistryRejectReason> {
+) -> Result<StateRoot, RegistryRejectReason> {
     use RegistryRejectReason::*;
-    check_linkage(prev, new, TransitionType::ReclaimStaleClaim)?;
 
     ensure!(
         matches!(
@@ -164,15 +165,27 @@ pub fn verify_reclaim_stale_claim(
         .checked_sub(prev_claim.reserved_sats)
         .ok_or(Overflow)?;
 
-    let mut expected = next_state(prev, new, TransitionType::ReclaimStaleClaim);
+    let mut expected = next_state(prev, TransitionType::ReclaimStaleClaim);
     expected.reserved_pending_claim_sats = new_reserved;
     expected.pending_claim_root = smt::root_after_update(
         &prev_claim.claim_id,
         &pending_claim_hash(&reclaimed),
         claim_membership_proof,
     );
-    ensure!(*new == expected, PostStateMismatch);
-    Ok(())
+    Ok(expected)
+}
+
+pub fn verify_reclaim_stale_claim(
+    prev: &StateRoot,
+    new: &StateRoot,
+    prev_claim: &PendingClaim,
+    claim_membership_proof: &[[u8; 32]],
+    current_height: u32,
+) -> Result<(), RegistryRejectReason> {
+    verified(
+        apply_reclaim_stale_claim(prev, prev_claim, claim_membership_proof, current_height),
+        new,
+    )
 }
 
 #[cfg(test)]
