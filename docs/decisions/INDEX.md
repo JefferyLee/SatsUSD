@@ -3,6 +3,7 @@
 | ADR | Title | Status |
 |---|---|---|
 | [ADR-001](ADR-001-lock-plan.md) | SatUSD lock plan (G1) — asset-layer anchoring path; G1 passed | accepted |
+| [ADR-005](ADR-005-zk-toolchain.md) | zk toolchain — circom + circomlib + Groth16/BN254 | accepted |
 | [ADR-0011](ADR-0011-domain-separator-encoding.md) | Canonical hash domain-separator convention (raw ASCII, no padding) | accepted |
 | [ADR-0012](ADR-0012-claim-id-preimage.md) | `claim_id` preimage excludes `claim_id` and `operator_signature` | accepted |
 | [ADR-0013](ADR-0013-poseidon-bn254.md) | Poseidon parameterization (circomlib BN254) + byte→field packing | accepted |
@@ -17,4 +18,4 @@
 
 Reserved (placeholders to be filled during full M0, per PRD §14.2):
 ADR-002 (BTC payout confirmation), ADR-003 (CR formula), ADR-004 (mint finalize CR re-check),
-ADR-005 (zk toolchain), ADR-006 (BitVM3 lineage dispute).
+ADR-006 (BitVM3 lineage dispute).
