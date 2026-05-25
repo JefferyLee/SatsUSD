@@ -1,32 +1,24 @@
-//! REDEEM_FAST_LOCK / REDEEM_FAST_FINALIZE / LOCK_REFUND software verifiers
+//! REDEEM_FAST_LOCK / LOCK_REFUND software verifiers + the intent↔lock binding
 //! (PRD §5.D10, §5.D17 lock state machine, §8.2).
 //!
 //! The §5.D17 lock lifecycle is `active → consumed` (finalize) or
-//! `active → refunded` (refund), tracked as three SMT sets keyed by
-//! `lock_record_hash` plus the redemption nullifier set:
+//! `active → refunded` (refund), tracked as SMT sets keyed by `lock_record_hash`
+//! plus the redemption nullifier set:
 //!
 //! - LOCK: insert lock_record_hash into lock_record_root.
-//! - FINALIZE: lock active (∈ record, ∉ consumed, ∉ refund) + nullifier unused;
-//!   insert into consumed + nullifier; burn supply, debit reserve.
-//! - REFUND: lock active; insert into refund.
+//! - REFUND: lock active (∈ record, ∉ consumed, ∉ refund); insert into refund.
 //!
-//! Scope (this chunk): single redemption per transition; the accounting + D17 SMT
-//! state machine is exact. External proofs — TA lineage (DL-23), BTC payout SPV
-//! confirmation (DL-22/D14), universe burn proof (D16), oracle aggregation (D7) —
-//! are carried as already-verified witness facts; their cryptographic
-//! establishment and multi-redemption batching are later chunks.
+//! REDEEM_FAST_FINALIZE (the `active → consumed` half) is the §5.D12 claim
+//! submit, implemented as the batched `claim::verify_reserve_claim_finalize` with
+//! real oracle aggregation + SPV (ADR-0022). The single-redemption finalize that
+//! used to live here was retired in favor of that path; this module keeps LOCK,
+//! REFUND, and the shared [`check_intent_lock_binding`] helper.
 
-use satusd_crypto::nums::{protocol_burn_internal_key, protocol_sink_script_key, tap_tweak};
+use satusd_crypto::nums::tap_tweak;
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{
-    lock_record_hash, lock_tweak, redeem_intent_hash, redemption_nullifier,
-};
-use satusd_types::tier;
-use satusd_types::types::{
-    BtcHtlcPayoutRecord, LockFinalizeRecord, LockRecord, LockRefundRecord, RedeemIntent, StateRoot,
-    TransitionType,
-};
+use satusd_types::derive::{lock_record_hash, lock_tweak, redeem_intent_hash};
+use satusd_types::types::{LockRecord, LockRefundRecord, RedeemIntent, StateRoot, TransitionType};
 
 /// Minimum / maximum redemption amount in atoms (§18.3).
 pub const MIN_REDEMPTION_ATOMS: u64 = 100;
@@ -60,20 +52,15 @@ pub enum RedeemRejectReason {
     LineageProofHashMismatch,
     LockAlreadyExists,
     LockNotActive,
-    LockConsumed,            // R-09 (double finalize), R-17 (refund-after-finalize)
-    LockRefunded,            // R-17 (finalize-after-refund)
-    NullifierUsed,           // R-10
-    PreimageMismatch,        // R-12
-    HtlcPaymentHashMismatch, // R-04
-    HtlcClaimPubkeyMismatch, // R-03
-    PayoutNotConfirmed,      // R-07, R-13 (depth < 6)
-    PreimageNotRevealed,
+    LockConsumed,     // R-09 (double finalize), R-17 (refund-after-finalize)
+    LockRefunded,     // R-17 (finalize-after-refund)
+    NullifierUsed,    // R-10
+    PreimageMismatch, // R-12
     BurnSinkMismatch,
     BurnInternalKeyMismatch,
     BurnProofInvalid,
     FinalizeAmountMismatch,
     FinalizeOperatorMismatch,
-    PayoutTooLow, // R-02
 }
 
 macro_rules! ensure {
@@ -107,8 +94,9 @@ fn verified(
     }
 }
 
-/// §8.2 step 6.1 intent ↔ lock binding (shared by lock/finalize).
-fn check_intent_lock_binding(
+/// §8.2 step 6.1 intent ↔ lock binding (shared by lock/finalize and the batch
+/// ReserveClaim verifier).
+pub(crate) fn check_intent_lock_binding(
     intent: &RedeemIntent,
     lock: &LockRecord,
     asset_family_id: &[u8; 32],
@@ -198,174 +186,6 @@ pub fn verify_redeem_lock(
     w: &RedeemLockWitness,
 ) -> Result<(), RedeemRejectReason> {
     verified(apply_redeem_lock(prev, w), new)
-}
-
-/// REDEEM_FAST_FINALIZE (§5.D17 finalize; §8.2): active → consumed + nullifier,
-/// burn supply, debit reserve by the gross BTC paid out.
-pub struct RedeemFinalizeWitness {
-    pub redeem_intent: RedeemIntent,
-    pub lock_record: LockRecord,
-    pub lock_finalize: LockFinalizeRecord,
-    pub btc_htlc: BtcHtlcPayoutRecord,
-    pub operator_id: [u8; 32],
-    pub price_e8: u64,
-    pub lock_membership_proof: Vec<[u8; 32]>,
-    pub consumed_exclusion_proof: Vec<[u8; 32]>,
-    pub refund_exclusion_proof: Vec<[u8; 32]>,
-    pub nullifier_exclusion_proof: Vec<[u8; 32]>,
-    /// Universe burn proof verifier result (D16, modeled as a fact this chunk).
-    pub burn_proof_ok: bool,
-}
-
-/// Build the post-state for REDEEM_FAST_FINALIZE (executor).
-pub fn apply_redeem_finalize(
-    prev: &StateRoot,
-    w: &RedeemFinalizeWitness,
-) -> Result<StateRoot, RedeemRejectReason> {
-    use RedeemRejectReason::*;
-    check_intent_lock_binding(
-        &w.redeem_intent,
-        &w.lock_record,
-        &prev.satusd_asset_family_id,
-    )?;
-    ensure!(
-        w.redeem_intent.operator_id == Some(w.operator_id),
-        FinalizeOperatorMismatch
-    );
-
-    // §5.D17: the lock must be active (∈ record, ∉ consumed, ∉ refund).
-    let lr_hash = lock_record_hash(&w.lock_record);
-    ensure!(
-        smt::verify_inclusion(
-            &prev.lock_record_root,
-            &lr_hash,
-            &SET_MEMBER,
-            &w.lock_membership_proof
-        ),
-        LockNotActive
-    );
-    ensure!(
-        smt::verify_exclusion(
-            &prev.lock_consumed_root,
-            &lr_hash,
-            &w.consumed_exclusion_proof
-        ),
-        LockConsumed // R-09
-    );
-    ensure!(
-        smt::verify_exclusion(&prev.lock_refund_root, &lr_hash, &w.refund_exclusion_proof),
-        LockRefunded // R-17
-    );
-
-    // Nullifier must be unused.
-    let nf = redemption_nullifier(
-        &w.lock_record.lock_anchor_outpoint,
-        &w.lock_record.lock_script_key,
-        &w.lock_record.redeem_intent_hash,
-    );
-    ensure!(
-        smt::verify_exclusion(
-            &prev.redemption_nullifier_root,
-            &nf,
-            &w.nullifier_exclusion_proof
-        ),
-        NullifierUsed
-    );
-
-    // Preimage ↔ HTLC ↔ intent.
-    ensure!(
-        satusd_types::sha256(&[&w.lock_finalize.payment_preimage]) == w.redeem_intent.payment_hash,
-        PreimageMismatch // R-12
-    );
-    ensure!(
-        w.btc_htlc.payment_hash == w.redeem_intent.payment_hash,
-        HtlcPaymentHashMismatch
-    );
-    ensure!(
-        w.btc_htlc.user_claim_pubkey == w.redeem_intent.user_btc_claim_pubkey,
-        HtlcClaimPubkeyMismatch
-    );
-
-    // BTC payout confirmed ≥ 6 blocks (DL-22), preimage revealed on-chain.
-    ensure!(
-        w.btc_htlc.confirmation_depth >= BTC_CLAIM_CONFIRMATION_DEPTH,
-        PayoutNotConfirmed // R-07, R-13
-    );
-    ensure!(
-        w.btc_htlc.revealed_preimage == w.lock_finalize.payment_preimage,
-        PreimageNotRevealed
-    );
-
-    // Protocol burn sink (D16) + burn proof.
-    ensure!(
-        w.lock_finalize.protocol_sink_script_key
-            == protocol_sink_script_key(&prev.satusd_asset_family_id),
-        BurnSinkMismatch
-    );
-    ensure!(
-        w.lock_finalize.protocol_burn_internal_key
-            == protocol_burn_internal_key(&prev.satusd_asset_family_id),
-        BurnInternalKeyMismatch
-    );
-    ensure!(w.burn_proof_ok, BurnProofInvalid);
-
-    // Finalize consistency.
-    ensure!(
-        w.lock_finalize.finalized_amount_atoms == w.lock_record.lock_amount_atoms,
-        FinalizeAmountMismatch
-    );
-    ensure!(
-        w.lock_finalize.operator_id == w.operator_id,
-        FinalizeOperatorMismatch
-    );
-
-    // Payout amount (§8.2 6.10): gross = amount * 10^14 / price; fee ≤ bps.
-    let gross: u128 = (w.lock_record.lock_amount_atoms as u128)
-        .checked_mul(10u128.pow(14))
-        .ok_or(Overflow)?
-        / (w.price_e8 as u128);
-    let max_fee = gross
-        .checked_mul(w.redeem_intent.max_operator_fee_bps as u128)
-        .ok_or(Overflow)?
-        / 10_000;
-    let expected_user_payout = gross - max_fee;
-    ensure!(
-        w.btc_htlc.payout_sats as u128 >= expected_user_payout,
-        PayoutTooLow // R-02
-    );
-    let gross_sats = u64::try_from(gross).map_err(|_| Overflow)?;
-
-    // Accounting + root updates, compared as a whole post-state.
-    let amount = w.redeem_intent.amount_satusd_atoms;
-    let new_supply = prev
-        .sat_usd_supply_atoms
-        .checked_sub(amount)
-        .ok_or(Overflow)?;
-    let new_reserve = prev
-        .reserve_btc_sats
-        .checked_sub(gross_sats)
-        .ok_or(Overflow)?;
-
-    let mut expected = next_state(prev, TransitionType::RedeemFastFinalize);
-    expected.sat_usd_supply_atoms = new_supply;
-    expected.reserve_btc_sats = new_reserve;
-    expected.latest_oracle_price_e8 = w.price_e8;
-    expected.collateral_ratio_ppm =
-        tier::collateral_ratio_ppm(new_reserve, new_supply, w.price_e8).unwrap_or(0);
-    expected.emergency_tier = tier::recompute_tier(new_reserve, new_supply, w.price_e8).as_u8();
-    expected.lock_consumed_root =
-        smt::root_after_update(&lr_hash, &SET_MEMBER, &w.consumed_exclusion_proof);
-    expected.redemption_nullifier_root =
-        smt::root_after_update(&nf, &SET_MEMBER, &w.nullifier_exclusion_proof);
-    Ok(expected)
-}
-
-pub fn verify_redeem_finalize(
-    prev: &StateRoot,
-    new: &StateRoot,
-    w: &RedeemFinalizeWitness,
-) -> Result<(), RedeemRejectReason> {
-    verified(apply_redeem_finalize(prev, w), new)
 }
 
 /// LOCK_REFUND (§5.D17 refund): active → refunded; the locked SatUSD returns to
@@ -496,45 +316,6 @@ mod tests {
         }
     }
 
-    fn finalize_record(lr: &LockRecord) -> LockFinalizeRecord {
-        LockFinalizeRecord {
-            lock_record_hash: lock_record_hash(lr),
-            payment_preimage: PREIMAGE,
-            finalize_anchor_txid: [0x50; 32],
-            finalize_anchor_outpoint: OutPoint {
-                txid: [0x50; 32],
-                vout: 0,
-            },
-            protocol_sink_script_key: protocol_sink_script_key(&FAMILY),
-            protocol_burn_internal_key: protocol_burn_internal_key(&FAMILY),
-            finalized_amount_atoms: lr.lock_amount_atoms,
-            operator_id: OPERATOR,
-            finalize_height: 840_002,
-            universe_burn_proof_hash: [0x60; 32],
-        }
-    }
-
-    fn htlc(intent: &RedeemIntent) -> BtcHtlcPayoutRecord {
-        BtcHtlcPayoutRecord {
-            operator_id: OPERATOR,
-            redeem_intent_hash: rih_of(intent),
-            btc_htlc_txid: [0x70; 32],
-            btc_htlc_vout: 0,
-            payment_hash: intent.payment_hash,
-            user_claim_pubkey: intent.user_btc_claim_pubkey,
-            operator_refund_pubkey: [0x71; 32],
-            payout_sats: 1_990_000_000, // ≥ gross(2e9) − 0.5% fee
-            btc_csv_delta: intent.btc_htlc_csv_delta,
-            htlc_inclusion_height: 840_000,
-            htlc_inclusion_block_hash: [0x72; 32],
-            claim_spend_txid: [0x73; 32],
-            revealed_preimage: PREIMAGE,
-            claim_inclusion_height: 840_000,
-            claim_inclusion_block_hash: [0x74; 32],
-            confirmation_depth: 6,
-        }
-    }
-
     fn base_state(supply: u64, reserve: u64) -> StateRoot {
         let empty = SparseMerkleTree::new().root();
         StateRoot {
@@ -552,6 +333,7 @@ mod tests {
             oracle_set_epoch: 3,
             latest_oracle_epoch_seen: 3,
             latest_oracle_price_e8: PRICE_50K,
+            reserve_committee_hash: [0x0d; 32],
             issuer_positions_root: [0x03; 32],
             operator_registry_root: [0x04; 32],
             lock_record_root: empty,
@@ -625,105 +407,6 @@ mod tests {
         assert_eq!(
             verify_redeem_lock(&prev, &new, &w),
             Err(RedeemRejectReason::LineageInvalid)
-        );
-    }
-
-    // ---- REDEEM_FAST_FINALIZE ----
-    /// Build a finalize witness + the matching honest post-state.
-    fn finalize_setup(prev: &StateRoot) -> (RedeemFinalizeWitness, StateRoot, [u8; 32]) {
-        let it = intent();
-        let lr = lock_record(&it);
-        let lr_hash = lock_record_hash(&lr);
-        let nf = redemption_nullifier(
-            &lr.lock_anchor_outpoint,
-            &lr.lock_script_key,
-            &lr.redeem_intent_hash,
-        );
-        // lock_record_root contains the lock; the other sets are empty.
-        let record_tree = set_tree(&[lr_hash]);
-        let empty = set_tree(&[]);
-        let w = RedeemFinalizeWitness {
-            redeem_intent: it.clone(),
-            lock_record: lr,
-            lock_finalize: finalize_record(&lock_record(&it)),
-            btc_htlc: htlc(&it),
-            operator_id: OPERATOR,
-            price_e8: PRICE_50K,
-            lock_membership_proof: record_tree.prove(&lr_hash),
-            consumed_exclusion_proof: empty.prove(&lr_hash),
-            refund_exclusion_proof: empty.prove(&lr_hash),
-            nullifier_exclusion_proof: empty.prove(&nf),
-            burn_proof_ok: true,
-        };
-        // prev must hold the lock in its record root.
-        let mut p = prev.clone();
-        p.lock_record_root = record_tree.root();
-        let gross_sats = 2_000_000_000u64; // 1e8 atoms * 1e14 / 5e12
-        let new_supply = p.sat_usd_supply_atoms - it.amount_satusd_atoms;
-        let new_reserve = p.reserve_btc_sats - gross_sats;
-        let mut new = with_epoch(&p, TransitionType::RedeemFastFinalize);
-        new.sat_usd_supply_atoms = new_supply;
-        new.reserve_btc_sats = new_reserve;
-        new.collateral_ratio_ppm =
-            tier::collateral_ratio_ppm(new_reserve, new_supply, PRICE_50K).unwrap_or(0);
-        new.emergency_tier = tier::recompute_tier(new_reserve, new_supply, PRICE_50K).as_u8();
-        new.lock_consumed_root =
-            smt::root_after_update(&lr_hash, &SET_MEMBER, &w.consumed_exclusion_proof);
-        new.redemption_nullifier_root =
-            smt::root_after_update(&nf, &SET_MEMBER, &w.nullifier_exclusion_proof);
-        (w, new, p.lock_record_root)
-    }
-
-    #[test]
-    fn finalize_happy_path() {
-        let prev = base_state(200_000_000, 4_000_000_000);
-        let (w, new, record_root) = finalize_setup(&prev);
-        let mut p = prev;
-        p.lock_record_root = record_root;
-        verify_redeem_finalize(&p, &new, &w).expect("finalize ok");
-    }
-
-    #[test]
-    fn finalize_bad_preimage_rejected() {
-        let prev = base_state(200_000_000, 4_000_000_000);
-        let (mut w, new, record_root) = finalize_setup(&prev);
-        w.lock_finalize.payment_preimage = [0x00; 32]; // sha256 ≠ payment_hash
-        let mut p = prev;
-        p.lock_record_root = record_root;
-        assert_eq!(
-            verify_redeem_finalize(&p, &new, &w),
-            Err(RedeemRejectReason::PreimageMismatch)
-        );
-    }
-
-    #[test]
-    fn finalize_shallow_confirmation_rejected() {
-        let prev = base_state(200_000_000, 4_000_000_000);
-        let (mut w, new, record_root) = finalize_setup(&prev);
-        w.btc_htlc.confirmation_depth = 5; // < 6 (R-07/R-13)
-        let mut p = prev;
-        p.lock_record_root = record_root;
-        assert_eq!(
-            verify_redeem_finalize(&p, &new, &w),
-            Err(RedeemRejectReason::PayoutNotConfirmed)
-        );
-    }
-
-    #[test]
-    fn finalize_double_spend_rejected() {
-        // R-09: lock already in consumed set ⇒ non-membership fails.
-        let prev = base_state(200_000_000, 4_000_000_000);
-        let (mut w, mut new, record_root) = finalize_setup(&prev);
-        let lr_hash = lock_record_hash(&w.lock_record);
-        let consumed = set_tree(&[lr_hash]);
-        w.consumed_exclusion_proof = consumed.prove(&lr_hash); // proves *presence*, not absence
-        let mut p = prev;
-        p.lock_record_root = record_root;
-        p.lock_consumed_root = consumed.root();
-        new.prev_state_root = state_root_hash(&p); // re-link after mutating prev
-        assert_eq!(
-            verify_redeem_finalize(&p, &new, &w),
-            Err(RedeemRejectReason::LockConsumed)
         );
     }
 

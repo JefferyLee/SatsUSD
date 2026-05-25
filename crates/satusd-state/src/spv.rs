@@ -176,18 +176,17 @@ pub fn verify_payout_confirmation(
     Ok(())
 }
 
+/// Test-only: build a valid regtest confirmation for `preimage`, with the given
+/// HTLC output value and claim buried under `depth` headers at `claim_height`.
+/// Shared by the SPV tests and the batch ReserveClaim tests (`claim.rs`).
 #[cfg(test)]
-mod tests {
-    use super::*;
-
-    const PREIMAGE: [u8; 32] = [0x55; 32];
-
-    fn payment_hash() -> [u8; 32] {
-        sha256(&[&PREIMAGE])
-    }
-
-    /// Build a regtest-difficulty header (nBits 0x207fffff) over `prev` with the
-    /// given merkle root, grinding the nonce until PoW holds.
+pub(crate) fn build_confirmation(
+    preimage: [u8; 32],
+    payout_sats: u64,
+    claim_height: u32,
+    depth: usize,
+) -> BtcPayoutConfirmation {
+    /// Grind a regtest-difficulty header (nBits 0x207fffff) until PoW holds.
     fn header(prev: [u8; 32], merkle: [u8; 32]) -> [u8; 80] {
         let mut h = [0u8; 80];
         h[0..4].copy_from_slice(&1u32.to_le_bytes());
@@ -203,49 +202,60 @@ mod tests {
         }
         panic!("no nonce");
     }
+    // Distinct txids per preimage so batched confirmations don't collide.
+    let htlc_txid = sha256(&[&b"htlc"[..], &preimage[..]]);
+    let claim_txid = sha256(&[&b"claim"[..], &preimage[..]]);
+    let htlc_sib = [0xa1; 32];
+    let claim_sib = [0xb2; 32];
+    let htlc_root = merkle_root_from_proof(htlc_txid, 0, &[htlc_sib]);
+    let claim_root = merkle_root_from_proof(claim_txid, 0, &[claim_sib]);
+    let htlc_hdr = header([0; 32], htlc_root);
+    let claim_hdr = header([0x99; 32], claim_root);
+    let claim_bh = block_hash(&claim_hdr);
 
-    /// A valid confirmation: htlc tx in block A, claim tx in block B (one level
-    /// merkle, index 0 with one sibling), and `depth` headers chaining onto B.
+    let mut confs = Vec::new();
+    let mut prev = claim_bh;
+    for _ in 0..depth {
+        let h = header(prev, [0x33; 32]);
+        prev = block_hash(&h);
+        confs.push(h);
+    }
+
+    BtcPayoutConfirmation {
+        btc_htlc_txid: htlc_txid,
+        btc_htlc_vout: 0,
+        htlc_output_value_sats: payout_sats,
+        htlc_output_script: vec![],
+        htlc_inclusion_block_hash: block_hash(&htlc_hdr),
+        htlc_inclusion_block_height: claim_height - 1,
+        htlc_inclusion_merkle_proof: vec![htlc_sib],
+        claim_spend_txid: claim_txid,
+        claim_spend_input_index: 0,
+        claim_spend_witness: vec![preimage.to_vec()],
+        revealed_preimage: preimage,
+        claim_inclusion_block_hash: claim_bh,
+        claim_inclusion_block_height: claim_height,
+        claim_inclusion_merkle_proof: vec![claim_sib],
+        confirmation_headers: confs,
+        htlc_tx_index: 0,
+        claim_tx_index: 0,
+        htlc_inclusion_header: htlc_hdr,
+        claim_inclusion_header: claim_hdr,
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    const PREIMAGE: [u8; 32] = [0x55; 32];
+
+    fn payment_hash() -> [u8; 32] {
+        sha256(&[&PREIMAGE])
+    }
+
     fn good_confirmation(depth: usize) -> BtcPayoutConfirmation {
-        let htlc_txid = [0x11; 32];
-        let claim_txid = [0x22; 32];
-        let htlc_sib = [0xa1; 32];
-        let claim_sib = [0xb2; 32];
-        let htlc_root = merkle_root_from_proof(htlc_txid, 0, &[htlc_sib]);
-        let claim_root = merkle_root_from_proof(claim_txid, 0, &[claim_sib]);
-        let htlc_hdr = header([0; 32], htlc_root);
-        let claim_hdr = header([0x99; 32], claim_root);
-        let claim_bh = block_hash(&claim_hdr);
-
-        let mut confs = Vec::new();
-        let mut prev = claim_bh;
-        for _ in 0..depth {
-            let h = header(prev, [0x33; 32]);
-            prev = block_hash(&h);
-            confs.push(h);
-        }
-
-        BtcPayoutConfirmation {
-            btc_htlc_txid: htlc_txid,
-            btc_htlc_vout: 0,
-            htlc_output_value_sats: 100_000,
-            htlc_output_script: vec![],
-            htlc_inclusion_block_hash: block_hash(&htlc_hdr),
-            htlc_inclusion_block_height: 100,
-            htlc_inclusion_merkle_proof: vec![htlc_sib],
-            claim_spend_txid: claim_txid,
-            claim_spend_input_index: 0,
-            claim_spend_witness: vec![PREIMAGE.to_vec()],
-            revealed_preimage: PREIMAGE,
-            claim_inclusion_block_hash: claim_bh,
-            claim_inclusion_block_height: 101,
-            claim_inclusion_merkle_proof: vec![claim_sib],
-            confirmation_headers: confs,
-            htlc_tx_index: 0,
-            claim_tx_index: 0,
-            htlc_inclusion_header: htlc_hdr,
-            claim_inclusion_header: claim_hdr,
-        }
+        build_confirmation(PREIMAGE, 100_000, 101, depth)
     }
 
     #[test]

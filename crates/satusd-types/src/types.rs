@@ -35,6 +35,7 @@ pub enum TransitionType {
     OperatorRegister = 0x20,
     IssuerRegister = 0x21,
     ReclaimStaleClaim = 0x30,
+    FinalizeClaim = 0x31,
     Liquidate = 0x40,
     RotateShard = 0x50,
     Govern = 0x60,
@@ -390,16 +391,19 @@ pub struct ReserveClaim {
 }
 
 impl ReserveClaim {
-    /// Encode every field except `claim_id` and `operator_signature`.
+    /// The `claim_id` preimage: every field except `claim_id`,
+    /// `operator_signature`, **and `new_state_root`** (ADR-0022).
     ///
-    /// SPEC DECISION (flag for ADR): §5.D13 defines `claim_id` over the claim
-    /// "without signatures". `claim_id` is itself a field, so its own preimage
-    /// cannot include it; we exclude both `claim_id` and `operator_signature`.
+    /// `claim_id` keys the `PendingClaim` inserted into `pending_claim_root`,
+    /// which is itself part of `new_state_root`. Binding `new_state_root` into
+    /// `claim_id` would therefore be self-referential (a fixpoint), so §5.D13 is
+    /// amended to derive `claim_id` over the claim's *inputs* only. The post-state
+    /// is deterministic from those inputs + `prev`, so it stays implicitly bound.
+    /// `new_state_root` is still in the full [`Encode`] (right after `claim_id`).
     pub fn encode_for_claim_id(&self, e: &mut Encoder) {
         e.u8(self.transition_type);
         e.fixed(&self.operator_id);
         e.fixed(&self.prev_state_root);
-        e.fixed(&self.new_state_root);
         e.fixed(&self.redemption_batch_root);
         e.fixed(&self.oracle_batch_root);
         e.fixed(&self.lock_batch_root);
@@ -421,6 +425,9 @@ impl ReserveClaim {
 impl Encode for ReserveClaim {
     fn encode(&self, e: &mut Encoder) {
         e.fixed(&self.claim_id);
+        // Excluded from the claim_id preimage (ADR-0022) but part of the full
+        // canonical encoding.
+        e.fixed(&self.new_state_root);
         self.encode_for_claim_id(e);
         e.fixed(&self.operator_signature);
     }
@@ -595,6 +602,9 @@ pub struct StateRoot {
     pub oracle_set_epoch: u64,
     pub latest_oracle_epoch_seen: u64,
     pub latest_oracle_price_e8: u64,
+    /// Commitment to the reserve-committee M-of-N that authorizes FINALIZE_CLAIM
+    /// (`reserve_committee_hash`, §4/§11.2, ADR-0023).
+    pub reserve_committee_hash: [u8; 32],
     pub issuer_positions_root: [u8; 32],
     pub operator_registry_root: [u8; 32],
     pub lock_record_root: [u8; 32],
@@ -626,6 +636,7 @@ impl Encode for StateRoot {
         e.u64(self.oracle_set_epoch);
         e.u64(self.latest_oracle_epoch_seen);
         e.u64(self.latest_oracle_price_e8);
+        e.fixed(&self.reserve_committee_hash);
         e.fixed(&self.issuer_positions_root);
         e.fixed(&self.operator_registry_root);
         e.fixed(&self.lock_record_root);

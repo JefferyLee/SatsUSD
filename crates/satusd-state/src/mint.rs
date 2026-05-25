@@ -423,6 +423,7 @@ mod tests {
             oracle_set_epoch: 3,
             latest_oracle_epoch_seen: 3,
             latest_oracle_price_e8: PRICE_50K,
+            reserve_committee_hash: [0x0d; 32],
             issuer_positions_root: issuer_root,
             operator_registry_root: [0x04; 32],
             lock_record_root: [0x05; 32],

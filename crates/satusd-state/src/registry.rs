@@ -7,18 +7,35 @@
 //! - RECLAIM_STALE_CLAIM (0x30): after `claim_expiry_height` passes, any keeper
 //!   flips a PENDING/CHALLENGED `PendingClaim` to RECLAIMED and frees its
 //!   `reserved_pending_claim_sats` (§5.D12).
+//! - FINALIZE_CLAIM (0x31): before expiry, pay out an approved PENDING claim —
+//!   debit `reserve_btc_sats`, free the reservation, PENDING → FINALIZED
+//!   (§5.D12, ADR-0022).
 //!
 //! All verifiers compute the full expected post-state and assert equality
 //! (immutability backstop). The current chain height for the expiry check is a
 //! verified witness fact (sourced from the L1 anchor, like the SPV facts).
 
+use satusd_crypto::ecdsa::verify_ecdsa;
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{issuer_position_hash, operator_position_hash, pending_claim_hash};
+use satusd_types::derive::{
+    issuer_position_hash, operator_position_hash, pending_claim_hash, reserve_committee_hash,
+};
+use satusd_types::tier;
 use satusd_types::types::{
     IssuerPosition, IssuerStatus, OperatorPosition, OperatorStatus, PendingClaim,
     PendingClaimStatus, StateRoot, TransitionType,
 };
+
+use crate::mint::MultisigSig;
+
+/// Reserve-committee M-of-N config that authorizes FINALIZE_CLAIM (§4: 3-of-5,
+/// distinct from issuers; §11.2). Committed by `StateRoot::reserve_committee_hash`
+/// (ADR-0023); the committee + approvals are supplied in the finalize witness.
+pub struct ReserveCommittee {
+    pub threshold: u8,
+    pub pubkeys: Vec<[u8; 33]>,
+}
 
 /// Operator bond must cover at least this multiple of its max single claim (§18.3).
 pub const OPERATOR_BOND_MULTIPLE: u64 = 2;
@@ -42,6 +59,12 @@ pub enum RegistryRejectReason {
     ClaimNotPresent,
     ClaimNotReclaimable,
     ClaimNotExpired,
+    // FINALIZE_CLAIM
+    ClaimNotPending,
+    ClaimExpired, // finalize after expiry — use reclaim instead
+    ReserveInsufficient,
+    CommitteeMismatch,    // supplied committee ≠ reserve_committee_hash
+    ApprovalInsufficient, // < threshold valid committee signatures
 }
 
 macro_rules! ensure {
@@ -245,10 +268,157 @@ pub fn verify_reclaim_stale_claim(
     )
 }
 
+/// FINALIZE_CLAIM (0x31, §5.D12 finalize_claim): the reserve committee pays out an
+/// approved PENDING claim — debit `reserve_btc_sats`, release the reservation, and
+/// flip PENDING → FINALIZED. Must run before `claim_expiry_height` (after expiry it
+/// is RECLAIM territory). CR/tier are recomputed on the now-reduced reserve, so the
+/// CR inflation from submit (ADR-0022) falls back here.
+///
+/// Requires a committed reserve-committee M-of-N approval over `claim_id` (§11.2):
+/// the supplied `committee` must match `prev.reserve_committee_hash` and carry
+/// ≥ `threshold` valid signatures.
+pub fn apply_finalize_claim(
+    prev: &StateRoot,
+    prev_claim: &PendingClaim,
+    claim_membership_proof: &[[u8; 32]],
+    committee: &ReserveCommittee,
+    approvals: &[MultisigSig],
+    current_height: u32,
+) -> Result<StateRoot, RegistryRejectReason> {
+    use RegistryRejectReason::*;
+
+    ensure!(
+        prev_claim.status == PendingClaimStatus::Pending,
+        ClaimNotPending
+    );
+    ensure!(
+        current_height <= prev_claim.claim_expiry_height,
+        ClaimExpired
+    );
+
+    // Reserve-committee approval (§11.2): committed M-of-N over claim_id.
+    ensure!(
+        reserve_committee_hash(committee.threshold, &committee.pubkeys)
+            == prev.reserve_committee_hash,
+        CommitteeMismatch
+    );
+    let mut seen: Vec<[u8; 33]> = Vec::new();
+    let mut approved = 0usize;
+    for s in approvals {
+        if !committee.pubkeys.contains(&s.signer_pubkey) || seen.contains(&s.signer_pubkey) {
+            continue;
+        }
+        if verify_ecdsa(&prev_claim.claim_id, &s.signer_pubkey, &s.signature) {
+            seen.push(s.signer_pubkey);
+            approved += 1;
+        }
+    }
+    ensure!(
+        approved >= committee.threshold as usize,
+        ApprovalInsufficient
+    );
+
+    ensure!(
+        smt::verify_inclusion(
+            &prev.pending_claim_root,
+            &prev_claim.claim_id,
+            &pending_claim_hash(prev_claim),
+            claim_membership_proof
+        ),
+        ClaimNotPresent
+    );
+
+    let new_reserved = prev
+        .reserved_pending_claim_sats
+        .checked_sub(prev_claim.reserved_sats)
+        .ok_or(Overflow)?;
+    let new_reserve = prev
+        .reserve_btc_sats
+        .checked_sub(prev_claim.reserved_sats)
+        .ok_or(ReserveInsufficient)?;
+
+    let mut finalized = prev_claim.clone();
+    finalized.status = PendingClaimStatus::Finalized;
+
+    let supply = prev.sat_usd_supply_atoms;
+    let price = prev.latest_oracle_price_e8;
+    let mut expected = next_state(prev, TransitionType::FinalizeClaim);
+    expected.reserved_pending_claim_sats = new_reserved;
+    expected.reserve_btc_sats = new_reserve;
+    expected.collateral_ratio_ppm =
+        tier::collateral_ratio_ppm(new_reserve, supply, price).unwrap_or(0);
+    expected.emergency_tier = tier::recompute_tier(new_reserve, supply, price).as_u8();
+    expected.pending_claim_root = smt::root_after_update(
+        &prev_claim.claim_id,
+        &pending_claim_hash(&finalized),
+        claim_membership_proof,
+    );
+    Ok(expected)
+}
+
+#[allow(clippy::too_many_arguments)]
+pub fn verify_finalize_claim(
+    prev: &StateRoot,
+    new: &StateRoot,
+    prev_claim: &PendingClaim,
+    claim_membership_proof: &[[u8; 32]],
+    committee: &ReserveCommittee,
+    approvals: &[MultisigSig],
+    current_height: u32,
+) -> Result<(), RegistryRejectReason> {
+    verified(
+        apply_finalize_claim(
+            prev,
+            prev_claim,
+            claim_membership_proof,
+            committee,
+            approvals,
+            current_height,
+        ),
+        new,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
     use satusd_crypto::smt::SparseMerkleTree;
+    use secp256k1::{Message, Secp256k1, SecretKey};
+
+    // ---- Reserve committee (3-of-5) test fixtures ----
+    fn committee_keys() -> Vec<SecretKey> {
+        (1u8..=5)
+            .map(|i| SecretKey::from_byte_array([i; 32]).unwrap())
+            .collect()
+    }
+    fn committee_pubkeys() -> Vec<[u8; 33]> {
+        let secp = Secp256k1::new();
+        committee_keys()
+            .iter()
+            .map(|k| k.public_key(&secp).serialize())
+            .collect()
+    }
+    fn committee() -> ReserveCommittee {
+        ReserveCommittee {
+            threshold: 3,
+            pubkeys: committee_pubkeys(),
+        }
+    }
+    /// `n` committee signatures over `claim_id`.
+    fn committee_approvals(claim_id: &[u8; 32], n: usize) -> Vec<MultisigSig> {
+        let secp = Secp256k1::new();
+        committee_keys()
+            .iter()
+            .take(n)
+            .zip(committee_pubkeys())
+            .map(|(sk, pk)| MultisigSig {
+                signer_pubkey: pk,
+                signature: secp
+                    .sign_ecdsa(Message::from_digest(*claim_id), sk)
+                    .serialize_compact(),
+            })
+            .collect()
+    }
 
     fn base_state() -> StateRoot {
         let empty = SparseMerkleTree::new().root();
@@ -267,6 +437,7 @@ mod tests {
             oracle_set_epoch: 3,
             latest_oracle_epoch_seen: 3,
             latest_oracle_price_e8: 5_000_000_000_000,
+            reserve_committee_hash: reserve_committee_hash(3, &committee_pubkeys()),
             issuer_positions_root: empty,
             operator_registry_root: empty,
             lock_record_root: [0x05; 32],
@@ -487,6 +658,93 @@ mod tests {
         assert_eq!(
             verify_reclaim_stale_claim(&prev, &new, &c, &proof, 840_000),
             Err(RegistryRejectReason::ClaimNotReclaimable)
+        );
+    }
+
+    // ---- FINALIZE_CLAIM ----
+    #[test]
+    fn finalize_happy() {
+        let c = pending_claim(840_500, PendingClaimStatus::Pending); // not yet expired
+        let (t, proof) = claim_tree(&c);
+        let mut prev = base_state();
+        prev.pending_claim_root = t.root();
+
+        let mut finalized = c.clone();
+        finalized.status = PendingClaimStatus::Finalized;
+        let new_reserve = prev.reserve_btc_sats - c.reserved_sats;
+        let supply = prev.sat_usd_supply_atoms;
+        let price = prev.latest_oracle_price_e8;
+        let mut new = with_epoch(&prev, TransitionType::FinalizeClaim);
+        new.reserved_pending_claim_sats = prev.reserved_pending_claim_sats - c.reserved_sats;
+        new.reserve_btc_sats = new_reserve;
+        new.collateral_ratio_ppm =
+            tier::collateral_ratio_ppm(new_reserve, supply, price).unwrap_or(0);
+        new.emergency_tier = tier::recompute_tier(new_reserve, supply, price).as_u8();
+        new.pending_claim_root =
+            smt::root_after_update(&c.claim_id, &pending_claim_hash(&finalized), &proof);
+
+        let approvals = committee_approvals(&c.claim_id, 3);
+        verify_finalize_claim(&prev, &new, &c, &proof, &committee(), &approvals, 840_000)
+            .expect("finalize ok");
+    }
+
+    #[test]
+    fn finalize_insufficient_approval_rejected() {
+        let c = pending_claim(840_500, PendingClaimStatus::Pending);
+        let (t, proof) = claim_tree(&c);
+        let mut prev = base_state();
+        prev.pending_claim_root = t.root();
+        let new = with_epoch(&prev, TransitionType::FinalizeClaim);
+        let approvals = committee_approvals(&c.claim_id, 2); // < 3-of-5
+        assert_eq!(
+            verify_finalize_claim(&prev, &new, &c, &proof, &committee(), &approvals, 840_000),
+            Err(RegistryRejectReason::ApprovalInsufficient)
+        );
+    }
+
+    #[test]
+    fn finalize_wrong_committee_rejected() {
+        let c = pending_claim(840_500, PendingClaimStatus::Pending);
+        let (t, proof) = claim_tree(&c);
+        let mut prev = base_state();
+        prev.pending_claim_root = t.root();
+        let new = with_epoch(&prev, TransitionType::FinalizeClaim);
+        // A committee that doesn't match prev.reserve_committee_hash (threshold 2).
+        let bad = ReserveCommittee {
+            threshold: 2,
+            pubkeys: committee_pubkeys(),
+        };
+        let approvals = committee_approvals(&c.claim_id, 2);
+        assert_eq!(
+            verify_finalize_claim(&prev, &new, &c, &proof, &bad, &approvals, 840_000),
+            Err(RegistryRejectReason::CommitteeMismatch)
+        );
+    }
+
+    #[test]
+    fn finalize_after_expiry_rejected() {
+        // Past expiry, finalize is rejected (reclaim territory).
+        let c = pending_claim(839_500, PendingClaimStatus::Pending);
+        let (t, proof) = claim_tree(&c);
+        let mut prev = base_state();
+        prev.pending_claim_root = t.root();
+        let new = with_epoch(&prev, TransitionType::FinalizeClaim);
+        assert_eq!(
+            verify_finalize_claim(&prev, &new, &c, &proof, &committee(), &[], 840_000),
+            Err(RegistryRejectReason::ClaimExpired)
+        );
+    }
+
+    #[test]
+    fn finalize_already_finalized_rejected() {
+        let c = pending_claim(840_500, PendingClaimStatus::Finalized);
+        let (t, proof) = claim_tree(&c);
+        let mut prev = base_state();
+        prev.pending_claim_root = t.root();
+        let new = with_epoch(&prev, TransitionType::FinalizeClaim);
+        assert_eq!(
+            verify_finalize_claim(&prev, &new, &c, &proof, &committee(), &[], 840_000),
+            Err(RegistryRejectReason::ClaimNotPending)
         );
     }
 }

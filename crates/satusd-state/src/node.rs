@@ -7,28 +7,44 @@
 //! the business inputs (records + verified facts) in the transition witnesses;
 //! the node fills in the SMT proof fields itself.
 //!
-//! Not yet wired: RECLAIM_STALE_CLAIM and multi-redemption batching depend on
-//! claim submission (the ReserveClaim flow), which is a later chunk; the
-//! `verify_reclaim_stale_claim` verifier already exists for that.
+//! The §5.D12 two-phase claim lifecycle is wired here:
+//! - `submit_claim` reserves the reimbursement + creates a PENDING `PendingClaim`
+//!   (batched `claim::verify_reserve_claim_finalize`, REDEEM_FAST_FINALIZE 0x11);
+//! - `finalize_claim` pays an approved claim — debits `reserve_btc_sats`, frees
+//!   the reservation, PENDING → FINALIZED (`registry::verify_finalize_claim`,
+//!   FINALIZE_CLAIM 0x31). Gated by a committed reserve-committee M-of-N approval
+//!   over `claim_id` (§11.2, ADR-0023); configure it via `set_reserve_committee`.
+//! - `reclaim_stale_claim` frees an expired reservation, PENDING → RECLAIMED
+//!   (`registry::verify_reclaim_stale_claim`, RECLAIM_STALE_CLAIM 0x30).
 
 use std::collections::HashMap;
 
+use satusd_crypto::poseidon::batch_root_be;
 use satusd_crypto::smt::SparseMerkleTree;
 use satusd_crypto::state::state_root_hash;
 use satusd_types::derive::{
-    issuer_position_hash, lock_record_hash, operator_position_hash, redemption_nullifier,
+    claim_id, issuer_position_hash, lock_record_hash, operator_position_hash, pending_claim_hash,
+    redemption_nullifier,
 };
-use satusd_types::types::{IssuerPosition, OperatorPosition, StateRoot};
+use satusd_types::tier;
+use satusd_types::types::{
+    ClaimClock, IssuerPosition, OperatorPosition, OracleMessage, PendingClaim, PendingClaimStatus,
+    ReserveClaim, StateRoot, TransitionType,
+};
 
+use crate::oracle::{self, OracleParams};
 use crate::redeem::SET_MEMBER;
-use crate::{mint, redeem, registry};
+use crate::{claim, mint, redeem, registry};
 
 #[derive(Debug, PartialEq, Eq)]
 pub enum NodeError {
     Mint(mint::MintRejectReason),
     Redeem(redeem::RedeemRejectReason),
     Registry(registry::RegistryRejectReason),
+    Oracle(oracle::OracleRejectReason),
+    Claim(claim::ClaimRejectReason),
     UnknownIssuer,
+    UnknownClaim,
     /// The node's committed tree roots disagree with the executor's post-state —
     /// an internal invariant break (should never happen).
     InvariantViolation,
@@ -42,6 +58,7 @@ pub struct StateNode {
     operator_tree: SparseMerkleTree,
     operators: HashMap<[u8; 32], OperatorPosition>,
     pending_claim_tree: SparseMerkleTree,
+    pending_claims: HashMap<[u8; 32], PendingClaim>,
     lock_record_tree: SparseMerkleTree,
     lock_consumed_tree: SparseMerkleTree,
     lock_refund_tree: SparseMerkleTree,
@@ -72,6 +89,7 @@ impl StateNode {
             oracle_set_epoch,
             latest_oracle_epoch_seen: oracle_set_epoch,
             latest_oracle_price_e8,
+            reserve_committee_hash: [0; 32], // set via set_reserve_committee
             issuer_positions_root: empty,
             operator_registry_root: empty,
             lock_record_root: empty,
@@ -93,6 +111,7 @@ impl StateNode {
             operator_tree: SparseMerkleTree::new(),
             operators: HashMap::new(),
             pending_claim_tree: SparseMerkleTree::new(),
+            pending_claims: HashMap::new(),
             lock_record_tree: SparseMerkleTree::new(),
             lock_consumed_tree: SparseMerkleTree::new(),
             lock_refund_tree: SparseMerkleTree::new(),
@@ -106,6 +125,22 @@ impl StateNode {
 
     pub fn state_root_hash(&self) -> [u8; 32] {
         state_root_hash(&self.state)
+    }
+
+    /// Sync the observed Bitcoin L1 anchor (the node follows the chain tip).
+    /// `chain_time = mtp + MTP_LAG_OFFSET` (§5.D6) drives ClaimClock freshness.
+    /// Not a SatUSD transition — it records external chain state.
+    pub fn set_l1_anchor(&mut self, height: u32, hash: [u8; 32], mtp: u64) {
+        self.state.l1_anchor_height = height;
+        self.state.l1_anchor_hash = hash;
+        self.state.l1_anchor_mtp = mtp;
+        self.state.l1_anchor_chain_time = mtp + claim::MTP_LAG_OFFSET_SEC;
+    }
+
+    /// Configure the reserve-committee commitment (governance config, §11.2). The
+    /// committed M-of-N then gates FINALIZE_CLAIM.
+    pub fn set_reserve_committee(&mut self, reserve_committee_hash: [u8; 32]) {
+        self.state.reserve_committee_hash = reserve_committee_hash;
     }
 
     pub fn issuer(&self, issuer_id: &[u8; 32]) -> Option<&IssuerPosition> {
@@ -206,28 +241,6 @@ impl StateNode {
         self.commit(new_state)
     }
 
-    /// REDEEM_FAST_FINALIZE. `w`'s proof fields are filled by the node.
-    pub fn redeem_finalize(
-        &mut self,
-        mut w: redeem::RedeemFinalizeWitness,
-    ) -> Result<[u8; 32], NodeError> {
-        let lr_hash = lock_record_hash(&w.lock_record);
-        let nf = redemption_nullifier(
-            &w.lock_record.lock_anchor_outpoint,
-            &w.lock_record.lock_script_key,
-            &w.lock_record.redeem_intent_hash,
-        );
-        w.lock_membership_proof = self.lock_record_tree.prove(&lr_hash);
-        w.consumed_exclusion_proof = self.lock_consumed_tree.prove(&lr_hash);
-        w.refund_exclusion_proof = self.lock_refund_tree.prove(&lr_hash);
-        w.nullifier_exclusion_proof = self.nullifier_tree.prove(&nf);
-        let new_state =
-            redeem::apply_redeem_finalize(&self.state, &w).map_err(NodeError::Redeem)?;
-        self.lock_consumed_tree.insert(lr_hash, &SET_MEMBER);
-        self.nullifier_tree.insert(nf, &SET_MEMBER);
-        self.commit(new_state)
-    }
-
     /// LOCK_REFUND. `w`'s proof fields are filled by the node.
     pub fn lock_refund(&mut self, mut w: redeem::LockRefundWitness) -> Result<[u8; 32], NodeError> {
         let lr_hash = lock_record_hash(&w.lock_record);
@@ -238,23 +251,302 @@ impl StateNode {
         self.lock_refund_tree.insert(lr_hash, &SET_MEMBER);
         self.commit(new_state)
     }
+
+    pub fn pending_claim(&self, claim_id: &[u8; 32]) -> Option<&PendingClaim> {
+        self.pending_claims.get(claim_id)
+    }
+
+    /// REDEEM_FAST_FINALIZE submit_claim (§5.D12): reserve the reimbursement and
+    /// create a PENDING claim (no `reserve_btc_sats` debit). `redemptions` carry
+    /// the business data; the node fills their SMT proof fields and builds the
+    /// `ReserveClaim`, then self-checks via the claim verifier before committing.
+    /// Returns the `claim_id` handle (for a later settle/reclaim).
+    #[allow(clippy::too_many_arguments)]
+    pub fn submit_claim(
+        &mut self,
+        mut redemptions: Vec<claim::BatchRedemption>,
+        oracle_messages: Vec<OracleMessage>,
+        oracle_signer_set: Vec<[u8; 32]>,
+        l1_anchor: ClaimClock,
+        reserve_shard_id: u64,
+        claim_expiry_height: u32,
+        btc_tip_height: u32,
+    ) -> Result<[u8; 32], NodeError> {
+        // Batch price from the oracle quorum.
+        oracle::verify_signatures(&oracle_messages).map_err(NodeError::Oracle)?;
+        let chain_time = self.state.l1_anchor_mtp + claim::MTP_LAG_OFFSET_SEC;
+        let params = OracleParams {
+            expected_oracle_set_epoch: self.state.oracle_set_epoch,
+            expected_oracle_set_hash: self.state.oracle_set_hash,
+            chain_time_sec: chain_time,
+            max_epoch_lag_sec: l1_anchor.max_epoch_lag_sec,
+            oracle_future_tolerance_sec: l1_anchor.oracle_future_tolerance,
+            signer_set: &oracle_signer_set,
+        };
+        let price = oracle::aggregate(&oracle_messages, &params).map_err(NodeError::Oracle)?;
+
+        // Fill SMT proofs against running clones; accumulate totals + batch leaves.
+        let operator_id = redemptions[0].redeem_intent.operator_id.unwrap_or([0; 32]);
+        let mut consumed = self.lock_consumed_tree.clone();
+        let mut nullifier = self.nullifier_tree.clone();
+        let mut total_amount = 0u64;
+        let mut total_gross = 0u64;
+        let mut leaves = Vec::with_capacity(redemptions.len());
+        for r in &mut redemptions {
+            let lr_hash = lock_record_hash(&r.lock_record);
+            let nf = redemption_nullifier(
+                &r.lock_record.lock_anchor_outpoint,
+                &r.lock_record.lock_script_key,
+                &r.lock_record.redeem_intent_hash,
+            );
+            r.lock_membership_proof = self.lock_record_tree.prove(&lr_hash);
+            r.consumed_exclusion_proof = consumed.prove(&lr_hash);
+            r.refund_exclusion_proof = self.lock_refund_tree.prove(&lr_hash);
+            r.nullifier_exclusion_proof = nullifier.prove(&nf);
+            consumed.insert(lr_hash, &SET_MEMBER);
+            nullifier.insert(nf, &SET_MEMBER);
+            let gross = (r.lock_record.lock_amount_atoms as u128 * 10u128.pow(14)) / price as u128;
+            total_amount += r.redeem_intent.amount_satusd_atoms;
+            total_gross += gross as u64;
+            leaves.push(lr_hash);
+        }
+
+        // Build the claim; claim_id is derived over its inputs (ADR-0022).
+        let mut claim = ReserveClaim {
+            claim_id: [0; 32],
+            transition_type: TransitionType::RedeemFastFinalize.as_u8(),
+            operator_id,
+            prev_state_root: self.state_root_hash(),
+            new_state_root: [0; 32],
+            redemption_batch_root: batch_root_be(&leaves),
+            oracle_batch_root: [0; 32],
+            lock_batch_root: [0; 32],
+            payout_batch_root: [0; 32],
+            confirmation_batch_root: [0; 32],
+            finalize_batch_root: [0; 32],
+            burn_proof_batch_root: [0; 32],
+            lineage_proof_batch_root: [0; 32],
+            live_da_root: self.state.live_da_root,
+            archival_da_root: self.state.archival_da_root,
+            l1_anchor: l1_anchor.clone(),
+            reserve_shard_id,
+            reimbursement_sats: total_gross,
+            proof_commitment: [0; 32],
+            claim_expiry_height,
+            operator_signature: [0; 64],
+        };
+        claim.claim_id = claim_id(&claim);
+
+        // PENDING claim → pending_claim_root.
+        let id = claim.claim_id;
+        let pending_proof = self.pending_claim_tree.prove(&id);
+        let pending = PendingClaim {
+            claim_id: id,
+            operator_id,
+            reserved_sats: total_gross,
+            claim_created_height: l1_anchor.l1_anchor_height,
+            claim_expiry_height,
+            status: PendingClaimStatus::Pending,
+        };
+
+        let new_supply = self.state.sat_usd_supply_atoms - total_amount;
+        let reserve = self.state.reserve_btc_sats;
+        let mut new = self.state.clone();
+        new.state_epoch += 1;
+        new.prev_state_root = self.state_root_hash();
+        new.transition_type = TransitionType::RedeemFastFinalize.as_u8();
+        new.sat_usd_supply_atoms = new_supply;
+        new.reserved_pending_claim_sats += total_gross;
+        new.latest_oracle_price_e8 = price;
+        new.collateral_ratio_ppm =
+            tier::collateral_ratio_ppm(reserve, new_supply, price).unwrap_or(0);
+        new.emergency_tier = tier::recompute_tier(reserve, new_supply, price).as_u8();
+        new.lock_consumed_root = consumed.root();
+        new.redemption_nullifier_root = nullifier.root();
+        new.pending_claim_root = satusd_crypto::smt::root_after_update(
+            &id,
+            &pending_claim_hash(&pending),
+            &pending_proof,
+        );
+        claim.new_state_root = state_root_hash(&new);
+
+        // Self-check via the claim verifier, then commit the tree mutations.
+        let witness = claim::ReserveClaimWitness {
+            claim,
+            redemptions,
+            oracle_messages,
+            oracle_signer_set,
+            pending_claim_exclusion_proof: pending_proof,
+            btc_tip_height,
+        };
+        claim::verify_reserve_claim_finalize(&self.state, &new, &witness)
+            .map_err(NodeError::Claim)?;
+
+        self.lock_consumed_tree = consumed;
+        self.nullifier_tree = nullifier;
+        self.pending_claim_tree
+            .insert(id, &pending_claim_hash(&pending));
+        self.pending_claims.insert(id, pending);
+        self.commit(new)?;
+        Ok(id) // the claim handle for later settle/reclaim
+    }
+
+    /// RECLAIM_STALE_CLAIM (§5.D12): after expiry, free a PENDING claim's
+    /// reservation and flip it to RECLAIMED.
+    pub fn reclaim_stale_claim(
+        &mut self,
+        claim_id: [u8; 32],
+        current_height: u32,
+    ) -> Result<[u8; 32], NodeError> {
+        let prev_claim = self
+            .pending_claims
+            .get(&claim_id)
+            .ok_or(NodeError::UnknownClaim)?
+            .clone();
+        let proof = self.pending_claim_tree.prove(&claim_id);
+        let new_state =
+            registry::apply_reclaim_stale_claim(&self.state, &prev_claim, &proof, current_height)
+                .map_err(NodeError::Registry)?;
+        let mut reclaimed = prev_claim;
+        reclaimed.status = PendingClaimStatus::Reclaimed;
+        self.pending_claim_tree
+            .insert(claim_id, &pending_claim_hash(&reclaimed));
+        self.pending_claims.insert(claim_id, reclaimed);
+        self.commit(new_state)
+    }
+
+    /// FINALIZE_CLAIM (§5.D12): pay out an approved PENDING claim — debit
+    /// `reserve_btc_sats`, free the reservation, flip PENDING → FINALIZED. Requires
+    /// the reserve committee's M-of-N `approvals` over `claim_id` (§11.2).
+    pub fn finalize_claim(
+        &mut self,
+        claim_id: [u8; 32],
+        committee: &registry::ReserveCommittee,
+        approvals: &[mint::MultisigSig],
+        current_height: u32,
+    ) -> Result<[u8; 32], NodeError> {
+        let prev_claim = self
+            .pending_claims
+            .get(&claim_id)
+            .ok_or(NodeError::UnknownClaim)?
+            .clone();
+        let proof = self.pending_claim_tree.prove(&claim_id);
+        let new_state = registry::apply_finalize_claim(
+            &self.state,
+            &prev_claim,
+            &proof,
+            committee,
+            approvals,
+            current_height,
+        )
+        .map_err(NodeError::Registry)?;
+        let mut finalized = prev_claim;
+        finalized.status = PendingClaimStatus::Finalized;
+        self.pending_claim_tree
+            .insert(claim_id, &pending_claim_hash(&finalized));
+        self.pending_claims.insert(claim_id, finalized);
+        self.commit(new_state)
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
     use satusd_crypto::nums::{derive_nums_key, tap_tweak};
-    use satusd_types::derive::{lock_tweak, redeem_intent_hash};
+    use satusd_types::derive::{
+        lock_tweak, oracle_set_hash, redeem_intent_hash, reserve_committee_hash,
+    };
     use satusd_types::types::{
-        BtcHtlcPayoutRecord, IssuerStatus, LockFinalizeRecord, LockRecord, OutPoint, RedeemIntent,
+        IssuerStatus, LockFinalizeRecord, LockRecord, OutPoint, RedeemIntent,
     };
     use secp256k1::{Message, Secp256k1, SecretKey};
+
+    fn h32(s: &str) -> [u8; 32] {
+        hex::decode(s).unwrap().try_into().unwrap()
+    }
+    fn h64(s: &str) -> [u8; 64] {
+        hex::decode(s).unwrap().try_into().unwrap()
+    }
+
+    /// circomlibjs oracle signer pubkeys (privkeys 0x11/0x22/0x33).
+    fn oracle_pubkeys() -> Vec<[u8; 32]> {
+        vec![
+            h32("323a1772ccd2bf78ca0f82e4de1d4d48ded87f6f26d92d6a99e5998ac88901a6"),
+            h32("fff67c4b050994bb6d9e1a482edb649dab97b1bff12b73ae97af37487d828180"),
+            h32("b54e5bf89ce35b522a33efcb1d87a3ae81754b36a5aa1bcb87c5bedd8986bd14"),
+        ]
+    }
+    /// Their signatures over `oracle_message_hash(7, 100, 1.7e12, 5e12)`.
+    fn oracle_messages() -> Vec<OracleMessage> {
+        let sigs = [
+            h64("e1c966e0d52d5f5b20161c5b653101c10c7935521980770d838d826fbc93c42e35351a47e0b0d02009c15179e144ba6780244d10d391fbda0d5411f7b8562a02"),
+            h64("149b0d3019084f8537bce93c981e68c812c663df98c81ba36d1083af6353a694f299684962649aa9c7cc27ae06f0f96f295665f32c7ab817b0ce4e2341ecd104"),
+            h64("804b792bd825a16561f6f3b78f9a6db2949d5e5289d2230dd28a7b23c23e722b066761e4474e02c82d251a2c7ea0b8f34d1c79071bcb9b2b47094b9ceb572204"),
+        ];
+        oracle_pubkeys()
+            .into_iter()
+            .zip(sigs)
+            .enumerate()
+            .map(|(i, (pk, sig))| OracleMessage {
+                domain: [0; 32],
+                oracle_id: [i as u8; 32],
+                oracle_set_epoch: 7,
+                price_epoch: 100,
+                timestamp_ms: 1_700_000_000_000,
+                pair: *b"BTC/USD\0",
+                price_e8: PRICE_50K,
+                source_commitment: [0; 32],
+                signer_pubkey: pk,
+                signature: sig,
+            })
+            .collect()
+    }
+    const ORACLE_MTP: u64 = 1_699_996_400; // chain_time = MTP + 3600 = 1.7e9
+
+    fn submit_claim_clock() -> ClaimClock {
+        ClaimClock {
+            l1_anchor_height: 840_000,
+            l1_anchor_hash: [0x0c; 32],
+            l1_anchor_mtp: ORACLE_MTP,
+            l1_anchor_chain_time: ORACLE_MTP + claim::MTP_LAG_OFFSET_SEC,
+            recent_header_chain: [[0u8; 80]; 12],
+            oracle_epoch: 7,
+            selected_oracle_price_e8: PRICE_50K,
+            max_epoch_lag_sec: 600,
+            oracle_future_tolerance: 300,
+        }
+    }
+
+    /// A small redemption (4000 atoms → gross = 4000·1e14/5e12 = 80_000 sats).
+    fn small_intent() -> (RedeemIntent, [u8; 32]) {
+        let preimage = [0x77; 32];
+        let it = RedeemIntent {
+            version: 1,
+            network: 0,
+            redemption_id: [0x78; 32],
+            satusd_asset_family_id: FAMILY,
+            amount_satusd_atoms: 4_000,
+            user_btc_refund_pubkey: [0x31; 32],
+            user_btc_claim_pubkey: [0x32; 32],
+            user_asset_refund_key: derive_nums_key("node-claim-refund", &[]),
+            operator_id: Some(OPERATOR),
+            mode: redeem::MODE_FAST_OPERATOR,
+            payment_hash: satusd_types::sha256(&[&preimage]),
+            asset_lock_csv_delta: 288,
+            btc_htlc_csv_delta: 144,
+            max_operator_fee_bps: 50,
+            l1_anchor_height: 840_000,
+            l1_anchor_hash: [0x33; 32],
+            expiry_height: 900_000,
+            nonce: [0x79; 32],
+        };
+        (it, preimage)
+    }
 
     const PRICE_50K: u64 = 5_000_000_000_000;
     const FAMILY: [u8; 32] = [0x01; 32];
     const ISSUER_ID: [u8; 32] = [0xaa; 32];
     const OPERATOR: [u8; 32] = [0x20; 32];
-    const PREIMAGE: [u8; 32] = [0x55; 32];
     const META: [u8; 32] = [0xef; 32];
     const DEPOSIT_TXID: [u8; 32] = [0xcd; 32];
 
@@ -325,29 +617,6 @@ mod tests {
         }
     }
 
-    fn redeem_intent() -> RedeemIntent {
-        RedeemIntent {
-            version: 1,
-            network: 0,
-            redemption_id: [0x30; 32],
-            satusd_asset_family_id: FAMILY,
-            amount_satusd_atoms: 100_000_000,
-            user_btc_refund_pubkey: [0x31; 32],
-            user_btc_claim_pubkey: [0x32; 32],
-            user_asset_refund_key: derive_nums_key("node-user-refund", &[]),
-            operator_id: Some(OPERATOR),
-            mode: redeem::MODE_FAST_OPERATOR,
-            payment_hash: satusd_types::sha256(&[&PREIMAGE]),
-            asset_lock_csv_delta: 288,
-            btc_htlc_csv_delta: 144,
-            max_operator_fee_bps: 50,
-            l1_anchor_height: 840_000,
-            l1_anchor_hash: [0x33; 32],
-            expiry_height: 900_000,
-            nonce: [0x34; 32],
-        }
-    }
-
     fn lock_record(it: &RedeemIntent) -> LockRecord {
         let rih = redeem_intent_hash(it);
         LockRecord {
@@ -372,59 +641,50 @@ mod tests {
         }
     }
 
-    /// genesis → register → commit → finalize → lock → finalize, driven by the node.
-    #[test]
-    fn full_mint_then_redeem_lifecycle() {
-        let mut node = StateNode::genesis(FAMILY, [0x02; 32], 3, PRICE_50K);
+    // ---- Reserve committee (3-of-5) ----
+    fn committee_keys() -> Vec<SecretKey> {
+        (1u8..=5)
+            .map(|i| SecretKey::from_byte_array([i; 32]).unwrap())
+            .collect()
+    }
+    fn committee_pubkeys() -> Vec<[u8; 33]> {
+        let secp = Secp256k1::new();
+        committee_keys()
+            .iter()
+            .map(|k| k.public_key(&secp).serialize())
+            .collect()
+    }
+    fn committee() -> registry::ReserveCommittee {
+        registry::ReserveCommittee {
+            threshold: 3,
+            pubkeys: committee_pubkeys(),
+        }
+    }
+    fn committee_approvals(claim_id: &[u8; 32], n: usize) -> Vec<mint::MultisigSig> {
+        let secp = Secp256k1::new();
+        committee_keys()
+            .iter()
+            .take(n)
+            .zip(committee_pubkeys())
+            .map(|(sk, pk)| mint::MultisigSig {
+                signer_pubkey: pk,
+                signature: secp
+                    .sign_ecdsa(Message::from_digest(*claim_id), sk)
+                    .serialize_compact(),
+            })
+            .collect()
+    }
 
-        node.issuer_register(issuer()).expect("register");
-        assert_eq!(node.state().state_epoch, 1);
-
-        node.mint_commit(ISSUER_ID, &commit_witness())
-            .expect("commit");
-        assert_eq!(node.state().reserve_btc_sats, 4_000_000_000);
-        assert_eq!(node.state().sat_usd_supply_atoms, 0); // no supply yet
-        assert!(node
-            .issuer(&ISSUER_ID)
-            .unwrap()
-            .pending_mint_commitment
-            .is_some());
-
-        let fin = mint::MintFinalizeWitness {
-            issuer_id: ISSUER_ID,
-            requested_mint_atoms: 100_000_000,
-            deposit_txid: DEPOSIT_TXID,
-            asset_metadata_commitment: META,
-            mint_anchor_confirmations: 6,
-            mint_proof_ok: true,
-            oracle_price_e8: PRICE_50K,
-        };
-        node.mint_finalize(ISSUER_ID, &fin).expect("finalize");
-        assert_eq!(node.state().sat_usd_supply_atoms, 100_000_000);
-        assert!(node
-            .issuer(&ISSUER_ID)
-            .unwrap()
-            .pending_mint_commitment
-            .is_none());
-
-        // Redeem: lock the SatUSD, then finalize against a confirmed BTC payout.
-        let it = redeem_intent();
+    /// The single batch redemption for `small_intent`'s lock (proofs filled by
+    /// the node at submit). Deterministic, so it is rebuilt for replay tests.
+    fn one_redemption() -> claim::BatchRedemption {
+        let (it, preimage) = small_intent();
         let lr = lock_record(&it);
-        node.redeem_lock(redeem::RedeemLockWitness {
-            redeem_intent: it.clone(),
-            lock_record: lr.clone(),
-            lock_exclusion_proof: vec![],
-            lineage_ok: true,
-            lineage_proof_hash: [0x99; 32],
-        })
-        .expect("lock");
-
-        let fin_w = redeem::RedeemFinalizeWitness {
-            redeem_intent: it.clone(),
-            lock_record: lr.clone(),
+        claim::BatchRedemption {
+            redeem_intent: it,
             lock_finalize: LockFinalizeRecord {
                 lock_record_hash: lock_record_hash(&lr),
-                payment_preimage: PREIMAGE,
+                payment_preimage: preimage,
                 finalize_anchor_txid: [0x50; 32],
                 finalize_anchor_outpoint: OutPoint {
                     txid: [0x50; 32],
@@ -439,43 +699,35 @@ mod tests {
                 finalize_height: 840_002,
                 universe_burn_proof_hash: [0x60; 32],
             },
-            btc_htlc: BtcHtlcPayoutRecord {
-                operator_id: OPERATOR,
-                redeem_intent_hash: redeem_intent_hash(&it),
-                btc_htlc_txid: [0x70; 32],
-                btc_htlc_vout: 0,
-                payment_hash: it.payment_hash,
-                user_claim_pubkey: it.user_btc_claim_pubkey,
-                operator_refund_pubkey: [0x71; 32],
-                payout_sats: 1_990_000_000,
-                btc_csv_delta: it.btc_htlc_csv_delta,
-                htlc_inclusion_height: 840_000,
-                htlc_inclusion_block_hash: [0x72; 32],
-                claim_spend_txid: [0x73; 32],
-                revealed_preimage: PREIMAGE,
-                claim_inclusion_height: 840_000,
-                claim_inclusion_block_hash: [0x74; 32],
-                confirmation_depth: 6,
-            },
-            operator_id: OPERATOR,
-            price_e8: PRICE_50K,
+            payout_confirmation: crate::spv::build_confirmation(preimage, 100_000, 101, 6),
+            lock_record: lr,
             lock_membership_proof: vec![],
             consumed_exclusion_proof: vec![],
             refund_exclusion_proof: vec![],
             nullifier_exclusion_proof: vec![],
             burn_proof_ok: true,
-        };
-        node.redeem_finalize(fin_w).expect("redeem finalize");
-
-        assert_eq!(node.state().sat_usd_supply_atoms, 0); // burned
-        assert_eq!(node.state().reserve_btc_sats, 2_000_000_000); // 40 - 20 BTC
-        assert_eq!(node.state().state_epoch, 5);
+        }
     }
 
-    #[test]
-    fn double_finalize_rejected_by_node() {
-        // A second redeem_finalize of the same lock fails (lock now consumed).
-        let mut node = StateNode::genesis(FAMILY, [0x02; 32], 3, PRICE_50K);
+    fn submit_one(node: &mut StateNode) -> Result<[u8; 32], NodeError> {
+        node.submit_claim(
+            vec![one_redemption()],
+            oracle_messages(),
+            oracle_pubkeys(),
+            submit_claim_clock(),
+            0,
+            840_100, // claim_expiry_height
+            110,     // btc tip
+        )
+    }
+
+    /// genesis → register → mint → lock → submit_claim. Returns the node, the
+    /// `claim_id`, and the reserve balance before submit (claim expiry 840_100).
+    fn setup_submitted() -> (StateNode, [u8; 32], u64) {
+        let mut node =
+            StateNode::genesis(FAMILY, oracle_set_hash(7, &oracle_pubkeys()), 7, PRICE_50K);
+        node.set_l1_anchor(840_000, [0x0c; 32], ORACLE_MTP);
+        node.set_reserve_committee(reserve_committee_hash(3, &committee_pubkeys()));
         node.issuer_register(issuer()).unwrap();
         node.mint_commit(ISSUER_ID, &commit_witness()).unwrap();
         let fin = mint::MintFinalizeWitness {
@@ -488,68 +740,73 @@ mod tests {
             oracle_price_e8: PRICE_50K,
         };
         node.mint_finalize(ISSUER_ID, &fin).unwrap();
+        let reserve_before = node.state().reserve_btc_sats;
 
-        let it = redeem_intent();
-        let lr = lock_record(&it);
+        let (it, lr) = {
+            let r = one_redemption();
+            (r.redeem_intent.clone(), r.lock_record.clone())
+        };
         node.redeem_lock(redeem::RedeemLockWitness {
-            redeem_intent: it.clone(),
-            lock_record: lr.clone(),
+            redeem_intent: it,
+            lock_record: lr,
             lock_exclusion_proof: vec![],
             lineage_ok: true,
             lineage_proof_hash: [0x99; 32],
         })
         .unwrap();
 
-        let mk_fin = || redeem::RedeemFinalizeWitness {
-            redeem_intent: it.clone(),
-            lock_record: lr.clone(),
-            lock_finalize: LockFinalizeRecord {
-                lock_record_hash: lock_record_hash(&lr),
-                payment_preimage: PREIMAGE,
-                finalize_anchor_txid: [0x50; 32],
-                finalize_anchor_outpoint: OutPoint {
-                    txid: [0x50; 32],
-                    vout: 0,
-                },
-                protocol_sink_script_key: satusd_crypto::nums::protocol_sink_script_key(&FAMILY),
-                protocol_burn_internal_key: satusd_crypto::nums::protocol_burn_internal_key(
-                    &FAMILY,
-                ),
-                finalized_amount_atoms: lr.lock_amount_atoms,
-                operator_id: OPERATOR,
-                finalize_height: 840_002,
-                universe_burn_proof_hash: [0x60; 32],
-            },
-            btc_htlc: BtcHtlcPayoutRecord {
-                operator_id: OPERATOR,
-                redeem_intent_hash: redeem_intent_hash(&it),
-                btc_htlc_txid: [0x70; 32],
-                btc_htlc_vout: 0,
-                payment_hash: it.payment_hash,
-                user_claim_pubkey: it.user_btc_claim_pubkey,
-                operator_refund_pubkey: [0x71; 32],
-                payout_sats: 1_990_000_000,
-                btc_csv_delta: it.btc_htlc_csv_delta,
-                htlc_inclusion_height: 840_000,
-                htlc_inclusion_block_hash: [0x72; 32],
-                claim_spend_txid: [0x73; 32],
-                revealed_preimage: PREIMAGE,
-                claim_inclusion_height: 840_000,
-                claim_inclusion_block_hash: [0x74; 32],
-                confirmation_depth: 6,
-            },
-            operator_id: OPERATOR,
-            price_e8: PRICE_50K,
-            lock_membership_proof: vec![],
-            consumed_exclusion_proof: vec![],
-            refund_exclusion_proof: vec![],
-            nullifier_exclusion_proof: vec![],
-            burn_proof_ok: true,
-        };
-        node.redeem_finalize(mk_fin()).expect("first finalize");
+        let claim_id = submit_one(&mut node).expect("submit");
+
+        // Submit reserves 80_000 sats and creates a PENDING claim; no reserve debit.
+        assert_eq!(node.state().reserved_pending_claim_sats, 80_000);
+        assert_eq!(node.state().reserve_btc_sats, reserve_before);
+        assert_eq!(node.state().sat_usd_supply_atoms, 100_000_000 - 4_000);
         assert_eq!(
-            node.redeem_finalize(mk_fin()),
-            Err(NodeError::Redeem(redeem::RedeemRejectReason::LockConsumed))
+            node.pending_claim(&claim_id).unwrap().status,
+            PendingClaimStatus::Pending
+        );
+        (node, claim_id, reserve_before)
+    }
+
+    /// submit → expire → reclaim: the reservation is freed, reserve_btc untouched.
+    #[test]
+    fn submit_then_reclaim_lifecycle() {
+        let (mut node, claim_id, reserve_before) = setup_submitted();
+        node.reclaim_stale_claim(claim_id, 840_200) // past expiry
+            .expect("reclaim");
+        assert_eq!(node.state().reserved_pending_claim_sats, 0);
+        assert_eq!(node.state().reserve_btc_sats, reserve_before); // never paid
+        assert_eq!(
+            node.pending_claim(&claim_id).unwrap().status,
+            PendingClaimStatus::Reclaimed
+        );
+    }
+
+    /// submit → finalize: the operator is paid — reserve_btc debited, reservation
+    /// freed, claim FINALIZED.
+    #[test]
+    fn submit_then_finalize_lifecycle() {
+        let (mut node, claim_id, reserve_before) = setup_submitted();
+        let approvals = committee_approvals(&claim_id, 3); // 3-of-5
+        node.finalize_claim(claim_id, &committee(), &approvals, 840_050) // before expiry
+            .expect("finalize");
+        assert_eq!(node.state().reserved_pending_claim_sats, 0);
+        assert_eq!(node.state().reserve_btc_sats, reserve_before - 80_000); // paid out
+        assert_eq!(
+            node.pending_claim(&claim_id).unwrap().status,
+            PendingClaimStatus::Finalized
+        );
+    }
+
+    /// A second submit of the same (now-consumed) lock is rejected by the node.
+    #[test]
+    fn resubmit_consumed_lock_rejected() {
+        let (mut node, _claim_id, _reserve) = setup_submitted();
+        assert_eq!(
+            submit_one(&mut node),
+            Err(NodeError::Claim(claim::ClaimRejectReason::Redeem(
+                redeem::RedeemRejectReason::LockConsumed
+            )))
         );
     }
 }

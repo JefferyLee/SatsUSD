@@ -42,10 +42,31 @@ fn apply_to(node: &mut StateNode, req: TransitionRequest) -> Result<[u8; 32], St
             node.mint_finalize(id, &d.into_witness()).map_err(fmt)
         }
         TransitionRequest::RedeemLock(d) => node.redeem_lock((*d).into_witness()).map_err(fmt),
-        TransitionRequest::RedeemFinalize(d) => {
-            node.redeem_finalize((*d).into_witness()).map_err(fmt)
-        }
         TransitionRequest::LockRefund(d) => node.lock_refund((*d).into_witness()).map_err(fmt),
+        TransitionRequest::SubmitClaim(d) => {
+            let (redemptions, oracle_messages, signer_set, l1, shard, expiry, tip) = d.parts()?;
+            node.submit_claim(
+                redemptions,
+                oracle_messages,
+                signer_set,
+                l1,
+                shard,
+                expiry,
+                tip,
+            )
+            .map_err(fmt)
+        }
+        TransitionRequest::FinalizeClaim(d) => node
+            .finalize_claim(
+                d.claim_id.0,
+                &d.committee(),
+                &d.approvals(),
+                d.current_height,
+            )
+            .map_err(fmt),
+        TransitionRequest::ReclaimStaleClaim(d) => node
+            .reclaim_stale_claim(d.claim_id.0, d.current_height)
+            .map_err(fmt),
     }
 }
 
@@ -134,6 +155,50 @@ mod tests {
         apply_to(&mut node, req).expect("issuer register via dto");
         assert_eq!(node.state().state_epoch, 1);
         assert!(node.issuer(&[0xaa; 32]).is_some());
+    }
+
+    #[test]
+    fn reclaim_dto_path_dispatches() {
+        // The reclaim_stale_claim tag deserializes and dispatches; an unknown claim
+        // on a fresh node surfaces UnknownClaim (proves the wiring, not a panic).
+        let body = json!({
+            "transition": "reclaim_stale_claim",
+            "claim_id": hex::encode([0x55; 32]),
+            "current_height": 840_200,
+        });
+        let req: TransitionRequest = serde_json::from_value(body).unwrap();
+        let mut node = StateNode::genesis([0x01; 32], [0x02; 32], 0, 5_000_000_000_000);
+        let err = apply_to(&mut node, req).unwrap_err();
+        assert!(err.contains("UnknownClaim"), "{err}");
+    }
+
+    #[test]
+    fn submit_claim_dto_deserializes() {
+        // The (large) submit_claim body deserializes into the tagged variant.
+        let body = json!({
+            "transition": "submit_claim",
+            "redemptions": [],
+            "oracle_messages": [],
+            "oracle_signer_set": [],
+            "l1_anchor": {
+                "l1_anchor_height": 840_000,
+                "l1_anchor_hash": hex::encode([0x0c; 32]),
+                "l1_anchor_mtp": 1_699_996_400u64,
+                "l1_anchor_chain_time": 1_700_000_000u64,
+                "recent_header_chain": [],
+                "oracle_epoch": 7,
+                "selected_oracle_price_e8": 5_000_000_000_000u64,
+                "max_epoch_lag_sec": 600,
+                "oracle_future_tolerance": 300,
+            },
+            "reserve_shard_id": 0,
+            "claim_expiry_height": 840_100,
+            "btc_tip_height": 110,
+        });
+        assert!(matches!(
+            serde_json::from_value::<TransitionRequest>(body),
+            Ok(TransitionRequest::SubmitClaim(_))
+        ));
     }
 
     #[test]

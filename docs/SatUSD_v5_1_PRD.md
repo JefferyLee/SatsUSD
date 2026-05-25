@@ -1079,6 +1079,7 @@ enum TransitionType {
   OPERATOR_REGISTER    = 0x20,
   ISSUER_REGISTER      = 0x21,
   RECLAIM_STALE_CLAIM  = 0x30,
+  FINALIZE_CLAIM       = 0x31,    // reserve pays out a PENDING claim (§5.D12, ADR-0022)
   LIQUIDATE            = 0x40,    // stub
   ROTATE_SHARD         = 0x50,    // stub
   GOVERN               = 0x60,    // stub
@@ -1211,8 +1212,8 @@ struct PendingClaim {
 
 **规则**：
 
-- `submit_claim` 时 `reserved_pending_claim_sats += reimbursement_sats`。
-- `finalize_claim` 成功时 `reserved_pending_claim_sats -= reimbursement`，`reserve_btc_sats -= reimbursement`。
+- `submit_claim` 时 `reserved_pending_claim_sats += reimbursement_sats`（transition `REDEEM_FAST_FINALIZE` 0x11，两阶段第一步，不动 reserve；ADR-0022）。
+- `finalize_claim`（transition `FINALIZE_CLAIM` 0x31）成功时 `reserved_pending_claim_sats -= reimbursement`，`reserve_btc_sats -= reimbursement`；须在 `claim_expiry_height` 之前，且附带 **3-of-5 reserve committee 对 `claim_id` 的多签**（committed 于 `StateRoot.reserve_committee_hash`；§11.2，ADR-0023）。
 - `claim_expiry_height` 到期未 finalize → 任何 keeper 可提交 `RECLAIM_STALE_CLAIM`：
   - 验证 expiry 已过；状态为 PENDING/CHALLENGED。
   - `reserved_pending_claim_sats -= reimbursement`。
@@ -1239,7 +1240,9 @@ Assert UTXO 必须有：
 
 **决策**：
 
-`claim_id = SHA256("SATUSD_CLAIM_ID_V1" || canonical_encode(ReserveClaim_without_signatures))`。
+`claim_id = SHA256("SATUSD_CLAIM_ID_V1" || canonical_encode(ReserveClaim_inputs))`，其中 `ReserveClaim_inputs` 排除 `claim_id`、`operator_signature` **与 `new_state_root`**（ADR-0012 + ADR-0022）。
+
+> **v5.1.X 修正（ADR-0022）**：`claim_id` 不再绑定 `new_state_root`。`submit_claim` 把 PendingClaim 以 `claim_id` 为键插入 `pending_claim_root`，而 `pending_claim_root` 又是 `new_state_root` 的一部分——若 `claim_id` 绑定 `new_state_root` 则自指无解。改为只绑定 claim 的*输入*（`prev_state_root` + 各 batch_root + `l1_anchor` + `reimbursement_sats` + `claim_expiry_height` + …）；post-state 由输入 + prev 确定，仍被隐式绑定。`new_state_root` 仍在 ReserveClaim 完整规范编码中（紧跟 `claim_id` 之后）。
 
 - 重复 `submit_claim(claim_id=X)` 不创建第二份 PendingClaim。
 - `finalize_claim(handle_of_X)` 重复调用必须返回相同结果。
@@ -1623,6 +1626,7 @@ struct StateRoot {
   oracle_set_epoch:             u64,
   latest_oracle_epoch_seen:     u64,
   latest_oracle_price_e8:       u64,
+  reserve_committee_hash:       [u8; 32],   // ★ v5.1.X (ADR-0023): commits 3-of-5 reserve committee gating FINALIZE_CLAIM
   
   // 注册表
   issuer_positions_root:        [u8; 32],

@@ -89,6 +89,19 @@ pub fn oracle_set_hash(oracle_set_epoch: u64, signer_pubkeys: &[[u8; 32]]) -> [u
     tagged_hash(domain::ORACLE_SET, &e.into_bytes())
 }
 
+/// `reserve_committee_hash` (§4, §11.2, domain `SATUSD_RESERVE_COMMITTEE_V1`):
+/// commits the reserve-committee M-of-N config that authorizes FINALIZE_CLAIM.
+/// `StateRoot::reserve_committee_hash` must equal this for the active committee.
+/// Pubkeys (33-byte secp256k1) are sorted for determinism.
+pub fn reserve_committee_hash(threshold: u8, committee_pubkeys: &[[u8; 33]]) -> [u8; 32] {
+    let mut sorted = committee_pubkeys.to_vec();
+    sorted.sort_unstable();
+    let mut e = Encoder::new();
+    e.u8(threshold);
+    e.seq(&sorted, |e, pk| e.fixed(pk));
+    tagged_hash(domain::RESERVE_COMMITTEE, &e.into_bytes())
+}
+
 /// `mint_request_sighash` (§5.D11, domain `SATUSD_MINT_REQUEST_V1`): the message
 /// the issuer multisig signs to authorize a MINT_COMMIT. Binds the full economic
 /// request (issuer, amount, deposit). Distinct preimage from `mint_commitment`.

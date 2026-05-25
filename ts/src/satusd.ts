@@ -170,11 +170,12 @@ function encodeRedemptionRecord(e: Encoder, f: Fields): void {
   e.u64(U(f, "user_payout_sats"));
 }
 
+// new_state_root excluded from the claim_id preimage (ADR-0022); it stays in the
+// full encoding below.
 function encodeReserveClaimForClaimId(e: Encoder, f: Fields): void {
   e.u8(N(f, "transition_type"));
   e.fixed(B(f, "operator_id"));
   e.fixed(B(f, "prev_state_root"));
-  e.fixed(B(f, "new_state_root"));
   e.fixed(B(f, "redemption_batch_root"));
   e.fixed(B(f, "oracle_batch_root"));
   e.fixed(B(f, "lock_batch_root"));
@@ -194,6 +195,7 @@ function encodeReserveClaimForClaimId(e: Encoder, f: Fields): void {
 
 function encodeReserveClaim(e: Encoder, f: Fields): void {
   e.fixed(B(f, "claim_id"));
+  e.fixed(B(f, "new_state_root"));
   encodeReserveClaimForClaimId(e, f);
   e.fixed(B(f, "operator_signature"));
 }
@@ -213,6 +215,7 @@ function encodeStateRoot(e: Encoder, f: Fields): void {
   e.u64(U(f, "oracle_set_epoch"));
   e.u64(U(f, "latest_oracle_epoch_seen"));
   e.u64(U(f, "latest_oracle_price_e8"));
+  e.fixed(B(f, "reserve_committee_hash"));
   e.fixed(B(f, "issuer_positions_root"));
   e.fixed(B(f, "operator_registry_root"));
   e.fixed(B(f, "lock_record_root"));

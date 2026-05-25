@@ -38,6 +38,7 @@ pub const OPERATOR_POSITION: &str = "SATUSD_OPERATOR_POSITION_V1";
 pub const BURN_SINK: &str = "SATUSD_BURN_SINK_V1";
 pub const BURN_TWEAK: &str = "SATUSD_BURN_TWEAK_V1";
 pub const LINEAGE_PROOF: &str = "SATUSD_LINEAGE_PROOF_V1";
+pub const RESERVE_COMMITTEE: &str = "SATUSD_RESERVE_COMMITTEE_V1";
 
 /// Every registered domain separator, for registry-completeness tests.
 pub const ALL: &[&str] = &[
@@ -67,4 +68,5 @@ pub const ALL: &[&str] = &[
     BURN_SINK,
     BURN_TWEAK,
     LINEAGE_PROOF,
+    RESERVE_COMMITTEE,
 ];

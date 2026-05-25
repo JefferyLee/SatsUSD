@@ -4,12 +4,20 @@
 
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
+use satusd_state::claim::BatchRedemption;
 use satusd_state::mint::{MintCommitWitness, MintFinalizeWitness, MultisigSig};
-use satusd_state::redeem::{LockRefundWitness, RedeemFinalizeWitness, RedeemLockWitness};
+use satusd_state::redeem::{LockRefundWitness, RedeemLockWitness};
+use satusd_state::registry::ReserveCommittee;
 use satusd_types::types::{
-    BtcHtlcPayoutRecord, IssuerPosition, IssuerStatus, LockFinalizeRecord, LockRecord,
-    LockRefundRecord, OperatorPosition, OperatorStatus, OutPoint, RedeemIntent,
+    BtcPayoutConfirmation, ClaimClock, IssuerPosition, IssuerStatus, LockFinalizeRecord,
+    LockRecord, LockRefundRecord, OperatorPosition, OperatorStatus, OracleMessage, OutPoint,
+    RedeemIntent,
 };
+
+/// Decode a hex string into bytes (variable-length JSON byte field).
+fn hexbytes(s: &str) -> Result<Vec<u8>, String> {
+    hex::decode(s).map_err(|e| e.to_string())
+}
 
 /// A fixed-size byte array carried as a hex string in JSON.
 #[derive(Clone, Copy)]
@@ -289,106 +297,6 @@ impl RedeemLockDto {
 }
 
 #[derive(Deserialize)]
-pub struct LockFinalizeDto {
-    pub lock_record_hash: Hex<32>,
-    pub payment_preimage: Hex<32>,
-    pub finalize_anchor_txid: Hex<32>,
-    pub finalize_anchor_outpoint: OutPointDto,
-    pub protocol_sink_script_key: Hex<32>,
-    pub protocol_burn_internal_key: Hex<32>,
-    pub finalized_amount_atoms: u64,
-    pub operator_id: Hex<32>,
-    pub finalize_height: u32,
-    pub universe_burn_proof_hash: Hex<32>,
-}
-impl LockFinalizeDto {
-    fn into_domain(self) -> LockFinalizeRecord {
-        LockFinalizeRecord {
-            lock_record_hash: self.lock_record_hash.0,
-            payment_preimage: self.payment_preimage.0,
-            finalize_anchor_txid: self.finalize_anchor_txid.0,
-            finalize_anchor_outpoint: self.finalize_anchor_outpoint.into_domain(),
-            protocol_sink_script_key: self.protocol_sink_script_key.0,
-            protocol_burn_internal_key: self.protocol_burn_internal_key.0,
-            finalized_amount_atoms: self.finalized_amount_atoms,
-            operator_id: self.operator_id.0,
-            finalize_height: self.finalize_height,
-            universe_burn_proof_hash: self.universe_burn_proof_hash.0,
-        }
-    }
-}
-
-#[derive(Deserialize)]
-pub struct BtcHtlcDto {
-    pub operator_id: Hex<32>,
-    pub redeem_intent_hash: Hex<32>,
-    pub btc_htlc_txid: Hex<32>,
-    pub btc_htlc_vout: u32,
-    pub payment_hash: Hex<32>,
-    pub user_claim_pubkey: Hex<32>,
-    pub operator_refund_pubkey: Hex<32>,
-    pub payout_sats: u64,
-    pub btc_csv_delta: u32,
-    pub htlc_inclusion_height: u32,
-    pub htlc_inclusion_block_hash: Hex<32>,
-    pub claim_spend_txid: Hex<32>,
-    pub revealed_preimage: Hex<32>,
-    pub claim_inclusion_height: u32,
-    pub claim_inclusion_block_hash: Hex<32>,
-    pub confirmation_depth: u32,
-}
-impl BtcHtlcDto {
-    fn into_domain(self) -> BtcHtlcPayoutRecord {
-        BtcHtlcPayoutRecord {
-            operator_id: self.operator_id.0,
-            redeem_intent_hash: self.redeem_intent_hash.0,
-            btc_htlc_txid: self.btc_htlc_txid.0,
-            btc_htlc_vout: self.btc_htlc_vout,
-            payment_hash: self.payment_hash.0,
-            user_claim_pubkey: self.user_claim_pubkey.0,
-            operator_refund_pubkey: self.operator_refund_pubkey.0,
-            payout_sats: self.payout_sats,
-            btc_csv_delta: self.btc_csv_delta,
-            htlc_inclusion_height: self.htlc_inclusion_height,
-            htlc_inclusion_block_hash: self.htlc_inclusion_block_hash.0,
-            claim_spend_txid: self.claim_spend_txid.0,
-            revealed_preimage: self.revealed_preimage.0,
-            claim_inclusion_height: self.claim_inclusion_height,
-            claim_inclusion_block_hash: self.claim_inclusion_block_hash.0,
-            confirmation_depth: self.confirmation_depth,
-        }
-    }
-}
-
-#[derive(Deserialize)]
-pub struct RedeemFinalizeDto {
-    pub redeem_intent: RedeemIntentDto,
-    pub lock_record: LockRecordDto,
-    pub lock_finalize: LockFinalizeDto,
-    pub btc_htlc: BtcHtlcDto,
-    pub operator_id: Hex<32>,
-    pub price_e8: u64,
-    pub burn_proof_ok: bool,
-}
-impl RedeemFinalizeDto {
-    pub fn into_witness(self) -> RedeemFinalizeWitness {
-        RedeemFinalizeWitness {
-            redeem_intent: self.redeem_intent.into_domain(),
-            lock_record: self.lock_record.into_domain(),
-            lock_finalize: self.lock_finalize.into_domain(),
-            btc_htlc: self.btc_htlc.into_domain(),
-            operator_id: self.operator_id.0,
-            price_e8: self.price_e8,
-            lock_membership_proof: vec![],
-            consumed_exclusion_proof: vec![],
-            refund_exclusion_proof: vec![],
-            nullifier_exclusion_proof: vec![],
-            burn_proof_ok: self.burn_proof_ok,
-        }
-    }
-}
-
-#[derive(Deserialize)]
 pub struct LockRefundRecordDto {
     pub lock_record_hash: Hex<32>,
     pub refund_anchor_txid: Hex<32>,
@@ -429,6 +337,280 @@ impl LockRefundDto {
     }
 }
 
+// ---- ReserveClaim lifecycle (§5.D12) ----
+
+#[derive(Deserialize)]
+pub struct LockFinalizeDto {
+    pub lock_record_hash: Hex<32>,
+    pub payment_preimage: Hex<32>,
+    pub finalize_anchor_txid: Hex<32>,
+    pub finalize_anchor_outpoint: OutPointDto,
+    pub protocol_sink_script_key: Hex<32>,
+    pub protocol_burn_internal_key: Hex<32>,
+    pub finalized_amount_atoms: u64,
+    pub operator_id: Hex<32>,
+    pub finalize_height: u32,
+    pub universe_burn_proof_hash: Hex<32>,
+}
+impl LockFinalizeDto {
+    fn into_domain(self) -> LockFinalizeRecord {
+        LockFinalizeRecord {
+            lock_record_hash: self.lock_record_hash.0,
+            payment_preimage: self.payment_preimage.0,
+            finalize_anchor_txid: self.finalize_anchor_txid.0,
+            finalize_anchor_outpoint: self.finalize_anchor_outpoint.into_domain(),
+            protocol_sink_script_key: self.protocol_sink_script_key.0,
+            protocol_burn_internal_key: self.protocol_burn_internal_key.0,
+            finalized_amount_atoms: self.finalized_amount_atoms,
+            operator_id: self.operator_id.0,
+            finalize_height: self.finalize_height,
+            universe_burn_proof_hash: self.universe_burn_proof_hash.0,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct BtcPayoutConfirmationDto {
+    pub btc_htlc_txid: Hex<32>,
+    pub btc_htlc_vout: u32,
+    pub htlc_output_value_sats: u64,
+    pub htlc_output_script: String,
+    pub htlc_inclusion_block_hash: Hex<32>,
+    pub htlc_inclusion_block_height: u32,
+    pub htlc_inclusion_merkle_proof: Vec<Hex<32>>,
+    pub claim_spend_txid: Hex<32>,
+    pub claim_spend_input_index: u32,
+    pub claim_spend_witness: Vec<String>,
+    pub revealed_preimage: Hex<32>,
+    pub claim_inclusion_block_hash: Hex<32>,
+    pub claim_inclusion_block_height: u32,
+    pub claim_inclusion_merkle_proof: Vec<Hex<32>>,
+    pub confirmation_headers: Vec<Hex<80>>,
+    pub htlc_tx_index: u32,
+    pub claim_tx_index: u32,
+    pub htlc_inclusion_header: Hex<80>,
+    pub claim_inclusion_header: Hex<80>,
+}
+impl BtcPayoutConfirmationDto {
+    fn into_domain(self) -> Result<BtcPayoutConfirmation, String> {
+        Ok(BtcPayoutConfirmation {
+            btc_htlc_txid: self.btc_htlc_txid.0,
+            btc_htlc_vout: self.btc_htlc_vout,
+            htlc_output_value_sats: self.htlc_output_value_sats,
+            htlc_output_script: hexbytes(&self.htlc_output_script)?,
+            htlc_inclusion_block_hash: self.htlc_inclusion_block_hash.0,
+            htlc_inclusion_block_height: self.htlc_inclusion_block_height,
+            htlc_inclusion_merkle_proof: self
+                .htlc_inclusion_merkle_proof
+                .iter()
+                .map(|h| h.0)
+                .collect(),
+            claim_spend_txid: self.claim_spend_txid.0,
+            claim_spend_input_index: self.claim_spend_input_index,
+            claim_spend_witness: self
+                .claim_spend_witness
+                .iter()
+                .map(|s| hexbytes(s))
+                .collect::<Result<_, _>>()?,
+            revealed_preimage: self.revealed_preimage.0,
+            claim_inclusion_block_hash: self.claim_inclusion_block_hash.0,
+            claim_inclusion_block_height: self.claim_inclusion_block_height,
+            claim_inclusion_merkle_proof: self
+                .claim_inclusion_merkle_proof
+                .iter()
+                .map(|h| h.0)
+                .collect(),
+            confirmation_headers: self.confirmation_headers.iter().map(|h| h.0).collect(),
+            htlc_tx_index: self.htlc_tx_index,
+            claim_tx_index: self.claim_tx_index,
+            htlc_inclusion_header: self.htlc_inclusion_header.0,
+            claim_inclusion_header: self.claim_inclusion_header.0,
+        })
+    }
+}
+
+#[derive(Deserialize)]
+pub struct BatchRedemptionDto {
+    pub redeem_intent: RedeemIntentDto,
+    pub lock_record: LockRecordDto,
+    pub lock_finalize: LockFinalizeDto,
+    pub payout_confirmation: BtcPayoutConfirmationDto,
+    pub burn_proof_ok: bool,
+}
+impl BatchRedemptionDto {
+    fn into_domain(self) -> Result<BatchRedemption, String> {
+        Ok(BatchRedemption {
+            redeem_intent: self.redeem_intent.into_domain(),
+            lock_record: self.lock_record.into_domain(),
+            lock_finalize: self.lock_finalize.into_domain(),
+            payout_confirmation: self.payout_confirmation.into_domain()?,
+            // SMT proofs are filled by the node.
+            lock_membership_proof: vec![],
+            consumed_exclusion_proof: vec![],
+            refund_exclusion_proof: vec![],
+            nullifier_exclusion_proof: vec![],
+            burn_proof_ok: self.burn_proof_ok,
+        })
+    }
+}
+
+#[derive(Deserialize)]
+pub struct OracleMessageDto {
+    pub domain: Hex<32>,
+    pub oracle_id: Hex<32>,
+    pub oracle_set_epoch: u64,
+    pub price_epoch: u64,
+    pub timestamp_ms: u64,
+    pub pair: Hex<8>,
+    pub price_e8: u64,
+    pub source_commitment: Hex<32>,
+    pub signer_pubkey: Hex<32>,
+    pub signature: Hex<64>,
+}
+impl OracleMessageDto {
+    fn into_domain(self) -> OracleMessage {
+        OracleMessage {
+            domain: self.domain.0,
+            oracle_id: self.oracle_id.0,
+            oracle_set_epoch: self.oracle_set_epoch,
+            price_epoch: self.price_epoch,
+            timestamp_ms: self.timestamp_ms,
+            pair: self.pair.0,
+            price_e8: self.price_e8,
+            source_commitment: self.source_commitment.0,
+            signer_pubkey: self.signer_pubkey.0,
+            signature: self.signature.0,
+        }
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ClaimClockDto {
+    pub l1_anchor_height: u32,
+    pub l1_anchor_hash: Hex<32>,
+    pub l1_anchor_mtp: u64,
+    pub l1_anchor_chain_time: u64,
+    pub recent_header_chain: Vec<Hex<80>>,
+    pub oracle_epoch: u64,
+    pub selected_oracle_price_e8: u64,
+    pub max_epoch_lag_sec: u32,
+    pub oracle_future_tolerance: u32,
+}
+impl ClaimClockDto {
+    fn into_domain(self) -> Result<ClaimClock, String> {
+        let chain: [[u8; 80]; 12] = self
+            .recent_header_chain
+            .iter()
+            .map(|h| h.0)
+            .collect::<Vec<_>>()
+            .try_into()
+            .map_err(|_| "recent_header_chain must be 12 headers".to_string())?;
+        Ok(ClaimClock {
+            l1_anchor_height: self.l1_anchor_height,
+            l1_anchor_hash: self.l1_anchor_hash.0,
+            l1_anchor_mtp: self.l1_anchor_mtp,
+            l1_anchor_chain_time: self.l1_anchor_chain_time,
+            recent_header_chain: chain,
+            oracle_epoch: self.oracle_epoch,
+            selected_oracle_price_e8: self.selected_oracle_price_e8,
+            max_epoch_lag_sec: self.max_epoch_lag_sec,
+            oracle_future_tolerance: self.oracle_future_tolerance,
+        })
+    }
+}
+
+/// REDEEM_FAST_FINALIZE submit_claim. Returns the `claim_id` handle.
+#[derive(Deserialize)]
+pub struct SubmitClaimDto {
+    pub redemptions: Vec<BatchRedemptionDto>,
+    pub oracle_messages: Vec<OracleMessageDto>,
+    pub oracle_signer_set: Vec<Hex<32>>,
+    pub l1_anchor: ClaimClockDto,
+    pub reserve_shard_id: u64,
+    pub claim_expiry_height: u32,
+    pub btc_tip_height: u32,
+}
+impl SubmitClaimDto {
+    /// Convert into the `node.submit_claim` argument tuple (proofs filled by node).
+    #[allow(clippy::type_complexity)]
+    pub fn parts(
+        self,
+    ) -> Result<
+        (
+            Vec<BatchRedemption>,
+            Vec<OracleMessage>,
+            Vec<[u8; 32]>,
+            ClaimClock,
+            u64,
+            u32,
+            u32,
+        ),
+        String,
+    > {
+        let redemptions = self
+            .redemptions
+            .into_iter()
+            .map(|r| r.into_domain())
+            .collect::<Result<Vec<_>, _>>()?;
+        let oracle_messages = self
+            .oracle_messages
+            .into_iter()
+            .map(|m| m.into_domain())
+            .collect();
+        let signer_set = self.oracle_signer_set.iter().map(|h| h.0).collect();
+        let l1 = self.l1_anchor.into_domain()?;
+        Ok((
+            redemptions,
+            oracle_messages,
+            signer_set,
+            l1,
+            self.reserve_shard_id,
+            self.claim_expiry_height,
+            self.btc_tip_height,
+        ))
+    }
+}
+
+#[derive(Deserialize)]
+pub struct ApprovalDto {
+    pub signer_pubkey: Hex<33>,
+    pub signature: Hex<64>,
+}
+
+/// FINALIZE_CLAIM: committee approval over `claim_id`.
+#[derive(Deserialize)]
+pub struct FinalizeClaimDto {
+    pub claim_id: Hex<32>,
+    pub committee_threshold: u8,
+    pub committee_pubkeys: Vec<Hex<33>>,
+    pub approvals: Vec<ApprovalDto>,
+    pub current_height: u32,
+}
+impl FinalizeClaimDto {
+    pub fn committee(&self) -> ReserveCommittee {
+        ReserveCommittee {
+            threshold: self.committee_threshold,
+            pubkeys: self.committee_pubkeys.iter().map(|h| h.0).collect(),
+        }
+    }
+    pub fn approvals(&self) -> Vec<MultisigSig> {
+        self.approvals
+            .iter()
+            .map(|a| MultisigSig {
+                signer_pubkey: a.signer_pubkey.0,
+                signature: a.signature.0,
+            })
+            .collect()
+    }
+}
+
+/// RECLAIM_STALE_CLAIM.
+#[derive(Deserialize)]
+pub struct ReclaimClaimDto {
+    pub claim_id: Hex<32>,
+    pub current_height: u32,
+}
+
 /// A submitted/simulated transition, tagged by `"transition"`.
 #[derive(Deserialize)]
 #[serde(tag = "transition", rename_all = "snake_case")]
@@ -438,6 +620,8 @@ pub enum TransitionRequest {
     MintCommit(Box<MintCommitDto>),
     MintFinalize(MintFinalizeDto),
     RedeemLock(Box<RedeemLockDto>),
-    RedeemFinalize(Box<RedeemFinalizeDto>),
     LockRefund(Box<LockRefundDto>),
+    SubmitClaim(Box<SubmitClaimDto>),
+    FinalizeClaim(Box<FinalizeClaimDto>),
+    ReclaimStaleClaim(Box<ReclaimClaimDto>),
 }
