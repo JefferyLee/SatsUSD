@@ -904,6 +904,11 @@ struct OracleMessage {
 }
 ```
 
+**签名内容（★ v5.2 明确）**：oracle 用 EdDSA-BabyJub 签的字段元素 =
+`oracle_message_hash = Poseidon([oracle_set_epoch, price_epoch, timestamp_ms, price_e8])`
+（circomlib Poseidon，BN254）。state node 与电路验签都用此 hash。实现见
+`satusd_crypto::poseidon::oracle_message_hash` + `satusd_crypto::eddsa`（已对 circomlibjs 验签字节对齐）。
+
 **电路里如何用**：
 
 ```

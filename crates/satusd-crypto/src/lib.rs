@@ -2,6 +2,7 @@
 //! NUMS / Taproot derivations. Built on the canonical types in `satusd-types`.
 
 pub mod ecdsa;
+pub mod eddsa;
 pub mod nums;
 pub mod poseidon;
 pub mod smt;

@@ -8,7 +8,9 @@ rust-version.workspace = true
 [dependencies]
 ark-bn254 = "0.5"
 ark-ff = "0.5"
+babyjubjub-rs = "0.0.11"
 light-poseidon = "0.4"
+num-bigint = "0.4"
 satusd-types = { path = "../satusd-types" }
 secp256k1 = "0.31.1"
 sha2.workspace = true

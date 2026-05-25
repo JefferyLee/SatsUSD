@@ -58,6 +58,23 @@ pub fn hash_bytes_be(input: &[u8]) -> [u8; 32] {
     fr_to_be_bytes(&hash_bytes(input))
 }
 
+/// `oracle_message_hash` (§5.D7, DL-5): the Poseidon field element an oracle
+/// signs — binds the consensus-relevant fields (set epoch, price epoch,
+/// timestamp, price). Big-endian 32 bytes.
+pub fn oracle_message_hash(
+    oracle_set_epoch: u64,
+    price_epoch: u64,
+    timestamp_ms: u64,
+    price_e8: u64,
+) -> [u8; 32] {
+    fr_to_be_bytes(&poseidon(&[
+        Fr::from(oracle_set_epoch),
+        Fr::from(price_epoch),
+        Fr::from(timestamp_ms),
+        Fr::from(price_e8),
+    ]))
+}
+
 /// Binary Poseidon merkle root over field-element leaves (poseidon2 compression),
 /// padded to the next power of two with the field zero. This is the batch-root
 /// convention for §6.8 ReserveClaim batches (redemption/confirmation/burn/lineage
