@@ -534,6 +534,50 @@ impl Encode for PendingClaim {
     }
 }
 
+/// Operator status (§3, §5.D10). Discriminants frozen 0-based (ADR-0016).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+#[repr(u8)]
+pub enum OperatorStatus {
+    Active = 0,
+    Suspended = 1,
+    Slashed = 2,
+}
+
+impl OperatorStatus {
+    pub fn as_u8(self) -> u8 {
+        self as u8
+    }
+}
+
+/// OperatorPosition (§6, ADR-0021): a bonded, whitelisted operator in
+/// `operator_registry_root`. Bond ≥ `OPERATOR_BOND_MULTIPLE` × `max_claim_sats`;
+/// `operator_pubkey` signs `ReserveClaim`s; bond is slashed to keepers on stale
+/// reclaim (§5.D12).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct OperatorPosition {
+    pub operator_id: [u8; 32],
+    pub status: OperatorStatus,
+    pub operator_pubkey: [u8; 33],
+    pub bond_sats: u64,
+    pub max_claim_sats: u64,
+    pub outstanding_claim_sats: u64,
+    pub slashed_sats: u64,
+    pub registered_at_height: u32,
+}
+
+impl Encode for OperatorPosition {
+    fn encode(&self, e: &mut Encoder) {
+        e.fixed(&self.operator_id);
+        e.enum_u8(self.status.as_u8());
+        e.fixed(&self.operator_pubkey);
+        e.u64(self.bond_sats);
+        e.u64(self.max_claim_sats);
+        e.u64(self.outstanding_claim_sats);
+        e.u64(self.slashed_sats);
+        e.u32(self.registered_at_height);
+    }
+}
+
 /// StateRoot (§6.1). `state_root_hash` is Poseidon(encode) — Poseidon deferred.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct StateRoot {

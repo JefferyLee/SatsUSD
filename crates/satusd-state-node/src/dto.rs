@@ -8,7 +8,7 @@ use satusd_state::mint::{MintCommitWitness, MintFinalizeWitness, MultisigSig};
 use satusd_state::redeem::{LockRefundWitness, RedeemFinalizeWitness, RedeemLockWitness};
 use satusd_types::types::{
     BtcHtlcPayoutRecord, IssuerPosition, IssuerStatus, LockFinalizeRecord, LockRecord,
-    LockRefundRecord, OutPoint, RedeemIntent,
+    LockRefundRecord, OperatorPosition, OperatorStatus, OutPoint, RedeemIntent,
 };
 
 /// A fixed-size byte array carried as a hex string in JSON.
@@ -85,6 +85,41 @@ impl IssuerPositionDto {
             freeze_reason: None,
             registered_at_height: self.registered_at_height,
             pending_mint_commitment: self.pending_mint_commitment.map(|h| h.0),
+        })
+    }
+}
+
+fn operator_status(v: u8) -> Result<OperatorStatus, String> {
+    Ok(match v {
+        0 => OperatorStatus::Active,
+        1 => OperatorStatus::Suspended,
+        2 => OperatorStatus::Slashed,
+        _ => return Err(format!("bad operator status {v}")),
+    })
+}
+
+#[derive(Deserialize)]
+pub struct OperatorPositionDto {
+    pub operator_id: Hex<32>,
+    pub status: u8,
+    pub operator_pubkey: Hex<33>,
+    pub bond_sats: u64,
+    pub max_claim_sats: u64,
+    pub outstanding_claim_sats: u64,
+    pub slashed_sats: u64,
+    pub registered_at_height: u32,
+}
+impl OperatorPositionDto {
+    pub fn into_domain(self) -> Result<OperatorPosition, String> {
+        Ok(OperatorPosition {
+            operator_id: self.operator_id.0,
+            status: operator_status(self.status)?,
+            operator_pubkey: self.operator_pubkey.0,
+            bond_sats: self.bond_sats,
+            max_claim_sats: self.max_claim_sats,
+            outstanding_claim_sats: self.outstanding_claim_sats,
+            slashed_sats: self.slashed_sats,
+            registered_at_height: self.registered_at_height,
         })
     }
 }
@@ -399,6 +434,7 @@ impl LockRefundDto {
 #[serde(tag = "transition", rename_all = "snake_case")]
 pub enum TransitionRequest {
     IssuerRegister(Box<IssuerPositionDto>),
+    OperatorRegister(Box<OperatorPositionDto>),
     MintCommit(Box<MintCommitDto>),
     MintFinalize(MintFinalizeDto),
     RedeemLock(Box<RedeemLockDto>),

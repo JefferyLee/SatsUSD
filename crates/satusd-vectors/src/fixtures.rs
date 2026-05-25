@@ -594,3 +594,37 @@ pub fn state_root_value(v: &StateRoot) -> Value {
         "l1_anchor_chain_time": u64s(v.l1_anchor_chain_time),
     })
 }
+
+// --------------------------------------------------------------- OperatorPosition
+
+pub fn build_operator_position(d: &mut Det, idx: usize) -> OperatorPosition {
+    let status = [
+        OperatorStatus::Active,
+        OperatorStatus::Suspended,
+        OperatorStatus::Slashed,
+    ][idx % 3];
+    let max_claim_sats = d.u64();
+    OperatorPosition {
+        operator_id: d.arr(),
+        status,
+        operator_pubkey: d.arr::<33>(),
+        bond_sats: d.u64(),
+        max_claim_sats,
+        outstanding_claim_sats: d.u64(),
+        slashed_sats: d.u64(),
+        registered_at_height: d.u32(),
+    }
+}
+
+pub fn operator_position_value(v: &OperatorPosition) -> Value {
+    json!({
+        "operator_id": hx(&v.operator_id),
+        "status": v.status.as_u8(),
+        "operator_pubkey": hx(&v.operator_pubkey),
+        "bond_sats": u64s(v.bond_sats),
+        "max_claim_sats": u64s(v.max_claim_sats),
+        "outstanding_claim_sats": u64s(v.outstanding_claim_sats),
+        "slashed_sats": u64s(v.slashed_sats),
+        "registered_at_height": v.registered_at_height,
+    })
+}

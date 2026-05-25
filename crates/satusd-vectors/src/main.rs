@@ -198,6 +198,17 @@ fn main() {
         ));
     }
 
+    for i in 0..PER_TYPE {
+        let v = build_operator_position(&mut d, i);
+        vectors.push(struct_vector(
+            &format!("operator_position_{i}"),
+            "OperatorPosition",
+            operator_position_value(&v),
+            &enc(&v),
+            json!({ "operator_position_hash": hex::encode(derive::operator_position_hash(&v)) }),
+        ));
+    }
+
     // Standalone derivations that are not a single struct encoding.
     for i in 0..PER_TYPE {
         let genesis: [u8; 32] = d.arr();

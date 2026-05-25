@@ -15,8 +15,10 @@ use std::collections::HashMap;
 
 use satusd_crypto::smt::SparseMerkleTree;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{issuer_position_hash, lock_record_hash, redemption_nullifier};
-use satusd_types::types::{IssuerPosition, StateRoot};
+use satusd_types::derive::{
+    issuer_position_hash, lock_record_hash, operator_position_hash, redemption_nullifier,
+};
+use satusd_types::types::{IssuerPosition, OperatorPosition, StateRoot};
 
 use crate::redeem::SET_MEMBER;
 use crate::{mint, redeem, registry};
@@ -37,6 +39,8 @@ pub struct StateNode {
     state: StateRoot,
     issuer_tree: SparseMerkleTree,
     issuers: HashMap<[u8; 32], IssuerPosition>,
+    operator_tree: SparseMerkleTree,
+    operators: HashMap<[u8; 32], OperatorPosition>,
     pending_claim_tree: SparseMerkleTree,
     lock_record_tree: SparseMerkleTree,
     lock_consumed_tree: SparseMerkleTree,
@@ -86,6 +90,8 @@ impl StateNode {
             state,
             issuer_tree: SparseMerkleTree::new(),
             issuers: HashMap::new(),
+            operator_tree: SparseMerkleTree::new(),
+            operators: HashMap::new(),
             pending_claim_tree: SparseMerkleTree::new(),
             lock_record_tree: SparseMerkleTree::new(),
             lock_consumed_tree: SparseMerkleTree::new(),
@@ -109,6 +115,7 @@ impl StateNode {
     /// Commit a candidate post-state, asserting the node's trees produce its roots.
     fn commit(&mut self, new_state: StateRoot) -> Result<[u8; 32], NodeError> {
         let ok = self.issuer_tree.root() == new_state.issuer_positions_root
+            && self.operator_tree.root() == new_state.operator_registry_root
             && self.pending_claim_tree.root() == new_state.pending_claim_root
             && self.lock_record_tree.root() == new_state.lock_record_root
             && self.lock_consumed_tree.root() == new_state.lock_consumed_root
@@ -129,6 +136,21 @@ impl StateNode {
         self.issuer_tree
             .insert(new_issuer.issuer_id, &issuer_position_hash(&new_issuer));
         self.issuers.insert(new_issuer.issuer_id, new_issuer);
+        self.commit(new_state)
+    }
+
+    pub fn operator(&self, operator_id: &[u8; 32]) -> Option<&OperatorPosition> {
+        self.operators.get(operator_id)
+    }
+
+    /// OPERATOR_REGISTER.
+    pub fn operator_register(&mut self, new_op: OperatorPosition) -> Result<[u8; 32], NodeError> {
+        let proof = self.operator_tree.prove(&new_op.operator_id);
+        let new_state = registry::apply_operator_register(&self.state, &new_op, &proof)
+            .map_err(NodeError::Registry)?;
+        self.operator_tree
+            .insert(new_op.operator_id, &operator_position_hash(&new_op));
+        self.operators.insert(new_op.operator_id, new_op);
         self.commit(new_state)
     }
 

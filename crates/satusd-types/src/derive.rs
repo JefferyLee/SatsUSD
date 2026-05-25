@@ -6,7 +6,8 @@ use crate::domain;
 use crate::encoding::{canonical_encode, Encoder};
 use crate::hash::{sha256, tagged_hash};
 use crate::types::{
-    IssuerPosition, LockRecord, OutPoint, PendingClaim, RedeemIntent, ReserveClaim,
+    IssuerPosition, LockRecord, OperatorPosition, OutPoint, PendingClaim, RedeemIntent,
+    ReserveClaim,
 };
 
 /// `asset_family_id` (§5.D1).
@@ -68,6 +69,12 @@ pub fn pending_claim_hash(c: &PendingClaim) -> [u8; 32] {
 /// for the §5.D17 lock state machine (lock_record / consumed / refund sets).
 pub fn lock_record_hash(r: &LockRecord) -> [u8; 32] {
     tagged_hash(domain::LOCK_RECORD, &canonical_encode(r))
+}
+
+/// `operator_position_hash` (domain `SATUSD_OPERATOR_POSITION_V1`, §18.2): the
+/// SMT leaf value for an operator in `operator_registry_root`.
+pub fn operator_position_hash(p: &OperatorPosition) -> [u8; 32] {
+    tagged_hash(domain::OPERATOR_POSITION, &canonical_encode(p))
 }
 
 /// `oracle_set_hash` (domain `SATUSD_ORACLE_SET_V1`, §5.D7/§18.2): commitment to

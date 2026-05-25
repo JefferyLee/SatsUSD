@@ -30,6 +30,9 @@ fn apply_to(node: &mut StateNode, req: TransitionRequest) -> Result<[u8; 32], St
         TransitionRequest::IssuerRegister(d) => {
             node.issuer_register((*d).into_domain()?).map_err(fmt)
         }
+        TransitionRequest::OperatorRegister(d) => {
+            node.operator_register((*d).into_domain()?).map_err(fmt)
+        }
         TransitionRequest::MintCommit(d) => {
             let id = d.issuer_id.0;
             node.mint_commit(id, &(*d).into_witness()).map_err(fmt)

@@ -13,6 +13,7 @@
 | [ADR-0018](ADR-0018-v52-bitvm2-fallback-and-covenant-gates.md) | v5.2 — BitVM2 fallback, advisory gates G5/G6, covenant risk | accepted |
 | [ADR-0019](ADR-0019-issuer-pending-mint-commitment.md) | IssuerPosition `pending_mint_commitment` (two-phase mint linkage; I-03/I-07) | accepted |
 | [ADR-0020](ADR-0020-spv-confirmation-fields.md) | BtcPayoutConfirmation SPV-completeness fields (tx index + inclusion headers) | accepted |
+| [ADR-0021](ADR-0021-operator-position.md) | OperatorPosition struct + OPERATOR_REGISTER (bond ≥ 2× max claim) | accepted |
 
 Reserved (placeholders to be filled during full M0, per PRD §14.2):
 ADR-002 (BTC payout confirmation), ADR-003 (CR formula), ADR-004 (mint finalize CR re-check),

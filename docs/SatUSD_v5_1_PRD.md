@@ -1085,6 +1085,25 @@ enum TransitionType {
 
 **MVP stub**：其余必须有 enum、canonical encoding、hash 测试向量，但 executor 返回 "NotImplemented"。
 
+**`OperatorPosition`（★ v5.2 新增，ADR-0021）**——存于 `operator_registry_root`（SMT，key=operator_id，叶=`operator_position_hash`，域 `SATUSD_OPERATOR_POSITION_V1`）。`OPERATOR_REGISTER` 插入一个 fresh 记录：
+
+```rust
+enum OperatorStatus { Active=0, Suspended=1, Slashed=2 }
+
+struct OperatorPosition {
+  operator_id:            [u8; 32],
+  status:                 OperatorStatus,
+  operator_pubkey:        [u8; 33],   // secp256k1，签 ReserveClaim
+  bond_sats:              u64,        // ≥ OPERATOR_BOND_MULTIPLE(2) × max_claim_sats
+  max_claim_sats:         u64,
+  outstanding_claim_sats: u64,        // 待结 claim reimbursement 之和
+  slashed_sats:           u64,        // 累计被 slash 给 keeper
+  registered_at_height:   u32,
+}
+```
+
+注册校验：status=Active、outstanding/slashed=0、max_claim>0、bond ≥ 2×max_claim、未注册过。bond BTC SPV 入金 / claim 时 outstanding 记账 / RECLAIM 时 slash 给 keeper（§5.D12）随 reserve/claim 流程后续接入。
+
 **对接 contract**：§8、§18.1。
 
 ---

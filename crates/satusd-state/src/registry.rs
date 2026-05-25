@@ -1,26 +1,27 @@
-//! ISSUER_REGISTER + RECLAIM_STALE_CLAIM verifiers (PRD §5.D10/§5.D11/§5.D12).
+//! Registry transitions (PRD §5.D10/§5.D11/§5.D12).
 //!
 //! - ISSUER_REGISTER (0x21): insert a fresh `IssuerPosition` into
 //!   `issuer_positions_root` (zero balances, ACTIVE, sane multisig config).
+//! - OPERATOR_REGISTER (0x20): insert a fresh bonded `OperatorPosition` into
+//!   `operator_registry_root` (ADR-0021; bond ≥ OPERATOR_BOND_MULTIPLE × max_claim).
 //! - RECLAIM_STALE_CLAIM (0x30): after `claim_expiry_height` passes, any keeper
 //!   flips a PENDING/CHALLENGED `PendingClaim` to RECLAIMED and frees its
 //!   `reserved_pending_claim_sats` (§5.D12).
 //!
-//! OPERATOR_REGISTER (0x20) is intentionally **not** implemented here: the
-//! `OperatorPosition` record has no §6 struct definition (only a registered
-//! domain) and is absent from the §14 M2 milestone scope. Implementing it would
-//! mean inventing unspecified protocol state; deferred until specced.
-//!
-//! Both verifiers compute the full expected post-state and assert equality
+//! All verifiers compute the full expected post-state and assert equality
 //! (immutability backstop). The current chain height for the expiry check is a
 //! verified witness fact (sourced from the L1 anchor, like the SPV facts).
 
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{issuer_position_hash, pending_claim_hash};
+use satusd_types::derive::{issuer_position_hash, operator_position_hash, pending_claim_hash};
 use satusd_types::types::{
-    IssuerPosition, IssuerStatus, PendingClaim, PendingClaimStatus, StateRoot, TransitionType,
+    IssuerPosition, IssuerStatus, OperatorPosition, OperatorStatus, PendingClaim,
+    PendingClaimStatus, StateRoot, TransitionType,
 };
+
+/// Operator bond must cover at least this multiple of its max single claim (§18.3).
+pub const OPERATOR_BOND_MULTIPLE: u64 = 2;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum RegistryRejectReason {
@@ -32,6 +33,11 @@ pub enum RegistryRejectReason {
     IssuerAlreadyRegistered,
     IssuerNotFresh,
     BadMultisigConfig,
+    // OPERATOR_REGISTER
+    OperatorAlreadyRegistered,
+    OperatorNotFresh,
+    ZeroMaxClaim,
+    BondInsufficient,
     // RECLAIM_STALE_CLAIM
     ClaimNotPresent,
     ClaimNotReclaimable,
@@ -126,6 +132,57 @@ pub fn verify_issuer_register(
     )
 }
 
+/// OPERATOR_REGISTER: add a fresh bonded `new_op` (must be absent) to
+/// `operator_registry_root` (§5.D10, ADR-0021).
+pub fn apply_operator_register(
+    prev: &StateRoot,
+    new_op: &OperatorPosition,
+    operator_exclusion_proof: &[[u8; 32]],
+) -> Result<StateRoot, RegistryRejectReason> {
+    use RegistryRejectReason::*;
+
+    let fresh = new_op.status == OperatorStatus::Active
+        && new_op.outstanding_claim_sats == 0
+        && new_op.slashed_sats == 0;
+    ensure!(fresh, OperatorNotFresh);
+    ensure!(new_op.max_claim_sats > 0, ZeroMaxClaim);
+    // bond_sats ≥ OPERATOR_BOND_MULTIPLE × max_claim_sats.
+    let required = new_op
+        .max_claim_sats
+        .checked_mul(OPERATOR_BOND_MULTIPLE)
+        .ok_or(Overflow)?;
+    ensure!(new_op.bond_sats >= required, BondInsufficient);
+
+    ensure!(
+        smt::verify_exclusion(
+            &prev.operator_registry_root,
+            &new_op.operator_id,
+            operator_exclusion_proof
+        ),
+        OperatorAlreadyRegistered
+    );
+
+    let mut expected = next_state(prev, TransitionType::OperatorRegister);
+    expected.operator_registry_root = smt::root_after_update(
+        &new_op.operator_id,
+        &operator_position_hash(new_op),
+        operator_exclusion_proof,
+    );
+    Ok(expected)
+}
+
+pub fn verify_operator_register(
+    prev: &StateRoot,
+    new: &StateRoot,
+    new_op: &OperatorPosition,
+    operator_exclusion_proof: &[[u8; 32]],
+) -> Result<(), RegistryRejectReason> {
+    verified(
+        apply_operator_register(prev, new_op, operator_exclusion_proof),
+        new,
+    )
+}
+
 /// RECLAIM_STALE_CLAIM: flip an expired PENDING/CHALLENGED claim to RECLAIMED and
 /// release its reserved sats (§5.D12). `current_height` is the chain tip from the
 /// L1 anchor (verified fact this chunk).
@@ -211,7 +268,7 @@ mod tests {
             latest_oracle_epoch_seen: 3,
             latest_oracle_price_e8: 5_000_000_000_000,
             issuer_positions_root: empty,
-            operator_registry_root: [0x04; 32],
+            operator_registry_root: empty,
             lock_record_root: [0x05; 32],
             lock_consumed_root: [0x06; 32],
             lock_refund_root: [0x07; 32],
@@ -313,6 +370,72 @@ mod tests {
         assert_eq!(
             verify_issuer_register(&prev, &new, &iss, &proof),
             Err(RegistryRejectReason::IssuerNotFresh)
+        );
+    }
+
+    // ---- OPERATOR_REGISTER ----
+    fn fresh_operator(id: u8) -> OperatorPosition {
+        OperatorPosition {
+            operator_id: [id; 32],
+            status: OperatorStatus::Active,
+            operator_pubkey: [0x02; 33],
+            bond_sats: 2_000_000, // 2× max_claim
+            max_claim_sats: 1_000_000,
+            outstanding_claim_sats: 0,
+            slashed_sats: 0,
+            registered_at_height: 840_000,
+        }
+    }
+
+    #[test]
+    fn operator_register_happy() {
+        let prev = base_state();
+        let op = fresh_operator(0xbb);
+        let proof = SparseMerkleTree::new().prove(&op.operator_id);
+        let mut new = with_epoch(&prev, TransitionType::OperatorRegister);
+        new.operator_registry_root =
+            smt::root_after_update(&op.operator_id, &operator_position_hash(&op), &proof);
+        verify_operator_register(&prev, &new, &op, &proof).expect("operator register ok");
+    }
+
+    #[test]
+    fn operator_register_bond_insufficient_rejected() {
+        let prev = base_state();
+        let mut op = fresh_operator(0xbb);
+        op.bond_sats = op.max_claim_sats; // 1× < 2× required
+        let proof = SparseMerkleTree::new().prove(&op.operator_id);
+        let new = with_epoch(&prev, TransitionType::OperatorRegister);
+        assert_eq!(
+            verify_operator_register(&prev, &new, &op, &proof),
+            Err(RegistryRejectReason::BondInsufficient)
+        );
+    }
+
+    #[test]
+    fn operator_register_already_present_rejected() {
+        let op = fresh_operator(0xbb);
+        let mut t = SparseMerkleTree::new();
+        t.insert(op.operator_id, &operator_position_hash(&op));
+        let mut prev = base_state();
+        prev.operator_registry_root = t.root();
+        let proof = t.prove(&op.operator_id);
+        let new = with_epoch(&prev, TransitionType::OperatorRegister);
+        assert_eq!(
+            verify_operator_register(&prev, &new, &op, &proof),
+            Err(RegistryRejectReason::OperatorAlreadyRegistered)
+        );
+    }
+
+    #[test]
+    fn operator_register_not_fresh_rejected() {
+        let prev = base_state();
+        let mut op = fresh_operator(0xbb);
+        op.slashed_sats = 1; // not fresh
+        let proof = SparseMerkleTree::new().prove(&op.operator_id);
+        let new = with_epoch(&prev, TransitionType::OperatorRegister);
+        assert_eq!(
+            verify_operator_register(&prev, &new, &op, &proof),
+            Err(RegistryRejectReason::OperatorNotFresh)
         );
     }
 

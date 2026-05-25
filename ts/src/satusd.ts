@@ -252,8 +252,20 @@ function encodePendingClaim(e: Encoder, f: Fields): void {
   e.enumU8(N(f, "status"));
 }
 
+function encodeOperatorPosition(e: Encoder, f: Fields): void {
+  e.fixed(B(f, "operator_id"));
+  e.enumU8(N(f, "status"));
+  e.fixed(B(f, "operator_pubkey"));
+  e.u64(U(f, "bond_sats"));
+  e.u64(U(f, "max_claim_sats"));
+  e.u64(U(f, "outstanding_claim_sats"));
+  e.u64(U(f, "slashed_sats"));
+  e.u32(N(f, "registered_at_height"));
+}
+
 const ENCODERS: Record<string, (e: Encoder, f: Fields) => void> = {
   IssuerPosition: encodeIssuerPosition,
+  OperatorPosition: encodeOperatorPosition,
   PendingClaim: encodePendingClaim,
   RedeemIntent: encodeRedeemIntent,
   ClaimClock: encodeClaimClock,
@@ -314,6 +326,13 @@ export function structHashes(type: string, fields: Fields): Record<string, strin
     case "PendingClaim":
       return {
         pending_claim_hash: sha256Hex(domainTag("SATUSD_PENDING_CLAIM_V1"), encodeByType(type, fields)),
+      };
+    case "OperatorPosition":
+      return {
+        operator_position_hash: sha256Hex(
+          domainTag("SATUSD_OPERATOR_POSITION_V1"),
+          encodeByType(type, fields),
+        ),
       };
     case "StateRoot":
       return {
