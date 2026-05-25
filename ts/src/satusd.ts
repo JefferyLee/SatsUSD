@@ -151,6 +151,10 @@ function encodeBtcPayoutConfirmation(e: Encoder, f: Fields): void {
   e.u32(N(f, "claim_inclusion_block_height"));
   e.seq(listB(f, "claim_inclusion_merkle_proof"), (e, h) => e.fixed(h));
   e.seq(listB(f, "confirmation_headers"), (e, h) => e.fixed(h));
+  e.u32(N(f, "htlc_tx_index"));
+  e.u32(N(f, "claim_tx_index"));
+  e.fixed(B(f, "htlc_inclusion_header"));
+  e.fixed(B(f, "claim_inclusion_header"));
 }
 
 function encodeRedemptionRecord(e: Encoder, f: Fields): void {

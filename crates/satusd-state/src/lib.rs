@@ -9,3 +9,4 @@ pub mod node;
 pub mod oracle;
 pub mod redeem;
 pub mod registry;
+pub mod spv;

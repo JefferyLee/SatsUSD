@@ -300,6 +300,13 @@ pub struct BtcPayoutConfirmation {
     pub claim_inclusion_block_height: u32,
     pub claim_inclusion_merkle_proof: Vec<[u8; 32]>,
     pub confirmation_headers: Vec<[u8; 80]>,
+    // ★ v5.2 (ADR-0020): data needed to actually verify the SPV proof — the tx
+    // positions (merkle direction) and the two inclusion block headers (merkle
+    // roots + chaining). `*_block_hash` above must equal dsha256 of these.
+    pub htlc_tx_index: u32,
+    pub claim_tx_index: u32,
+    pub htlc_inclusion_header: [u8; 80],
+    pub claim_inclusion_header: [u8; 80],
 }
 
 impl Encode for BtcPayoutConfirmation {
@@ -319,6 +326,10 @@ impl Encode for BtcPayoutConfirmation {
         e.u32(self.claim_inclusion_block_height);
         e.seq(&self.claim_inclusion_merkle_proof, |e, h| e.fixed(h));
         e.seq(&self.confirmation_headers, |e, h| e.fixed(h));
+        e.u32(self.htlc_tx_index);
+        e.u32(self.claim_tx_index);
+        e.fixed(&self.htlc_inclusion_header);
+        e.fixed(&self.claim_inclusion_header);
     }
 }
 

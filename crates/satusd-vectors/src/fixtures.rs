@@ -317,6 +317,10 @@ pub fn build_btc_payout_confirmation(d: &mut Det) -> BtcPayoutConfirmation {
         claim_inclusion_block_height: d.u32(),
         claim_inclusion_merkle_proof: (0..claim_merkle_n).map(|_| d.arr()).collect(),
         confirmation_headers: (0..headers_n).map(|_| d.arr::<80>()).collect(),
+        htlc_tx_index: d.u32(),
+        claim_tx_index: d.u32(),
+        htlc_inclusion_header: d.arr::<80>(),
+        claim_inclusion_header: d.arr::<80>(),
     }
 }
 
@@ -337,6 +341,10 @@ pub fn btc_payout_confirmation_value(v: &BtcPayoutConfirmation) -> Value {
         "claim_inclusion_block_height": v.claim_inclusion_block_height,
         "claim_inclusion_merkle_proof": hx_list(&v.claim_inclusion_merkle_proof),
         "confirmation_headers": Value::Array(v.confirmation_headers.iter().map(|h| hx(h)).collect()),
+        "htlc_tx_index": v.htlc_tx_index,
+        "claim_tx_index": v.claim_tx_index,
+        "htlc_inclusion_header": hx(&v.htlc_inclusion_header),
+        "claim_inclusion_header": hx(&v.claim_inclusion_header),
     })
 }
 

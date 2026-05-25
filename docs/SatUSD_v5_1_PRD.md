@@ -1261,6 +1261,14 @@ struct BtcPayoutConfirmation {
   
   // 确认深度证明: claim_inclusion_block 之后还有 ≥ K 个 header
   confirmation_headers:         Vec<[u8; 80]>,   // 至少 K = 6 个后续 header
+
+  // ★ v5.2 (ADR-0020): SPV 验证所需补充 —— merkle 方向用的 tx 位置 + 两个
+  // inclusion block 的完整 header（提供 merkle root 并参与链式校验）。
+  // *_block_hash 必须等于对应 header 的 dsha256。
+  htlc_tx_index:                u32,
+  claim_tx_index:               u32,
+  htlc_inclusion_header:        [u8; 80],
+  claim_inclusion_header:       [u8; 80],
 }
 ```
 
