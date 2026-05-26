@@ -1620,6 +1620,7 @@ dependencies = [
  "rustls-pki-types",
  "satusd-crypto",
  "satusd-lock",
+ "satusd-ta-proof",
  "satusd-types",
  "tokio",
  "tokio-rustls",
