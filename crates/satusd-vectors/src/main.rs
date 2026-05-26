@@ -603,6 +603,32 @@ fn main() {
         for (i, k) in [[0x99u8; 32], [0x55u8; 32]].iter().enumerate() {
             emit(&mut vectors, format!("smt_excl_{i}"), k, [0u8; 32]);
         }
+
+        // smt_insert: a §5.D17 set-insert (M4b `LockInsert`). One exclusion path
+        // proves the key is absent (old_root) and that setting it to `leaf` gives
+        // new_root — `root_after_update` with the non-membership precondition.
+        use crypto::smt::root_after_update;
+        let old_root = t.root();
+        for (i, (k, v)) in [([0x99u8; 32], [0x09u8; 32]), ([0x55u8; 32], [0x05u8; 32])]
+            .iter()
+            .enumerate()
+        {
+            let sibs = t.prove(k);
+            let leaf = fr_to_be_bytes(&leaf_hash(k, v));
+            let new_root = root_after_update(k, v, &sibs);
+            vectors.push(json!({
+                "name": format!("smt_insert_{i}"),
+                "kind": "crypto",
+                "op": "smt_insert",
+                "inputs": {
+                    "key": hex::encode(k),
+                    "leaf": hex::encode(leaf),
+                    "siblings": Value::Array(sibs.iter().map(|s| Value::from(hex::encode(s))).collect()),
+                },
+                "old_root": hex::encode(old_root),
+                "new_root": hex::encode(new_root),
+            }));
+        }
     }
 
     // Domain separator registry: name -> raw ASCII bytes (no padding).

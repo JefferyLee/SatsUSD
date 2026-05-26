@@ -84,6 +84,17 @@ for (const v of doc.vectors as any[]) {
           "smt_fold",
         );
         break;
+      case "smt_insert": {
+        const zero = "00".repeat(32);
+        check(v.name, smtFoldHex(v.inputs.key, zero, v.inputs.siblings), v.old_root, "old_root");
+        check(
+          v.name,
+          smtFoldHex(v.inputs.key, v.inputs.leaf, v.inputs.siblings),
+          v.new_root,
+          "new_root",
+        );
+        break;
+      }
       case "tier": {
         const r = BigInt(v.inputs.reserve_sats);
         const s = BigInt(v.inputs.supply_atoms);
