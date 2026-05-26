@@ -44,6 +44,18 @@ export function hashBytesHex(inputHex: string): string {
   return toHex32(acc);
 }
 
+// oracle_message_hash = Poseidon([set_epoch, price_epoch, timestamp_ms, price_e8])
+// (§5.D7). Matches satusd_crypto::poseidon::oracle_message_hash + the M4c circuit.
+export function oracleMessageHashHex(
+  setEpoch: string,
+  priceEpoch: string,
+  timestampMs: string,
+  priceE8: string,
+): string {
+  const out = poseidon([BigInt(setEpoch), BigInt(priceEpoch), BigInt(timestampMs), BigInt(priceE8)]);
+  return toHex32(BigInt(F.toString(out)));
+}
+
 // SMT membership fold (ADR-0015): fold `leaf` up through `siblings` (indexed by
 // depth, 0 = top) applying the key's path bits MSB-first. Matches
 // satusd_crypto::smt::fold_to_root and the M4b circuit `SmtFold`.

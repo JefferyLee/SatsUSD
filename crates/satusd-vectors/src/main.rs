@@ -649,9 +649,8 @@ fn main() {
         let nfs = SparseMerkleTree::new(); // nullifier unused
         let nf_siblings = nfs.prove(&k_nf);
 
-        let hl = |v: &[[u8; 32]]| {
-            Value::Array(v.iter().map(|s| Value::from(hex::encode(s))).collect())
-        };
+        let hl =
+            |v: &[[u8; 32]]| Value::Array(v.iter().map(|s| Value::from(hex::encode(s))).collect());
         vectors.push(json!({
             "name": "lock_finalize_0",
             "kind": "crypto",
@@ -670,6 +669,38 @@ fn main() {
             "consumed_new": hex::encode(root_after_update(&k_lock, &member, &consumed_siblings)),
             "nf_old": hex::encode(nfs.root()),
             "nf_new": hex::encode(root_after_update(&k_nf, &member, &nf_siblings)),
+        }));
+    }
+
+    // oracle_eddsa: an EdDSA-BabyJub price attestation over
+    // oracle_message_hash = Poseidon([set_epoch, price_epoch, ts_ms, price_e8])
+    // (§5.D7; M4c circuit `OracleEddsa` recomputes the hash + verifies the sig).
+    // Pinned circomlibjs reference signer (privkey 0x11×32).
+    {
+        let (set_epoch, price_epoch, ts_ms, price_e8) =
+            (7u64, 100u64, 1_700_000_000_000u64, 5_000_000_000_000u64);
+        let pubkey = "323a1772ccd2bf78ca0f82e4de1d4d48ded87f6f26d92d6a99e5998ac88901a6";
+        let sig = "e1c966e0d52d5f5b20161c5b653101c10c7935521980770d838d826fbc93c42e35351a47e0b0d02009c15179e144ba6780244d10d391fbda0d5411f7b8562a02";
+        let msg = crypto::poseidon::oracle_message_hash(set_epoch, price_epoch, ts_ms, price_e8);
+        let pk: [u8; 32] = hex::decode(pubkey).unwrap().try_into().unwrap();
+        let s: [u8; 64] = hex::decode(sig).unwrap().try_into().unwrap();
+        assert!(
+            crypto::eddsa::verify_eddsa_babyjub(&pk, &msg, &s),
+            "oracle_eddsa vector must verify (babyjubjub-rs)"
+        );
+        vectors.push(json!({
+            "name": "oracle_eddsa_0",
+            "kind": "crypto",
+            "op": "oracle_eddsa",
+            "inputs": {
+                "oracle_set_epoch": set_epoch.to_string(),
+                "price_epoch": price_epoch.to_string(),
+                "timestamp_ms": ts_ms.to_string(),
+                "price_e8": price_e8.to_string(),
+                "pubkey": pubkey,
+                "sig": sig,
+            },
+            "output": hex::encode(msg),
         }));
     }
 

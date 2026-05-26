@@ -1,5 +1,5 @@
 {
-  "count": 2187,
+  "count": 2188,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -47966,6 +47966,20 @@
       "nf_new": "105d55341f4bdf85488bf4341d0322bd14f02ad4875433faeb1c789290b9694c",
       "nf_old": "063076f073adbecf1433407cf22ce2503a996a2a55f9f96aa1aa21717d5bc2b0",
       "op": "lock_finalize"
+    },
+    {
+      "inputs": {
+        "oracle_set_epoch": "7",
+        "price_e8": "5000000000000",
+        "price_epoch": "100",
+        "pubkey": "323a1772ccd2bf78ca0f82e4de1d4d48ded87f6f26d92d6a99e5998ac88901a6",
+        "sig": "e1c966e0d52d5f5b20161c5b653101c10c7935521980770d838d826fbc93c42e35351a47e0b0d02009c15179e144ba6780244d10d391fbda0d5411f7b8562a02",
+        "timestamp_ms": "1700000000000"
+      },
+      "kind": "crypto",
+      "name": "oracle_eddsa_0",
+      "op": "oracle_eddsa",
+      "output": "289b339e55e4a8e64369b9ec988f7534e2a2478236dab9f5f99e12d4fe2d0687"
     }
   ]
 }

@@ -19,6 +19,7 @@ import {
   recomputeTier,
   batchRootHex,
   smtFoldHex,
+  oracleMessageHashHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -92,6 +93,18 @@ for (const v of doc.vectors as any[]) {
           smtFoldHex(v.inputs.key, v.inputs.leaf, v.inputs.siblings),
           v.new_root,
           "new_root",
+        );
+        break;
+      }
+      case "oracle_eddsa": {
+        // The Poseidon message hash is 3-way (Rust=TS=circuit); the EdDSA sig
+        // itself is cross-checked by Rust (babyjubjub-rs) + the circuit (circomlib).
+        const i = v.inputs;
+        check(
+          v.name,
+          oracleMessageHashHex(i.oracle_set_epoch, i.price_epoch, i.timestamp_ms, i.price_e8),
+          v.output,
+          "oracle_message_hash",
         );
         break;
       }
