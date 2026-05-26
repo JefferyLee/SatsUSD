@@ -15,14 +15,19 @@
 //! expires. CR/tier use the full reserve (§5.D8), so CR rises at submit and
 //! falls back at settle.
 //!
-//! TA lineage (DL-23, #30) and the universe burn proof (D16, #31) remain
-//! already-verified witness facts, as in `redeem.rs`.
+//! The universe burn proof (D16, #31) is independently re-verified here
+//! ([`check_burn_proof_binding`]): each redemption's finalize/burn `proof.File`
+//! is checked to commit the asset to the protocol NUMS sink for the claimed
+//! amount/anchor — it is not a trust-anchored witness fact.
 
 use satusd_crypto::nums::{protocol_burn_internal_key, protocol_sink_script_key};
 use satusd_crypto::poseidon::batch_root_be;
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{claim_id, lock_record_hash, pending_claim_hash, redemption_nullifier};
+use satusd_ta_proof::{parse_proof_file, verify_lineage};
+use satusd_types::derive::{
+    claim_id, lineage_proof_hash, lock_record_hash, pending_claim_hash, redemption_nullifier,
+};
 use satusd_types::tier;
 use satusd_types::types::{
     BtcPayoutConfirmation, LockFinalizeRecord, LockRecord, OracleMessage, PendingClaim,
@@ -52,8 +57,9 @@ pub struct BatchRedemption {
     pub refund_exclusion_proof: Vec<[u8; 32]>,
     /// nullifier ∉ the *running* nullifier root.
     pub nullifier_exclusion_proof: Vec<[u8; 32]>,
-    /// Universe burn proof verifier result (D16, #31 — fact this chunk).
-    pub burn_proof_ok: bool,
+    /// The full tapd `proof.File` for the finalize/burn output — the universe
+    /// burn proof (D16), independently re-verified here.
+    pub burn_proof: Vec<u8>,
 }
 
 /// ReserveClaim REDEEM_FAST_FINALIZE witness: the claim, its redemptions, and the
@@ -91,6 +97,13 @@ pub enum ClaimRejectReason {
     DuplicateClaim, // DL-19: claim_id already pending
     PostStateMismatch,
     Overflow,
+    BurnProofMalformed,
+    BurnProofInvalid,
+    BurnProofScriptKeyMismatch, // R-16: burn output not committed to the NUMS sink
+    BurnProofAmountMismatch,
+    BurnProofFamilyMismatch,
+    BurnProofAnchorMismatch,
+    BurnProofHashMismatch,
 }
 
 macro_rules! ensure {
@@ -99,6 +112,69 @@ macro_rules! ensure {
             return Err($err);
         }
     };
+}
+
+/// §5.D16 (DL-29) universe burn proof binding. Independently re-verify the tapd
+/// `proof.File` for the finalize output and bind its head — the burn output — to
+/// the `LockFinalizeRecord`. Together with the NUMS-sink derivation checks (which
+/// pin `protocol_sink_script_key` to `SHA256("SATUSD_BURN_SINK_V1" || family)`),
+/// this proves the SatUSD was provably burned: committed on-chain to an
+/// unspendable NUMS sink, for the claimed amount, in the claimed anchor output.
+///
+/// `chain_id` is the network byte for the asset-family id (§5.D1).
+fn check_burn_proof_binding(
+    burn_proof_bytes: &[u8],
+    fin: &LockFinalizeRecord,
+    asset_family_id: &[u8; 32],
+    chain_id: u8,
+) -> Result<(), ClaimRejectReason> {
+    use ClaimRejectReason::*;
+    let file = parse_proof_file(burn_proof_bytes).map_err(|_| BurnProofMalformed)?;
+    let proofs = file.parsed().map_err(|_| BurnProofMalformed)?;
+    // The whole genesis→burn lineage is anchored + every asset committed.
+    let head = verify_lineage(&proofs).map_err(|_| BurnProofInvalid)?;
+
+    let head_leaf = proofs
+        .last()
+        .ok_or(BurnProofInvalid)?
+        .asset_leaf()
+        .map_err(|_| BurnProofMalformed)?;
+
+    // The burn output commits the asset to the protocol NUMS sink script key
+    // (x-only); `protocol_sink_script_key` is separately pinned to the derived
+    // NUMS key by the caller, so this proves the burn went to the real sink.
+    ensure!(head_leaf.script_key.len() == 33, BurnProofMalformed);
+    ensure!(
+        head_leaf.script_key[1..33] == fin.protocol_sink_script_key,
+        BurnProofScriptKeyMismatch
+    );
+    ensure!(
+        head_leaf.amount == fin.finalized_amount_atoms,
+        BurnProofAmountMismatch
+    );
+
+    // The burned asset is this SatUSD family.
+    let group_key: [u8; 33] = head_leaf
+        .group_key
+        .and_then(|g| <[u8; 33]>::try_from(g).ok())
+        .ok_or(BurnProofFamilyMismatch)?;
+    let family =
+        satusd_types::derive::asset_family_id(&head_leaf.genesis.asset_id(), &group_key, chain_id);
+    ensure!(family == *asset_family_id, BurnProofFamilyMismatch);
+
+    // The verified head IS the claimed finalize anchor output.
+    ensure!(
+        head.txid == fin.finalize_anchor_outpoint.txid
+            && head.output_index == fin.finalize_anchor_outpoint.vout,
+        BurnProofAnchorMismatch
+    );
+
+    // The LockFinalizeRecord commits the verified burn proof's hash.
+    ensure!(
+        lineage_proof_hash(burn_proof_bytes) == fin.universe_burn_proof_hash,
+        BurnProofHashMismatch
+    );
+    Ok(())
 }
 
 /// Verify a batched REDEEM_FAST_FINALIZE ReserveClaim takes `prev` → `new`.
@@ -220,7 +296,8 @@ pub fn verify_reserve_claim_finalize(
         )
         .map_err(Spv)?;
 
-        // Protocol burn sink (D16) + burn proof fact.
+        // Protocol burn sink (D16): the claimed sink/internal keys must be the
+        // NUMS keys derived from the asset family (no leakable private key)...
         ensure!(
             r.lock_finalize.protocol_sink_script_key
                 == protocol_sink_script_key(&prev.satusd_asset_family_id),
@@ -231,10 +308,14 @@ pub fn verify_reserve_claim_finalize(
                 == protocol_burn_internal_key(&prev.satusd_asset_family_id),
             Redeem(RedeemRejectReason::BurnInternalKeyMismatch)
         );
-        ensure!(
-            r.burn_proof_ok,
-            Redeem(RedeemRejectReason::BurnProofInvalid)
-        );
+        // ...and the universe burn proof must independently show the asset was
+        // committed on-chain to that sink for this amount (D16, replaces the fact).
+        check_burn_proof_binding(
+            &r.burn_proof,
+            &r.lock_finalize,
+            &prev.satusd_asset_family_id,
+            r.redeem_intent.network,
+        )?;
 
         // Finalize consistency.
         ensure!(
@@ -346,7 +427,14 @@ mod tests {
     use satusd_types::derive::{lock_tweak, oracle_set_hash, redeem_intent_hash};
     use satusd_types::types::{ClaimClock, OutPoint};
 
-    const FAMILY: [u8; 32] = [0x01; 32];
+    // The asset family of the real burn vector (a grouped SatUSD asset on the
+    // devnet); `protocol_sink_script_key(FAMILY)` is the NUMS sink the burn proof
+    // commits to, so the D16 binding + sink-derivation checks both hold.
+    const FAMILY: [u8; 32] = [
+        0x0c, 0x58, 0x77, 0x1b, 0xaf, 0x09, 0x1f, 0xbc, 0xea, 0xdf, 0x1c, 0x22, 0x39, 0x4e, 0x9e,
+        0x72, 0xad, 0x91, 0xc6, 0xa1, 0x35, 0xd7, 0xbf, 0x78, 0x30, 0x08, 0x62, 0xa0, 0x63, 0xc4,
+        0xbf, 0x9b,
+    ];
     const OPERATOR: [u8; 32] = [0x20; 32];
     const PRICE: u64 = 5_000_000_000_000; // $50k/BTC
     const AMOUNT: u64 = 4_000; // gross = 4000 * 1e14 / 5e12 = 80_000 sats
@@ -446,21 +534,31 @@ mod tests {
         }
     }
 
+    /// The real burn-to-sink `proof.File` (a 4000-unit grouped SatUSD burn to the
+    /// protocol NUMS sink, captured from live tapd) + its verified head anchor.
+    fn burn_vector() -> (Vec<u8>, [u8; 32], u32) {
+        let bytes = hex::decode(
+            include_str!("../../../integration/lineage_vectors/burn_to_sink.hex").trim(),
+        )
+        .unwrap();
+        let f = parse_proof_file(&bytes).unwrap();
+        let head = verify_lineage(&f.parsed().unwrap()).unwrap();
+        (bytes, head.txid, head.output_index)
+    }
+
     fn finalize(lr: &LockRecord, preimage: [u8; 32]) -> LockFinalizeRecord {
+        let (bytes, txid, vout) = burn_vector();
         LockFinalizeRecord {
             lock_record_hash: lock_record_hash(lr),
             payment_preimage: preimage,
-            finalize_anchor_txid: [0x50; 32],
-            finalize_anchor_outpoint: OutPoint {
-                txid: [0x50; 32],
-                vout: 0,
-            },
+            finalize_anchor_txid: txid,
+            finalize_anchor_outpoint: OutPoint { txid, vout },
             protocol_sink_script_key: protocol_sink_script_key(&FAMILY),
             protocol_burn_internal_key: protocol_burn_internal_key(&FAMILY),
             finalized_amount_atoms: lr.lock_amount_atoms,
             operator_id: OPERATOR,
             finalize_height: 840_002,
-            universe_burn_proof_hash: [0x60; 32],
+            universe_burn_proof_hash: lineage_proof_hash(&bytes),
         }
     }
 
@@ -558,7 +656,7 @@ mod tests {
                 consumed_exclusion_proof: consumed,
                 refund_exclusion_proof: refund,
                 nullifier_exclusion_proof: nullifier,
-                burn_proof_ok: true,
+                burn_proof: burn_vector().0,
             });
         }
 
@@ -643,6 +741,82 @@ mod tests {
     fn batch_of_three_happy() {
         let (prev, new, w) = build(&[1, 2, 3]);
         verify_reserve_claim_finalize(&prev, &new, &w).expect("batch ok");
+    }
+
+    // ---- §5.D16 universe burn proof binding (real burn-to-sink vector) ----
+    fn fin_for_binding() -> (Vec<u8>, LockFinalizeRecord) {
+        let (it, pre) = intent(1);
+        let lr = lock_record(&it);
+        (burn_vector().0, finalize(&lr, pre))
+    }
+
+    #[test]
+    fn burn_binding_holds() {
+        let (bytes, fin) = fin_for_binding();
+        check_burn_proof_binding(&bytes, &fin, &FAMILY, 0).expect("burn proof binds to sink");
+    }
+
+    #[test]
+    fn burn_binding_rejects_wrong_sink() {
+        // R-16: the burn output is not committed to the protocol NUMS sink.
+        let (bytes, mut fin) = fin_for_binding();
+        fin.protocol_sink_script_key[0] ^= 1;
+        assert_eq!(
+            check_burn_proof_binding(&bytes, &fin, &FAMILY, 0),
+            Err(ClaimRejectReason::BurnProofScriptKeyMismatch)
+        );
+    }
+
+    #[test]
+    fn burn_binding_rejects_wrong_amount() {
+        let (bytes, mut fin) = fin_for_binding();
+        fin.finalized_amount_atoms += 1;
+        assert_eq!(
+            check_burn_proof_binding(&bytes, &fin, &FAMILY, 0),
+            Err(ClaimRejectReason::BurnProofAmountMismatch)
+        );
+    }
+
+    #[test]
+    fn burn_binding_rejects_wrong_family() {
+        let (bytes, fin) = fin_for_binding();
+        assert_eq!(
+            check_burn_proof_binding(&bytes, &fin, &[0x07; 32], 0),
+            Err(ClaimRejectReason::BurnProofFamilyMismatch)
+        );
+    }
+
+    #[test]
+    fn burn_binding_rejects_wrong_anchor() {
+        let (bytes, mut fin) = fin_for_binding();
+        fin.finalize_anchor_outpoint.vout ^= 1;
+        assert_eq!(
+            check_burn_proof_binding(&bytes, &fin, &FAMILY, 0),
+            Err(ClaimRejectReason::BurnProofAnchorMismatch)
+        );
+    }
+
+    #[test]
+    fn burn_binding_rejects_wrong_proof_hash() {
+        let (bytes, mut fin) = fin_for_binding();
+        fin.universe_burn_proof_hash[0] ^= 1;
+        assert_eq!(
+            check_burn_proof_binding(&bytes, &fin, &FAMILY, 0),
+            Err(ClaimRejectReason::BurnProofHashMismatch)
+        );
+    }
+
+    #[test]
+    fn burn_binding_rejects_tampered_proof() {
+        let (mut bytes, fin) = fin_for_binding();
+        let i = bytes.len() / 2;
+        bytes[i] ^= 1;
+        // A flipped byte breaks the proof.File hash chain (or, deeper, the
+        // commitment) ⇒ malformed or invalid, never a silent pass.
+        assert!(matches!(
+            check_burn_proof_binding(&bytes, &fin, &FAMILY, 0),
+            Err(ClaimRejectReason::BurnProofMalformed) | Err(ClaimRejectReason::BurnProofInvalid)
+        ));
     }
 
     #[test]
