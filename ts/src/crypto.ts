@@ -56,6 +56,14 @@ export function oracleMessageHashHex(
   return toHex32(BigInt(F.toString(out)));
 }
 
+// state_root_hash fold: poseidon2-fold the 31-byte canonical-encoding limbs (acc
+// starts at 0). Matches satusd_crypto::poseidon::hash_bytes + the M4 StateCommit.
+export function foldLimbsHex(limbsHex: string[]): string {
+  let acc = 0n;
+  for (const l of limbsHex) acc = poseidon2Fr(acc, BigInt("0x" + l));
+  return toHex32(acc);
+}
+
 // SMT membership fold (ADR-0015): fold `leaf` up through `siblings` (indexed by
 // depth, 0 = top) applying the key's path bits MSB-first. Matches
 // satusd_crypto::smt::fold_to_root and the M4b circuit `SmtFold`.

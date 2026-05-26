@@ -704,6 +704,28 @@ fn main() {
         }));
     }
 
+    // state_commit: state_root_hash = hash_bytes(canonical_encode(StateRoot)),
+    // folded as 31-byte big-endian limbs via poseidon2 (M4 circuit `StateCommit`).
+    {
+        let s = build_state_root(&mut d);
+        let enc = canonical_encode(&s);
+        let limbs: Vec<Value> = enc
+            .chunks(31)
+            .map(|c| {
+                let mut buf = [0u8; 32];
+                buf[32 - c.len()..].copy_from_slice(c); // BE, left-padded < Fr
+                Value::from(hex::encode(buf))
+            })
+            .collect();
+        vectors.push(json!({
+            "name": "state_commit_0",
+            "kind": "crypto",
+            "op": "state_commit",
+            "inputs": { "limbs": Value::Array(limbs), "byte_len": enc.len() },
+            "output": hex::encode(crypto::state::state_root_hash(&s)),
+        }));
+    }
+
     // Domain separator registry: name -> raw ASCII bytes (no padding).
     let domains: Vec<Value> = domain::ALL
         .iter()

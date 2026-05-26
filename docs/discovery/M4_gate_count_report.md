@@ -16,6 +16,7 @@
 | `m4b_lock_insert` | §5.D17 set-insert (2 folds: old + new root) | 125,952 |
 | `m4b_lock_finalize` | REDEEM_FAST_FINALIZE transition (5 folds) | 314,880 |
 | `m4c_oracle_eddsa` | EdDSA-BabyJub verify + Poseidon msg hash (§5.D7) | 7,679 |
+| `m4_state_commit` | state_root_hash = fold 18 encoding limbs (§6.1; ADR-006) | 4,374 |
 
 ## Reading the numbers
 

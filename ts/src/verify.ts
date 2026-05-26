@@ -20,6 +20,7 @@ import {
   batchRootHex,
   smtFoldHex,
   oracleMessageHashHex,
+  foldLimbsHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -96,6 +97,9 @@ for (const v of doc.vectors as any[]) {
         );
         break;
       }
+      case "state_commit":
+        check(v.name, foldLimbsHex(v.inputs.limbs), v.output, "state_commit");
+        break;
       case "oracle_eddsa": {
         // The Poseidon message hash is 3-way (Rust=TS=circuit); the EdDSA sig
         // itself is cross-checked by Rust (babyjubjub-rs) + the circuit (circomlib).
