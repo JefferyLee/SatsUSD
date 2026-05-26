@@ -56,7 +56,7 @@ pub fn refund_leaf(operator: XOnlyPublicKey, btc_htlc_csv: i64) -> ScriptBuf {
 
 /// Build the operator BTC HTLC anchor. The internal key is a NUMS point derived
 /// from the `payment_hash` (no key-path spend; both legs go through the explicit
-/// leaves). MVP derivation — to be registered in §18.2 if formalized.
+/// leaves) under the registered `SATUSD_BTC_HTLC_NUMS_V1` domain (§18.2).
 pub fn build_btc_htlc(
     payment_hash: &[u8; 32],
     user_claim: XOnlyPublicKey,
@@ -66,7 +66,7 @@ pub fn build_btc_htlc(
     let claim = claim_leaf(payment_hash, user_claim);
     let refund = refund_leaf(operator, btc_htlc_csv);
     let nums = XOnlyPublicKey::from_slice(&satusd_crypto::nums::derive_nums_key(
-        "satusd-btc-htlc",
+        satusd_types::domain::BTC_HTLC_NUMS,
         payment_hash,
     ))
     .expect("NUMS x-only");

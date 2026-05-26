@@ -1581,7 +1581,10 @@ dependencies = [
  "hex",
  "satusd-crypto",
  "satusd-state",
+ "satusd-state-node",
  "satusd-types",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]

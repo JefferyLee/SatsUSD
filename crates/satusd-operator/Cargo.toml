@@ -12,5 +12,8 @@ satusd-state = { path = "../satusd-state" }
 bitcoin = "0.32.9"
 bitcoincore-rpc = "0.19.0"
 hex.workspace = true
+serde_json = { workspace = true }
 
 [dev-dependencies]
+satusd-state-node = { path = "../satusd-state-node" }
+tokio = { version = "1.52.3", features = ["rt-multi-thread", "net"] }

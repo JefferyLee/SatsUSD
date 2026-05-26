@@ -1,5 +1,5 @@
 {
-  "count": 2189,
+  "count": 2190,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -37,6 +37,10 @@
     {
       "name": "SATUSD_BTC_HTLC_RECORD_V1",
       "tag_hex": "5341545553445f4254435f48544c435f5245434f52445f5631"
+    },
+    {
+      "name": "SATUSD_BTC_HTLC_NUMS_V1",
+      "tag_hex": "5341545553445f4254435f48544c435f4e554d535f5631"
     },
     {
       "name": "SATUSD_BTC_PAYOUT_CONFIRMATION_V1",
@@ -40254,6 +40258,16 @@
       "name": "nums_key_lock_anchor",
       "op": "nums_key",
       "output": "568cd35bd51ce37435044f03c8a816eed8799279d24715cf0eefbf4f263c034f"
+    },
+    {
+      "inputs": {
+        "domain": "SATUSD_BTC_HTLC_NUMS_V1",
+        "salt": "4242424242424242424242424242424242424242424242424242424242424242"
+      },
+      "kind": "crypto",
+      "name": "nums_key_btc_htlc",
+      "op": "nums_key",
+      "output": "59e22133358fde5de4bd58a7154dbac6e7f0251246f5dd8cb2388678a6452cfb"
     },
     {
       "cr_ppm": "2000000",

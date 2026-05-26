@@ -448,6 +448,17 @@ fn main() {
             "inputs": { "domain": domain::LOCK_ANCHOR_NUMS, "salt": "" },
             "output": hex::encode(key),
         }));
+
+        // Operator BTC HTLC NUMS internal key (§5.D5, §18.2): salted by payment_hash.
+        let payment_hash = [0x42u8; 32];
+        let htlc_key = crypto::nums::derive_nums_key(domain::BTC_HTLC_NUMS, &payment_hash);
+        vectors.push(json!({
+            "name": "nums_key_btc_htlc",
+            "kind": "crypto",
+            "op": "nums_key",
+            "inputs": { "domain": domain::BTC_HTLC_NUMS, "salt": hex::encode(payment_hash) },
+            "output": hex::encode(htlc_key),
+        }));
     }
 
     // tier: §5.D8 CR/tier (DL-24 corrected formula). The G3 gate requires ≥ 200

@@ -21,6 +21,9 @@ pub const LOCK_RECORD: &str = "SATUSD_LOCK_RECORD_V1";
 pub const LOCK_FINALIZE: &str = "SATUSD_LOCK_FINALIZE_V1";
 pub const LOCK_REFUND: &str = "SATUSD_LOCK_REFUND_V1";
 pub const BTC_HTLC_RECORD: &str = "SATUSD_BTC_HTLC_RECORD_V1";
+/// NUMS internal key for the operator BTC HTLC anchor (§5.D5, §18.7; salted by
+/// `payment_hash`). No key-path spend; both legs go through the explicit leaves.
+pub const BTC_HTLC_NUMS: &str = "SATUSD_BTC_HTLC_NUMS_V1";
 pub const BTC_PAYOUT_CONFIRMATION: &str = "SATUSD_BTC_PAYOUT_CONFIRMATION_V1";
 pub const REDEMPTION_RECORD: &str = "SATUSD_REDEMPTION_RECORD_V1";
 pub const REDEMPTION_NULLIFIER: &str = "SATUSD_REDEMPTION_NULLIFIER_V1";
@@ -51,6 +54,7 @@ pub const ALL: &[&str] = &[
     LOCK_FINALIZE,
     LOCK_REFUND,
     BTC_HTLC_RECORD,
+    BTC_HTLC_NUMS,
     BTC_PAYOUT_CONFIRMATION,
     REDEMPTION_RECORD,
     REDEMPTION_NULLIFIER,
