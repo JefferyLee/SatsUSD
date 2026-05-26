@@ -8,6 +8,7 @@
 | [ADR-004](ADR-004-mint-finalize-cr-recheck.md) | Mint finalize CR re-check on post-mint supply (G3 / DL-27) | accepted |
 | [ADR-005](ADR-005-zk-toolchain.md) | zk toolchain — circom + circomlib + Groth16/BN254 | accepted |
 | [ADR-006](ADR-006-circuit-state-commit-and-transition.md) | In-circuit state commit (StateCommit gadget) + monolithic transition deferred to M7 (Poseidon-of-fields) | accepted |
+| [ADR-008](ADR-008-live-da-bundle-root.md) | Live DA bundle format + `live_da_root` = §10.3 per-section root (supersedes §10.1 flat hash) | accepted |
 | [ADR-0011](ADR-0011-domain-separator-encoding.md) | Canonical hash domain-separator convention (raw ASCII, no padding) | accepted |
 | [ADR-0012](ADR-0012-claim-id-preimage.md) | `claim_id` preimage excludes `claim_id` and `operator_signature` (amended by ADR-0022) | accepted |
 | [ADR-0013](ADR-0013-poseidon-bn254.md) | Poseidon parameterization (circomlib BN254) + byte→field packing | accepted |

@@ -84,6 +84,18 @@ function u32be(v: number): Uint8Array {
   return new Uint8Array([(v >>> 24) & 0xff, (v >>> 16) & 0xff, (v >>> 8) & 0xff, v & 0xff]);
 }
 
+// live_da_root (§10.3): SHA256(concat(SHA256(section_i))), section_i = id ||
+// size_be || content. Sections are hashed in the order given (caller sorts by id).
+export function liveDaRootHex(sections: { id: number; content: string }[]): string {
+  const concat: Uint8Array[] = [];
+  for (const s of sections) {
+    const content = hexToBytes(s.content);
+    const wire = sha256(new Uint8Array([s.id]), u32be(content.length), content);
+    concat.push(wire);
+  }
+  return bytesToHex(sha256(...concat));
+}
+
 function isValidXonly(x: Uint8Array): boolean {
   try {
     Point.fromHex("02" + bytesToHex(x));

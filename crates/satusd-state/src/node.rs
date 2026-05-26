@@ -322,6 +322,10 @@ impl StateNode {
             leaves.push(lr_hash);
         }
 
+        // Live DA root (§10.3, ADR-008) over the batch — committed in the claim and
+        // recorded in the new state so the challenger can recompute from DA.
+        let live_da = claim::live_da_root_for_claim(&redemptions, &oracle_messages);
+
         // Build the claim; claim_id is derived over its inputs (ADR-0022).
         let mut claim = ReserveClaim {
             claim_id: [0; 32],
@@ -337,7 +341,7 @@ impl StateNode {
             finalize_batch_root: [0; 32],
             burn_proof_batch_root: [0; 32],
             lineage_proof_batch_root: [0; 32],
-            live_da_root: self.state.live_da_root,
+            live_da_root: live_da,
             archival_da_root: self.state.archival_da_root,
             l1_anchor: l1_anchor.clone(),
             reserve_shard_id,
@@ -374,6 +378,7 @@ impl StateNode {
         new.emergency_tier = tier::recompute_tier(reserve, new_supply, price).as_u8();
         new.lock_consumed_root = consumed.root();
         new.redemption_nullifier_root = nullifier.root();
+        new.live_da_root = live_da;
         new.pending_claim_root = satusd_crypto::smt::root_after_update(
             &id,
             &pending_claim_hash(&pending),

@@ -9,6 +9,7 @@ rust-version.workspace = true
 satusd-types = { path = "../satusd-types" }
 satusd-crypto = { path = "../satusd-crypto" }
 satusd-ta-proof = { path = "../satusd-ta-proof" }
+satusd-da = { path = "../satusd-da" }
 
 [dev-dependencies]
 hex.workspace = true

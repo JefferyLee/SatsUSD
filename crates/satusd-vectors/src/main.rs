@@ -461,6 +461,40 @@ fn main() {
         }));
     }
 
+    // live_da_root: §10.3 Live DA bundle root = SHA256(concat(SHA256(section_i))),
+    // section_i = id || size_be || content. Pins the per-section hashing the
+    // challenger uses to recompute a claim's committed `live_da_root`.
+    {
+        let sections = [
+            (satusd_da::section::REDEEM_INTENTS, vec![0x01u8, 0x02, 0x03]),
+            (satusd_da::section::TA_LINEAGE_PROOFS, vec![0x09u8, 0x09]),
+            (satusd_da::section::ORACLE_MESSAGES, vec![0x04u8; 40]),
+        ];
+        let bundle = satusd_da::LiveDABundle::new(
+            [0xab; 32],
+            7,
+            sections
+                .iter()
+                .map(|(id, c)| satusd_da::Section {
+                    id: *id,
+                    content: c.clone(),
+                })
+                .collect(),
+        );
+        vectors.push(json!({
+            "name": "live_da_root_3section",
+            "kind": "crypto",
+            "op": "live_da_root",
+            "inputs": {
+                "sections": sections
+                    .iter()
+                    .map(|(id, c)| json!({ "id": id, "content": hex::encode(c) }))
+                    .collect::<Vec<_>>(),
+            },
+            "output": hex::encode(bundle.live_da_root()),
+        }));
+    }
+
     // tier: §5.D8 CR/tier (DL-24 corrected formula). The G3 gate requires ≥ 200
     // cross-language fixtures spanning every tier band + dimension extreme. We pin
     // the documented scenarios + boundaries, a set of range/undefined edges, and a

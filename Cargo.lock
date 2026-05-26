@@ -1546,6 +1546,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "9774ba4a74de5f7b1c1451ed6cd5285a32eddb5cccb8cc655a4e50009e06477f"
 
 [[package]]
+name = "satusd-challenger"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-da",
+ "satusd-ta-proof",
+]
+
+[[package]]
 name = "satusd-crypto"
 version = "0.1.0"
 dependencies = [
@@ -1558,6 +1567,14 @@ dependencies = [
  "satusd-types",
  "secp256k1 0.31.1",
  "sha2",
+]
+
+[[package]]
+name = "satusd-da"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-types",
 ]
 
 [[package]]
@@ -1593,6 +1610,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "satusd-crypto",
+ "satusd-da",
  "satusd-ta-proof",
  "satusd-types",
  "secp256k1 0.31.1",
@@ -1659,6 +1677,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "satusd-crypto",
+ "satusd-da",
  "satusd-types",
  "serde_json",
  "sha2",

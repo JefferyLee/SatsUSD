@@ -21,6 +21,7 @@ import {
   smtFoldHex,
   oracleMessageHashHex,
   foldLimbsHex,
+  liveDaRootHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -74,6 +75,9 @@ for (const v of doc.vectors as any[]) {
         break;
       case "nums_key":
         check(v.name, numsKeyHex(v.inputs.domain, v.inputs.salt), v.output, "nums_key");
+        break;
+      case "live_da_root":
+        check(v.name, liveDaRootHex(v.inputs.sections), v.output, "live_da_root");
         break;
       case "batch_root":
         check(v.name, batchRootHex(v.inputs.leaves), v.output, "batch_root");

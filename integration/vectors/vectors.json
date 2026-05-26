@@ -1,5 +1,5 @@
 {
-  "count": 2190,
+  "count": 2191,
   "domain_padding": "raw-ascii-no-pad",
   "domains": [
     {
@@ -40268,6 +40268,28 @@
       "name": "nums_key_btc_htlc",
       "op": "nums_key",
       "output": "59e22133358fde5de4bd58a7154dbac6e7f0251246f5dd8cb2388678a6452cfb"
+    },
+    {
+      "inputs": {
+        "sections": [
+          {
+            "content": "010203",
+            "id": 1
+          },
+          {
+            "content": "0909",
+            "id": 3
+          },
+          {
+            "content": "04040404040404040404040404040404040404040404040404040404040404040404040404040404",
+            "id": 8
+          }
+        ]
+      },
+      "kind": "crypto",
+      "name": "live_da_root_3section",
+      "op": "live_da_root",
+      "output": "316d2b16df4e17473ea6f0f10f212bbff3385aa56fdefd4ff84e0bdce6da08f2"
     },
     {
       "cr_ppm": "2000000",

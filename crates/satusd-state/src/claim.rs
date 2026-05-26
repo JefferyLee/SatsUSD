@@ -34,11 +34,72 @@ use satusd_types::types::{
     PendingClaimStatus, RedeemIntent, ReserveClaim, StateRoot, TransitionType,
 };
 
+use satusd_types::encoding::{Encode, Encoder};
+
 use crate::oracle::{self, OracleParams};
 use crate::redeem::{
     check_intent_lock_binding, RedeemRejectReason, BTC_CLAIM_CONFIRMATION_DEPTH, SET_MEMBER,
 };
 use crate::spv;
+
+/// The claim's Live DA bundle root (§10.3, ADR-008), assembled from the witness
+/// the state node has verified. The operator commits this as `live_da_root`; the
+/// challenger re-fetches the bundle and recomputes it. Sections are built from the
+/// batch contents (the lock-time TA lineage section 0x03 is operator-supplied at
+/// the DA layer and not carried in the claim witness; the genesis→burn lineage the
+/// challenger re-runs travels in 0x07). `claim_id`/`state_epoch` are header fields
+/// and do not affect the per-section root, so callers may pass placeholders.
+pub(crate) fn live_da_root_for_claim(
+    redemptions: &[BatchRedemption],
+    oracle_messages: &[OracleMessage],
+) -> [u8; 32] {
+    use satusd_da::{section, LiveDABundle, Section};
+
+    let mut intents = Encoder::new();
+    let mut locks = Encoder::new();
+    let mut confs = Encoder::new();
+    let mut fins = Encoder::new();
+    let mut burns = Encoder::new();
+    for r in redemptions {
+        r.redeem_intent.encode(&mut intents);
+        r.lock_record.encode(&mut locks);
+        r.payout_confirmation.encode(&mut confs);
+        r.lock_finalize.encode(&mut fins);
+        burns.var_bytes(&r.burn_proof);
+    }
+    let mut oracle = Encoder::new();
+    for m in oracle_messages {
+        m.encode(&mut oracle);
+    }
+
+    let sections = vec![
+        Section {
+            id: section::REDEEM_INTENTS,
+            content: intents.into_bytes(),
+        },
+        Section {
+            id: section::LOCK_RECORDS,
+            content: locks.into_bytes(),
+        },
+        Section {
+            id: section::BTC_PAYOUT_CONFIRMATIONS,
+            content: confs.into_bytes(),
+        },
+        Section {
+            id: section::LOCK_FINALIZES,
+            content: fins.into_bytes(),
+        },
+        Section {
+            id: section::UNIVERSE_BURN_PROOFS,
+            content: burns.into_bytes(),
+        },
+        Section {
+            id: section::ORACLE_MESSAGES,
+            content: oracle.into_bytes(),
+        },
+    ];
+    LiveDABundle::new([0; 32], 0, sections).live_da_root()
+}
 
 /// `chain_time = l1_anchor_mtp + MTP_LAG_OFFSET` (§5.D6, DL-26).
 pub const MTP_LAG_OFFSET_SEC: u64 = 3600;
@@ -93,6 +154,7 @@ pub enum ClaimRejectReason {
     PayoutTooLow,
     ReimbursementMismatch,
     RedemptionBatchRootMismatch,
+    LiveDaRootMismatch,
     ClaimIdMismatch,
     DuplicateClaim, // DL-19: claim_id already pending
     PostStateMismatch,
@@ -375,6 +437,12 @@ pub fn verify_reserve_claim_finalize(
         RedemptionBatchRootMismatch
     );
 
+    // §10.3 / ADR-008: the operator's committed Live DA root must equal the bundle
+    // the state node assembles from the verified witness — so the challenger can
+    // recompute the claim from the DA it fetches (M5 detection).
+    let computed_live_da = live_da_root_for_claim(&w.redemptions, &w.oracle_messages);
+    ensure!(claim.live_da_root == computed_live_da, LiveDaRootMismatch);
+
     // PENDING claim, keyed by claim_id (ADR-0022: derived over inputs only).
     let id = claim_id(claim);
     ensure!(claim.claim_id == id, ClaimIdMismatch);
@@ -409,6 +477,7 @@ pub fn verify_reserve_claim_finalize(
         tier::recompute_tier(prev.reserve_btc_sats, new_supply, price).as_u8();
     expected.lock_consumed_root = consumed_root;
     expected.redemption_nullifier_root = nullifier_root;
+    expected.live_da_root = computed_live_da;
     expected.pending_claim_root = smt::root_after_update(
         &id,
         &pending_claim_hash(&pending),
@@ -662,6 +731,8 @@ mod tests {
 
         let n = seeds.len() as u64;
         let new_supply = prev.sat_usd_supply_atoms - n * AMOUNT;
+        let omsgs = oracle_messages();
+        let live_da = live_da_root_for_claim(&redemptions, &omsgs);
 
         // Claim inputs first (claim_id excludes claim_id/new_state_root — ADR-0022).
         let mut claim = ReserveClaim {
@@ -678,7 +749,7 @@ mod tests {
             finalize_batch_root: [0; 32],
             burn_proof_batch_root: [0; 32],
             lineage_proof_batch_root: [0; 32],
-            live_da_root: [0x0a; 32],
+            live_da_root: live_da,
             archival_da_root: [0x0b; 32],
             l1_anchor: claim_clock(),
             reserve_shard_id: 0,
@@ -713,6 +784,7 @@ mod tests {
         new.emergency_tier = tier::recompute_tier(prev.reserve_btc_sats, new_supply, PRICE).as_u8();
         new.lock_consumed_root = consumed_tree.root();
         new.redemption_nullifier_root = nullifier_tree.root();
+        new.live_da_root = live_da;
         new.pending_claim_root = smt::root_after_update(
             &claim.claim_id,
             &pending_claim_hash(&pending),
@@ -723,7 +795,7 @@ mod tests {
         let w = ReserveClaimWitness {
             claim,
             redemptions,
-            oracle_messages: oracle_messages(),
+            oracle_messages: omsgs,
             oracle_signer_set: pubkeys().to_vec(),
             pending_claim_exclusion_proof: pending_proof,
             btc_tip_height: TIP,
@@ -735,6 +807,19 @@ mod tests {
     fn single_redemption_happy() {
         let (prev, new, w) = build(&[1]);
         verify_reserve_claim_finalize(&prev, &new, &w).expect("claim ok");
+    }
+
+    #[test]
+    fn tampered_live_da_root_rejected() {
+        // ADR-008: a committed live_da_root that doesn't match the bundle the node
+        // assembles from the witness is rejected (so the challenger can trust it).
+        let (prev, new, mut w) = build(&[1]);
+        w.claim.live_da_root[0] ^= 0xff;
+        w.claim.claim_id = claim_id(&w.claim); // keep claim_id self-consistent
+        assert_eq!(
+            verify_reserve_claim_finalize(&prev, &new, &w),
+            Err(ClaimRejectReason::LiveDaRootMismatch)
+        );
     }
 
     #[test]
