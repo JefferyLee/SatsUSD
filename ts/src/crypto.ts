@@ -44,6 +44,20 @@ export function hashBytesHex(inputHex: string): string {
   return toHex32(acc);
 }
 
+// SMT membership fold (ADR-0015): fold `leaf` up through `siblings` (indexed by
+// depth, 0 = top) applying the key's path bits MSB-first. Matches
+// satusd_crypto::smt::fold_to_root and the M4b circuit `SmtFold`.
+export function smtFoldHex(keyHex: string, leafHex: string, siblingsHex: string[]): string {
+  const key = hexToBytes(keyHex);
+  let cur = BigInt("0x" + leafHex);
+  for (let d = 255; d >= 0; d--) {
+    const sib = BigInt("0x" + siblingsHex[d]);
+    const bit = (key[d >> 3] >> (7 - (d % 8))) & 1;
+    cur = bit === 0 ? poseidon2Fr(cur, sib) : poseidon2Fr(sib, cur);
+  }
+  return toHex32(cur);
+}
+
 // ---- NUMS / Taproot (secp256k1) ----
 
 function u32be(v: number): Uint8Array {

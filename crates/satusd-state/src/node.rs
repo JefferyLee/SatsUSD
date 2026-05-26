@@ -815,9 +815,10 @@ mod tests {
 
     /// The real lock-anchor `proof.File` + its verified head anchor (txid, vout).
     fn lock_anchor_vector() -> (Vec<u8>, [u8; 32], u32) {
-        let bytes =
-            hex::decode(include_str!("../../../integration/lineage_vectors/lock_anchor.hex").trim())
-                .unwrap();
+        let bytes = hex::decode(
+            include_str!("../../../integration/lineage_vectors/lock_anchor.hex").trim(),
+        )
+        .unwrap();
         let f = satusd_ta_proof::parse_proof_file(&bytes).unwrap();
         let head = satusd_ta_proof::verify_lineage(&f.parsed().unwrap()).unwrap();
         (bytes, head.txid, head.output_index)
@@ -866,7 +867,10 @@ mod tests {
                 vout: lock_vout,
             },
             lock_anchor_txid: lock_txid,
-            lock_script_key: tap_tweak(&it.user_asset_refund_key, &lock_tweak(&rih, &it.payment_hash)),
+            lock_script_key: tap_tweak(
+                &it.user_asset_refund_key,
+                &lock_tweak(&rih, &it.payment_hash),
+            ),
             lock_amount_atoms: it.amount_satusd_atoms,
             asset_family_id: FAMILY,
             asset_lock_csv_delta: it.asset_lock_csv_delta,
@@ -898,7 +902,9 @@ mod tests {
                     vout: burn_vout,
                 },
                 protocol_sink_script_key: satusd_crypto::nums::protocol_sink_script_key(&FAMILY),
-                protocol_burn_internal_key: satusd_crypto::nums::protocol_burn_internal_key(&FAMILY),
+                protocol_burn_internal_key: satusd_crypto::nums::protocol_burn_internal_key(
+                    &FAMILY,
+                ),
                 finalized_amount_atoms: lock.lock_amount_atoms,
                 operator_id: OPERATOR,
                 finalize_height: 840_002,

@@ -562,6 +562,49 @@ fn main() {
         }));
     }
 
+    // smt: SMT membership fold (ADR-0015; M4b circuit `SmtFold` + TS `smtFoldHex`
+    // re-fold these to the same root → 3-way). Inclusion folds the occupied leaf,
+    // non-membership folds the empty leaf (0). siblings indexed by depth (0 = top).
+    {
+        use crypto::poseidon::fr_to_be_bytes;
+        use crypto::smt::{leaf_hash, SparseMerkleTree};
+        let occupied: [([u8; 32], [u8; 32]); 3] = [
+            ([0x11; 32], [0x01; 32]),
+            ([0x22; 32], [0x02; 32]),
+            ([0xab; 32], [0x03; 32]),
+        ];
+        let mut t = SparseMerkleTree::new();
+        for (k, v) in &occupied {
+            t.insert(*k, v);
+        }
+        let root = hex::encode(t.root());
+        let emit = |vectors: &mut Vec<Value>, name: String, key: &[u8; 32], leaf: [u8; 32]| {
+            let sibs = t.prove(key);
+            vectors.push(json!({
+                "name": name,
+                "kind": "crypto",
+                "op": "smt",
+                "inputs": {
+                    "key": hex::encode(key),
+                    "leaf": hex::encode(leaf),
+                    "siblings": Value::Array(sibs.iter().map(|s| Value::from(hex::encode(s))).collect()),
+                },
+                "output": root,
+            }));
+        };
+        for (i, (k, v)) in occupied.iter().enumerate() {
+            emit(
+                &mut vectors,
+                format!("smt_incl_{i}"),
+                k,
+                fr_to_be_bytes(&leaf_hash(k, v)),
+            );
+        }
+        for (i, k) in [[0x99u8; 32], [0x55u8; 32]].iter().enumerate() {
+            emit(&mut vectors, format!("smt_excl_{i}"), k, [0u8; 32]);
+        }
+    }
+
     // Domain separator registry: name -> raw ASCII bytes (no padding).
     let domains: Vec<Value> = domain::ALL
         .iter()

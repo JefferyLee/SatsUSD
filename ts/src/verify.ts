@@ -18,6 +18,7 @@ import {
   collateralRatioPpm,
   recomputeTier,
   batchRootHex,
+  smtFoldHex,
 } from "./crypto.ts";
 
 const here = dirname(fileURLToPath(import.meta.url));
@@ -74,6 +75,14 @@ for (const v of doc.vectors as any[]) {
         break;
       case "batch_root":
         check(v.name, batchRootHex(v.inputs.leaves), v.output, "batch_root");
+        break;
+      case "smt":
+        check(
+          v.name,
+          smtFoldHex(v.inputs.key, v.inputs.leaf, v.inputs.siblings),
+          v.output,
+          "smt_fold",
+        );
         break;
       case "tier": {
         const r = BigInt(v.inputs.reserve_sats);
