@@ -8,6 +8,7 @@ rust-version.workspace = true
 [dependencies]
 satusd-types = { path = "../satusd-types" }
 satusd-crypto = { path = "../satusd-crypto" }
+satusd-state = { path = "../satusd-state" }
 bitcoin = "0.32.9"
 bitcoincore-rpc = "0.19.0"
 hex.workspace = true

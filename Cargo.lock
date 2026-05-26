@@ -1580,6 +1580,7 @@ dependencies = [
  "bitcoincore-rpc",
  "hex",
  "satusd-crypto",
+ "satusd-state",
  "satusd-types",
 ]
 

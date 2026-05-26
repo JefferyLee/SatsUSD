@@ -10,7 +10,9 @@
 //! these primitives to the already-tested verifier/node layer.
 
 pub mod htlc;
+pub mod observer;
 pub mod quote;
 
 pub use htlc::{build_btc_htlc, BtcHtlc};
+pub use observer::build_payout_confirmation;
 pub use quote::{quote, Quote, QuoteError};

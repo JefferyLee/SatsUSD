@@ -113,9 +113,29 @@ fn main() -> Result<(), Err> {
     let claim_txid = btc.send_raw_transaction(&tx)?;
     btc.generate_to_address(1, &miner)?;
     println!("user CLAIMED with preimage: {claim_txid} (preimage now revealed on-chain)");
+
+    // ---- observer: bury the claim, build the SPV confirmation, and check it
+    //      against the state node's own verifier (operator produces → node accepts).
+    const MIN_DEPTH: usize = 6;
+    btc.generate_to_address(MIN_DEPTH as u64, &miner)?; // bury ≥ 6 deep
+    let htlc_outpoint = satusd_types::types::OutPoint {
+        txid: outpoint.txid.to_byte_array(),
+        vout: outpoint.vout,
+    };
+    let confirmation = satusd_operator::build_payout_confirmation(
+        &btc,
+        &payment_hash,
+        htlc_outpoint,
+        claim_txid,
+        MIN_DEPTH,
+    )?;
+    let tip = btc.get_block_count()? as u32;
+    satusd_state::spv::verify_payout_confirmation(&confirmation, &payment_hash, MIN_DEPTH, tip)
+        .map_err(|e| format!("state node SPV verifier rejected the confirmation: {e:?}"))?;
     println!(
-        "\nOperator BTC leg ✓ — the confirmed claim is what the payout observer SPV-proves \
-         (BtcPayoutConfirmation) before the reserve claim is submitted."
+        "observer built BtcPayoutConfirmation; state node SPV verifier ACCEPTED it \
+         (R-07/13/14/15 all satisfied) ✓"
     );
+    println!("\nOperator confirmed-payout loop closed end-to-end against live bitcoind.");
     Ok(())
 }
