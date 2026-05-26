@@ -296,6 +296,10 @@ pub struct BtcPayoutConfirmation {
     pub claim_spend_txid: [u8; 32],
     pub claim_spend_input_index: u32,
     pub claim_spend_witness: Vec<Vec<u8>>,
+    /// Legacy (no-witness) serialization of the claim tx — its double-SHA256 is
+    /// `claim_spend_txid`, and its input at `claim_spend_input_index` must spend
+    /// the HTLC outpoint `(btc_htlc_txid, btc_htlc_vout)` (R-15, §5.D14).
+    pub claim_tx_legacy: Vec<u8>,
     pub revealed_preimage: [u8; 32],
     pub claim_inclusion_block_hash: [u8; 32],
     pub claim_inclusion_block_height: u32,
@@ -322,6 +326,7 @@ impl Encode for BtcPayoutConfirmation {
         e.fixed(&self.claim_spend_txid);
         e.u32(self.claim_spend_input_index);
         e.seq(&self.claim_spend_witness, |e, w| e.var_bytes(w));
+        e.var_bytes(&self.claim_tx_legacy);
         e.fixed(&self.revealed_preimage);
         e.fixed(&self.claim_inclusion_block_hash);
         e.u32(self.claim_inclusion_block_height);

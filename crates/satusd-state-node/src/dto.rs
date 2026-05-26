@@ -281,8 +281,9 @@ impl LockRecordDto {
 pub struct RedeemLockDto {
     pub redeem_intent: RedeemIntentDto,
     pub lock_record: LockRecordDto,
-    pub lineage_ok: bool,
-    pub lineage_proof_hash: Hex<32>,
+    /// Hex-encoded tapd `proof.File` (the genesis→lock-output lineage), re-verified
+    /// by the state node (§5.D15 / DL-23).
+    pub lineage_proof: String,
 }
 impl RedeemLockDto {
     pub fn into_witness(self) -> RedeemLockWitness {
@@ -290,8 +291,7 @@ impl RedeemLockDto {
             redeem_intent: self.redeem_intent.into_domain(),
             lock_record: self.lock_record.into_domain(),
             lock_exclusion_proof: vec![],
-            lineage_ok: self.lineage_ok,
-            lineage_proof_hash: self.lineage_proof_hash.0,
+            lineage_proof: hex::decode(self.lineage_proof.trim()).unwrap_or_default(),
         }
     }
 }
@@ -381,6 +381,7 @@ pub struct BtcPayoutConfirmationDto {
     pub claim_spend_txid: Hex<32>,
     pub claim_spend_input_index: u32,
     pub claim_spend_witness: Vec<String>,
+    pub claim_tx_legacy: String,
     pub revealed_preimage: Hex<32>,
     pub claim_inclusion_block_hash: Hex<32>,
     pub claim_inclusion_block_height: u32,
@@ -412,6 +413,7 @@ impl BtcPayoutConfirmationDto {
                 .iter()
                 .map(|s| hexbytes(s))
                 .collect::<Result<_, _>>()?,
+            claim_tx_legacy: hexbytes(&self.claim_tx_legacy)?,
             revealed_preimage: self.revealed_preimage.0,
             claim_inclusion_block_hash: self.claim_inclusion_block_hash.0,
             claim_inclusion_block_height: self.claim_inclusion_block_height,
@@ -435,7 +437,8 @@ pub struct BatchRedemptionDto {
     pub lock_record: LockRecordDto,
     pub lock_finalize: LockFinalizeDto,
     pub payout_confirmation: BtcPayoutConfirmationDto,
-    pub burn_proof_ok: bool,
+    /// Hex-encoded tapd `proof.File` for the finalize/burn output (D16).
+    pub burn_proof: String,
 }
 impl BatchRedemptionDto {
     fn into_domain(self) -> Result<BatchRedemption, String> {
@@ -449,7 +452,7 @@ impl BatchRedemptionDto {
             consumed_exclusion_proof: vec![],
             refund_exclusion_proof: vec![],
             nullifier_exclusion_proof: vec![],
-            burn_proof_ok: self.burn_proof_ok,
+            burn_proof: hex::decode(self.burn_proof.trim()).map_err(|e| e.to_string())?,
         })
     }
 }

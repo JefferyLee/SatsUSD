@@ -450,9 +450,13 @@ fn main() {
         }));
     }
 
-    // tier: §5.D8 CR/tier (DL-24 corrected formula). Pins cr_ppm + tier across
-    // the documented scenarios + threshold boundaries. (price = $50k = 5e12.)
-    let tier_cases: [(u64, u64, u64); 7] = [
+    // tier: §5.D8 CR/tier (DL-24 corrected formula). The G3 gate requires ≥ 200
+    // cross-language fixtures spanning every tier band + dimension extreme. We pin
+    // the documented scenarios + boundaries, a set of range/undefined edges, and a
+    // full (reserve × supply × price) sweep. Rust generates, TS re-verifies, and
+    // the M4a circuit (`test_tier.mjs`) re-derives cr_ppm/tier — a 3-way match.
+    let mut tier_cases: Vec<(u64, u64, u64)> = vec![
+        // §5.D8 documented scenarios + threshold boundaries (price = $50k = 5e12).
         (4_000_000_000, 100_000_000, 5_000_000_000_000), // 200% Healthy
         (3_000_000_000, 100_000_000, 5_000_000_000_000), // 150% Healthy (boundary)
         (2_600_000_000, 100_000_000, 5_000_000_000_000), // 130% PauseMint (boundary)
@@ -460,7 +464,65 @@ fn main() {
         (2_200_000_000, 100_000_000, 5_000_000_000_000), // 110% Auction (boundary)
         (2_000_000_000, 100_000_000, 5_000_000_000_000), // 100% Settlement
         (100_000_000, 100, 5_000_000_000_000),           // tiny supply (cr_ppm = 5e10)
+        // Edges (§18.3 ranges): undefined CR, zero reserve, dimension extremes.
+        (1_000_000_000, 0, 5_000_000_000_000), // supply = 0 → None → Healthy
+        (0, 100_000_000, 5_000_000_000_000),   // reserve = 0 → cr 0 → Settlement
+        (
+            2_100_000_000_000_000,
+            100_000_000_000_000,
+            100_000_000_000_000,
+        ), // all max
+        (2_100_000_000_000_000, 1_000_000, 1_000_000_000), // max reserve, min price
+        (1, 100_000_000_000_000, 100_000_000_000_000), // 1-sat reserve, max supply
     ];
+    // Full sweep: supply ≥ 1e6 keeps cr_ppm within u64 at the reserve/price max.
+    let sweep_reserves: [u64; 12] = [
+        100_000_000,
+        300_000_000,
+        1_000_000_000,
+        3_000_000_000,
+        10_000_000_000,
+        30_000_000_000,
+        100_000_000_000,
+        1_000_000_000_000,
+        10_000_000_000_000,
+        100_000_000_000_000,
+        1_000_000_000_000_000,
+        2_100_000_000_000_000,
+    ];
+    let sweep_supplies: [u64; 6] = [
+        1_000_000,
+        10_000_000,
+        100_000_000,
+        10_000_000_000,
+        1_000_000_000_000,
+        100_000_000_000_000,
+    ];
+    let sweep_prices: [u64; 3] = [1_000_000_000, 5_000_000_000_000, 100_000_000_000_000];
+    for &reserve in &sweep_reserves {
+        for &supply in &sweep_supplies {
+            for &price in &sweep_prices {
+                tier_cases.push((reserve, supply, price));
+            }
+        }
+    }
+    // Targeted CR sweep: solve `reserve = cr_ppm · supply · 1e8 / price` so each
+    // case lands in a chosen band (incl. the narrow PauseMint/Auction ranges and
+    // the exact 110/130/150% boundaries), across several supply/price scales.
+    let target_ppms: [u64; 9] = [
+        900_000, 1_050_000, 1_100_000, 1_150_000, 1_250_000, 1_300_000, 1_350_000, 1_450_000,
+        1_500_000,
+    ];
+    for &target in &target_ppms {
+        for &supply in &[1_000_000u64, 100_000_000, 10_000_000_000, 1_000_000_000_000] {
+            for &price in &sweep_prices {
+                let reserve = (target as u128 * supply as u128 * 100_000_000u128) / price as u128;
+                if reserve > 0 && reserve <= 2_100_000_000_000_000 {
+                    tier_cases.push((reserve as u64, supply, price));
+                }
+            }
+        }
+    }
     for (i, (reserve, supply, price)) in tier_cases.iter().enumerate() {
         let cr = satusd_types::tier::collateral_ratio_ppm(*reserve, *supply, *price);
         let tier = satusd_types::tier::recompute_tier(*reserve, *supply, *price);

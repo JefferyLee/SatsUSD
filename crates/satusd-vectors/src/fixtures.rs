@@ -312,6 +312,10 @@ pub fn build_btc_payout_confirmation(d: &mut Det) -> BtcPayoutConfirmation {
                 d.bytes(wlen)
             })
             .collect(),
+        claim_tx_legacy: {
+            let len = 60 + d.count(40);
+            d.bytes(len)
+        },
         revealed_preimage: d.arr(),
         claim_inclusion_block_hash: d.arr(),
         claim_inclusion_block_height: d.u32(),
@@ -336,6 +340,7 @@ pub fn btc_payout_confirmation_value(v: &BtcPayoutConfirmation) -> Value {
         "claim_spend_txid": hx(&v.claim_spend_txid),
         "claim_spend_input_index": v.claim_spend_input_index,
         "claim_spend_witness": Value::Array(v.claim_spend_witness.iter().map(|w| hx(w)).collect()),
+        "claim_tx_legacy": hx(&v.claim_tx_legacy),
         "revealed_preimage": hx(&v.revealed_preimage),
         "claim_inclusion_block_hash": hx(&v.claim_inclusion_block_hash),
         "claim_inclusion_block_height": v.claim_inclusion_block_height,

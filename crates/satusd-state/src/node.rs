@@ -241,6 +241,17 @@ impl StateNode {
         self.commit(new_state)
     }
 
+    /// Test-only: inject an already-validated lock (as if a prior
+    /// `REDEEM_FAST_LOCK` had committed it) so claim-lifecycle tests can set up
+    /// their precondition without a real tapd lineage anchor. Production locks
+    /// always go through [`Self::redeem_lock`]'s §5.D15 verification.
+    #[cfg(test)]
+    fn insert_validated_lock_for_test(&mut self, lock: &satusd_types::types::LockRecord) {
+        let lr_hash = lock_record_hash(lock);
+        self.lock_record_tree.insert(lr_hash, &SET_MEMBER);
+        self.state.lock_record_root = self.lock_record_tree.root();
+    }
+
     /// LOCK_REFUND. `w`'s proof fields are filled by the node.
     pub fn lock_refund(&mut self, mut w: redeem::LockRefundWitness) -> Result<[u8; 32], NodeError> {
         let lr_hash = lock_record_hash(&w.lock_record);
@@ -544,7 +555,23 @@ mod tests {
     }
 
     const PRICE_50K: u64 = 5_000_000_000_000;
-    const FAMILY: [u8; 32] = [0x01; 32];
+    // The real burn vector's grouped-asset family (see claim.rs); makes the §5.D16
+    // burn-proof binding hold for the claim-lifecycle setup.
+    const FAMILY: [u8; 32] = [
+        0x0c, 0x58, 0x77, 0x1b, 0xaf, 0x09, 0x1f, 0xbc, 0xea, 0xdf, 0x1c, 0x22, 0x39, 0x4e, 0x9e,
+        0x72, 0xad, 0x91, 0xc6, 0xa1, 0x35, 0xd7, 0xbf, 0x78, 0x30, 0x08, 0x62, 0xa0, 0x63, 0xc4,
+        0xbf, 0x9b,
+    ];
+    /// The real burn-to-sink `proof.File` + its verified head anchor (txid, vout).
+    fn burn_vector() -> (Vec<u8>, [u8; 32], u32) {
+        let bytes = hex::decode(
+            include_str!("../../../integration/lineage_vectors/burn_to_sink.hex").trim(),
+        )
+        .unwrap();
+        let f = satusd_ta_proof::parse_proof_file(&bytes).unwrap();
+        let head = satusd_ta_proof::verify_lineage(&f.parsed().unwrap()).unwrap();
+        (bytes, head.txid, head.output_index)
+    }
     const ISSUER_ID: [u8; 32] = [0xaa; 32];
     const OPERATOR: [u8; 32] = [0x20; 32];
     const META: [u8; 32] = [0xef; 32];
@@ -680,15 +707,16 @@ mod tests {
     fn one_redemption() -> claim::BatchRedemption {
         let (it, preimage) = small_intent();
         let lr = lock_record(&it);
+        let (burn_bytes, burn_txid, burn_vout) = burn_vector();
         claim::BatchRedemption {
             redeem_intent: it,
             lock_finalize: LockFinalizeRecord {
                 lock_record_hash: lock_record_hash(&lr),
                 payment_preimage: preimage,
-                finalize_anchor_txid: [0x50; 32],
+                finalize_anchor_txid: burn_txid,
                 finalize_anchor_outpoint: OutPoint {
-                    txid: [0x50; 32],
-                    vout: 0,
+                    txid: burn_txid,
+                    vout: burn_vout,
                 },
                 protocol_sink_script_key: satusd_crypto::nums::protocol_sink_script_key(&FAMILY),
                 protocol_burn_internal_key: satusd_crypto::nums::protocol_burn_internal_key(
@@ -697,7 +725,7 @@ mod tests {
                 finalized_amount_atoms: lr.lock_amount_atoms,
                 operator_id: OPERATOR,
                 finalize_height: 840_002,
-                universe_burn_proof_hash: [0x60; 32],
+                universe_burn_proof_hash: satusd_types::derive::lineage_proof_hash(&burn_bytes),
             },
             payout_confirmation: crate::spv::build_confirmation(preimage, 100_000, 101, 6),
             lock_record: lr,
@@ -705,7 +733,7 @@ mod tests {
             consumed_exclusion_proof: vec![],
             refund_exclusion_proof: vec![],
             nullifier_exclusion_proof: vec![],
-            burn_proof_ok: true,
+            burn_proof: burn_bytes,
         }
     }
 
@@ -742,18 +770,10 @@ mod tests {
         node.mint_finalize(ISSUER_ID, &fin).unwrap();
         let reserve_before = node.state().reserve_btc_sats;
 
-        let (it, lr) = {
-            let r = one_redemption();
-            (r.redeem_intent.clone(), r.lock_record.clone())
-        };
-        node.redeem_lock(redeem::RedeemLockWitness {
-            redeem_intent: it,
-            lock_record: lr,
-            lock_exclusion_proof: vec![],
-            lineage_ok: true,
-            lineage_proof_hash: [0x99; 32],
-        })
-        .unwrap();
+        let lr = one_redemption().lock_record.clone();
+        // Set up the lock precondition directly: this test exercises the claim
+        // lifecycle, not §5.D15 lineage verification (covered in redeem.rs).
+        node.insert_validated_lock_for_test(&lr);
 
         let claim_id = submit_one(&mut node).expect("submit");
 

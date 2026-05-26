@@ -1578,6 +1578,7 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "satusd-crypto",
+ "satusd-ta-proof",
  "satusd-types",
  "secp256k1 0.31.1",
 ]

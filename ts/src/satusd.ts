@@ -146,6 +146,7 @@ function encodeBtcPayoutConfirmation(e: Encoder, f: Fields): void {
   e.fixed(B(f, "claim_spend_txid"));
   e.u32(N(f, "claim_spend_input_index"));
   e.seq(listB(f, "claim_spend_witness"), (e, w) => e.varBytes(w));
+  e.varBytes(B(f, "claim_tx_legacy"));
   e.fixed(B(f, "revealed_preimage"));
   e.fixed(B(f, "claim_inclusion_block_hash"));
   e.u32(N(f, "claim_inclusion_block_height"));

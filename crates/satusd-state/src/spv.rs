@@ -31,6 +31,59 @@ pub enum SpvError {
     HeaderChainBroken,         // R-14
     HeaderPowInvalid,          // R-14
     NotBuriedDeepEnough,
+    MalformedClaimTx,      // R-15: claim tx body not decodable / wrong txid
+    ClaimDoesNotSpendHtlc, // R-15: claim input is not the HTLC outpoint
+}
+
+/// Read the prev-outpoint `(txid, vout)` of input `input_index` from a legacy
+/// (no-witness) Bitcoin tx serialization. Returns `None` if malformed or the
+/// index is out of range. Only the input list is parsed (all we need for R-15).
+fn legacy_tx_input_outpoint(tx: &[u8], input_index: u32) -> Option<([u8; 32], u32)> {
+    let mut i = 4usize; // skip version (4)
+    let n_in = read_varint(tx, &mut i)?;
+    if input_index as u64 >= n_in {
+        return None;
+    }
+    let mut found = None;
+    for idx in 0..n_in {
+        let txid: [u8; 32] = tx.get(i..i + 32)?.try_into().ok()?;
+        i += 32;
+        let vout = u32::from_le_bytes(tx.get(i..i + 4)?.try_into().ok()?);
+        i += 4;
+        let slen = read_varint(tx, &mut i)? as usize;
+        i = i.checked_add(slen)?.checked_add(4)?; // skip scriptSig + sequence
+        if tx.len() < i {
+            return None;
+        }
+        if idx == input_index as u64 {
+            found = Some((txid, vout));
+        }
+    }
+    found
+}
+
+/// Read a Bitcoin CompactSize varint at `*i`.
+fn read_varint(b: &[u8], i: &mut usize) -> Option<u64> {
+    let first = *b.get(*i)?;
+    *i += 1;
+    Some(match first {
+        0xfd => {
+            let v = u16::from_le_bytes(b.get(*i..*i + 2)?.try_into().ok()?) as u64;
+            *i += 2;
+            v
+        }
+        0xfe => {
+            let v = u32::from_le_bytes(b.get(*i..*i + 4)?.try_into().ok()?) as u64;
+            *i += 4;
+            v
+        }
+        0xff => {
+            let v = u64::from_le_bytes(b.get(*i..*i + 8)?.try_into().ok()?);
+            *i += 8;
+            v
+        }
+        n => n as u64,
+    })
 }
 
 /// Bitcoin double-SHA256.
@@ -148,6 +201,21 @@ pub fn verify_payout_confirmation(
         ClaimMerkleInvalid
     );
 
+    // (R-15) The claim tx body hashes to the merkle-committed claim txid, and its
+    // input at `claim_spend_input_index` actually spends the HTLC outpoint — so a
+    // confirmed-but-unrelated preimage-revealing tx cannot stand in for the claim.
+    ensure!(
+        dsha256(&c.claim_tx_legacy) == c.claim_spend_txid,
+        MalformedClaimTx
+    );
+    let (in_txid, in_vout) =
+        legacy_tx_input_outpoint(&c.claim_tx_legacy, c.claim_spend_input_index)
+            .ok_or(SpvError::MalformedClaimTx)?;
+    ensure!(
+        in_txid == c.btc_htlc_txid && in_vout == c.btc_htlc_vout,
+        ClaimDoesNotSpendHtlc
+    );
+
     // (7) Claim is no earlier than the HTLC.
     ensure!(
         c.claim_inclusion_block_height >= c.htlc_inclusion_block_height,
@@ -186,6 +254,21 @@ pub(crate) fn build_confirmation(
     claim_height: u32,
     depth: usize,
 ) -> BtcPayoutConfirmation {
+    let htlc_txid = sha256(&[&b"htlc"[..], &preimage[..]]);
+    build_confirmation_spending(preimage, payout_sats, claim_height, depth, htlc_txid)
+}
+
+/// As [`build_confirmation`], but the claim tx spends `claim_spends`. When that
+/// is not the HTLC outpoint's txid the confirmation is internally consistent yet
+/// must be rejected by the R-15 binding (used by the R-15 test).
+#[cfg(test)]
+pub(crate) fn build_confirmation_spending(
+    preimage: [u8; 32],
+    payout_sats: u64,
+    claim_height: u32,
+    depth: usize,
+    claim_spends: [u8; 32],
+) -> BtcPayoutConfirmation {
     /// Grind a regtest-difficulty header (nBits 0x207fffff) until PoW holds.
     fn header(prev: [u8; 32], merkle: [u8; 32]) -> [u8; 80] {
         let mut h = [0u8; 80];
@@ -202,9 +285,25 @@ pub(crate) fn build_confirmation(
         }
         panic!("no nonce");
     }
-    // Distinct txids per preimage so batched confirmations don't collide.
+    // Distinct htlc txid per preimage so batched confirmations don't collide.
     let htlc_txid = sha256(&[&b"htlc"[..], &preimage[..]]);
-    let claim_txid = sha256(&[&b"claim"[..], &preimage[..]]);
+    // A real legacy claim tx spending `claim_spends` at vout 0; its double-SHA256
+    // is the claim txid (R-15). Normally `claim_spends == htlc_txid`.
+    let claim_tx_legacy = {
+        let mut t = Vec::new();
+        t.extend_from_slice(&2u32.to_le_bytes()); // version
+        t.push(1); // input count
+        t.extend_from_slice(&claim_spends); // prevout txid
+        t.extend_from_slice(&0u32.to_le_bytes()); // prevout vout
+        t.push(0); // scriptSig len
+        t.extend_from_slice(&0xffff_ffffu32.to_le_bytes()); // sequence
+        t.push(1); // output count
+        t.extend_from_slice(&payout_sats.to_le_bytes()); // value
+        t.push(0); // scriptPubKey len
+        t.extend_from_slice(&0u32.to_le_bytes()); // locktime
+        t
+    };
+    let claim_txid = dsha256(&claim_tx_legacy);
     let htlc_sib = [0xa1; 32];
     let claim_sib = [0xb2; 32];
     let htlc_root = merkle_root_from_proof(htlc_txid, 0, &[htlc_sib]);
@@ -232,6 +331,7 @@ pub(crate) fn build_confirmation(
         claim_spend_txid: claim_txid,
         claim_spend_input_index: 0,
         claim_spend_witness: vec![preimage.to_vec()],
+        claim_tx_legacy,
         revealed_preimage: preimage,
         claim_inclusion_block_hash: claim_bh,
         claim_inclusion_block_height: claim_height,
@@ -262,6 +362,28 @@ mod tests {
     fn happy_path() {
         let c = good_confirmation(6);
         verify_payout_confirmation(&c, &payment_hash(), 6, 200).expect("spv ok");
+    }
+
+    #[test]
+    fn r15_claim_must_spend_htlc_outpoint() {
+        // A confirmed claim tx that reveals the preimage but spends some OTHER
+        // outpoint (not the HTLC) — internally consistent, but rejected by R-15.
+        let c = build_confirmation_spending(PREIMAGE, 100_000, 101, 6, [0x7e; 32]);
+        assert_eq!(
+            verify_payout_confirmation(&c, &payment_hash(), 6, 200),
+            Err(SpvError::ClaimDoesNotSpendHtlc)
+        );
+    }
+
+    #[test]
+    fn r15_claim_tx_body_must_hash_to_txid() {
+        // Tampering the claim tx body breaks the body↔txid binding.
+        let mut c = good_confirmation(6);
+        c.claim_tx_legacy[4] ^= 1; // flip the input count region
+        assert_eq!(
+            verify_payout_confirmation(&c, &payment_hash(), 6, 200),
+            Err(SpvError::MalformedClaimTx)
+        );
     }
 
     #[test]
