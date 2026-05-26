@@ -788,6 +788,151 @@ mod tests {
         (node, claim_id, reserve_before)
     }
 
+    /// The canonical lock-vector intent (matches `capture_lock_vector` +
+    /// redeem.rs); `lock_anchor.hex`'s head commits `derive_lock_script_key` of it.
+    fn lock_vector_intent() -> RedeemIntent {
+        RedeemIntent {
+            version: 1,
+            network: 0,
+            redemption_id: [0x77; 32],
+            satusd_asset_family_id: FAMILY,
+            amount_satusd_atoms: 4_000,
+            user_btc_refund_pubkey: [0x31; 32],
+            user_btc_claim_pubkey: [0x32; 32],
+            user_asset_refund_key: derive_nums_key("satusd-lock-vector-user", &[]),
+            operator_id: Some(OPERATOR),
+            mode: redeem::MODE_FAST_OPERATOR,
+            payment_hash: satusd_types::sha256(&[&[0x55u8; 32]]),
+            asset_lock_csv_delta: 288,
+            btc_htlc_csv_delta: 144,
+            max_operator_fee_bps: 50,
+            l1_anchor_height: 840_000,
+            l1_anchor_hash: [0x33; 32],
+            expiry_height: 900_000,
+            nonce: [0x34; 32],
+        }
+    }
+
+    /// The real lock-anchor `proof.File` + its verified head anchor (txid, vout).
+    fn lock_anchor_vector() -> (Vec<u8>, [u8; 32], u32) {
+        let bytes =
+            hex::decode(include_str!("../../../integration/lineage_vectors/lock_anchor.hex").trim())
+                .unwrap();
+        let f = satusd_ta_proof::parse_proof_file(&bytes).unwrap();
+        let head = satusd_ta_proof::verify_lineage(&f.parsed().unwrap()).unwrap();
+        (bytes, head.txid, head.output_index)
+    }
+
+    /// ★ Complete redemption E2E through the state node, with REAL on-chain
+    /// vectors: genesis → mint → **real `REDEEM_FAST_LOCK`** (the lock's lineage is
+    /// independently re-verified from `lock_anchor.hex`, §5.D15) → **submit_claim**
+    /// (`REDEEM_FAST_FINALIZE`) with the real universe burn proof (`burn_to_sink.hex`,
+    /// §5.D16), a valid SPV payout confirmation (§5.D14), and a real oracle quorum.
+    /// All five witnesses (lock / lineage / SPV / burn / oracle) share one family,
+    /// intent, payment hash, and amount. The node accepts: supply burns, the
+    /// reimbursement is reserved.
+    #[test]
+    fn full_redemption_e2e_real_vectors() {
+        let mut node =
+            StateNode::genesis(FAMILY, oracle_set_hash(7, &oracle_pubkeys()), 7, PRICE_50K);
+        node.set_l1_anchor(840_000, [0x0c; 32], ORACLE_MTP);
+        node.set_reserve_committee(reserve_committee_hash(3, &committee_pubkeys()));
+        node.issuer_register(issuer()).unwrap();
+        node.mint_commit(ISSUER_ID, &commit_witness()).unwrap();
+        node.mint_finalize(
+            ISSUER_ID,
+            &mint::MintFinalizeWitness {
+                issuer_id: ISSUER_ID,
+                requested_mint_atoms: 100_000_000,
+                deposit_txid: DEPOSIT_TXID,
+                asset_metadata_commitment: META,
+                mint_anchor_confirmations: 6,
+                mint_proof_ok: true,
+                oracle_price_e8: PRICE_50K,
+            },
+        )
+        .unwrap();
+        let reserve_before = node.state().reserve_btc_sats;
+
+        // --- REDEEM_FAST_LOCK: real lineage proof (lock_anchor.hex) re-verified ---
+        let it = lock_vector_intent();
+        let rih = redeem_intent_hash(&it);
+        let (lock_bytes, lock_txid, lock_vout) = lock_anchor_vector();
+        let lock = LockRecord {
+            lock_record_version: 1,
+            redeem_intent_hash: rih,
+            lock_anchor_outpoint: OutPoint {
+                txid: lock_txid,
+                vout: lock_vout,
+            },
+            lock_anchor_txid: lock_txid,
+            lock_script_key: tap_tweak(&it.user_asset_refund_key, &lock_tweak(&rih, &it.payment_hash)),
+            lock_amount_atoms: it.amount_satusd_atoms,
+            asset_family_id: FAMILY,
+            asset_lock_csv_delta: it.asset_lock_csv_delta,
+            payment_hash: it.payment_hash,
+            lineage_proof_hash: satusd_types::derive::lineage_proof_hash(&lock_bytes),
+            lineage_verified_by: vec![],
+            anchor_inclusion_height: 1,
+        };
+        node.redeem_lock(redeem::RedeemLockWitness {
+            redeem_intent: it.clone(),
+            lock_record: lock.clone(),
+            lock_exclusion_proof: vec![], // filled by the node
+            lineage_proof: lock_bytes,
+        })
+        .expect("real lock anchor verifies + commits");
+
+        // --- REDEEM_FAST_FINALIZE: submit_claim with real burn + SPV + oracle ---
+        let (burn_bytes, burn_txid, burn_vout) = burn_vector();
+        let preimage = [0x55u8; 32]; // it.payment_hash == sha256(preimage)
+        let redemption = claim::BatchRedemption {
+            redeem_intent: it.clone(),
+            lock_record: lock.clone(),
+            lock_finalize: LockFinalizeRecord {
+                lock_record_hash: lock_record_hash(&lock),
+                payment_preimage: preimage,
+                finalize_anchor_txid: burn_txid,
+                finalize_anchor_outpoint: OutPoint {
+                    txid: burn_txid,
+                    vout: burn_vout,
+                },
+                protocol_sink_script_key: satusd_crypto::nums::protocol_sink_script_key(&FAMILY),
+                protocol_burn_internal_key: satusd_crypto::nums::protocol_burn_internal_key(&FAMILY),
+                finalized_amount_atoms: lock.lock_amount_atoms,
+                operator_id: OPERATOR,
+                finalize_height: 840_002,
+                universe_burn_proof_hash: satusd_types::derive::lineage_proof_hash(&burn_bytes),
+            },
+            payout_confirmation: crate::spv::build_confirmation(preimage, 100_000, 101, 6),
+            lock_membership_proof: vec![],
+            consumed_exclusion_proof: vec![],
+            refund_exclusion_proof: vec![],
+            nullifier_exclusion_proof: vec![],
+            burn_proof: burn_bytes,
+        };
+        let claim_id = node
+            .submit_claim(
+                vec![redemption],
+                oracle_messages(),
+                oracle_pubkeys(),
+                submit_claim_clock(),
+                0,
+                840_100,
+                110,
+            )
+            .expect("node accepts the reserve claim");
+
+        // The complete redemption committed: supply burned, reimbursement reserved.
+        assert_eq!(node.state().sat_usd_supply_atoms, 100_000_000 - 4_000);
+        assert_eq!(node.state().reserved_pending_claim_sats, 80_000);
+        assert_eq!(node.state().reserve_btc_sats, reserve_before); // not debited at submit
+        assert_eq!(
+            node.pending_claim(&claim_id).unwrap().status,
+            PendingClaimStatus::Pending
+        );
+    }
+
     /// submit → expire → reclaim: the reservation is freed, reserve_btc untouched.
     #[test]
     fn submit_then_reclaim_lifecycle() {
