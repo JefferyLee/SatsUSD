@@ -629,6 +629,48 @@ fn main() {
                 "new_root": hex::encode(new_root),
             }));
         }
+
+        // lock_finalize: the §5.D17 active→consumed transition (M4b `LockFinalize`)
+        // — lock_record membership + lock_consumed insert (same key) + nullifier
+        // insert, mirroring claim.rs's SMT logic.
+        let member = [1u8; 32]; // SET_MEMBER
+        let k_lock = [0x4c; 32];
+        let k_nf = [0x6e; 32];
+        let lock_leaf = fr_to_be_bytes(&leaf_hash(&k_lock, &member));
+        let nf_leaf = fr_to_be_bytes(&leaf_hash(&k_nf, &member));
+
+        let mut lr = SparseMerkleTree::new();
+        lr.insert([0x01; 32], &member); // another lock, for a non-trivial path
+        lr.insert(k_lock, &member);
+        let lock_membership_siblings = lr.prove(&k_lock);
+
+        let consumed = SparseMerkleTree::new(); // k_lock not yet consumed
+        let consumed_siblings = consumed.prove(&k_lock);
+        let nfs = SparseMerkleTree::new(); // nullifier unused
+        let nf_siblings = nfs.prove(&k_nf);
+
+        let hl = |v: &[[u8; 32]]| {
+            Value::Array(v.iter().map(|s| Value::from(hex::encode(s))).collect())
+        };
+        vectors.push(json!({
+            "name": "lock_finalize_0",
+            "kind": "crypto",
+            "op": "lock_finalize",
+            "inputs": {
+                "lock_leaf": hex::encode(lock_leaf),
+                "lock_key": hex::encode(k_lock),
+                "lock_membership_siblings": hl(&lock_membership_siblings),
+                "consumed_siblings": hl(&consumed_siblings),
+                "nf_leaf": hex::encode(nf_leaf),
+                "nf_key": hex::encode(k_nf),
+                "nf_siblings": hl(&nf_siblings),
+            },
+            "lock_record_root": hex::encode(lr.root()),
+            "consumed_old": hex::encode(consumed.root()),
+            "consumed_new": hex::encode(root_after_update(&k_lock, &member, &consumed_siblings)),
+            "nf_old": hex::encode(nfs.root()),
+            "nf_new": hex::encode(root_after_update(&k_nf, &member, &nf_siblings)),
+        }));
     }
 
     // Domain separator registry: name -> raw ASCII bytes (no padding).

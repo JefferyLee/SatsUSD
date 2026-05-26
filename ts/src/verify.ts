@@ -95,6 +95,16 @@ for (const v of doc.vectors as any[]) {
         );
         break;
       }
+      case "lock_finalize": {
+        const z = "00".repeat(32);
+        const i = v.inputs;
+        check(v.name, smtFoldHex(i.lock_key, i.lock_leaf, i.lock_membership_siblings), v.lock_record_root, "lock_record_root");
+        check(v.name, smtFoldHex(i.lock_key, z, i.consumed_siblings), v.consumed_old, "consumed_old");
+        check(v.name, smtFoldHex(i.lock_key, i.lock_leaf, i.consumed_siblings), v.consumed_new, "consumed_new");
+        check(v.name, smtFoldHex(i.nf_key, z, i.nf_siblings), v.nf_old, "nf_old");
+        check(v.name, smtFoldHex(i.nf_key, i.nf_leaf, i.nf_siblings), v.nf_new, "nf_new");
+        break;
+      }
       case "tier": {
         const r = BigInt(v.inputs.reserve_sats);
         const s = BigInt(v.inputs.supply_atoms);

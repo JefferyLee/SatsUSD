@@ -9,7 +9,9 @@ circom m4a_cr_tier.circom    --wasm -l node_modules -o build
 circom m4a_batch_root.circom --wasm -l node_modules -o build
 circom m4b_smt.circom         --wasm -l node_modules -o build
 circom m4b_lock_insert.circom --wasm -l node_modules -o build
+circom m4b_lock_finalize.circom --wasm -l node_modules -o build
 node test_tier.mjs
 node test_batch.mjs
 node test_smt.mjs
 node test_lock_insert.mjs
+node test_lock_finalize.mjs
