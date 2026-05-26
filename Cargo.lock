@@ -1573,6 +1573,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-operator"
+version = "0.1.0"
+dependencies = [
+ "bitcoin",
+ "bitcoincore-rpc",
+ "hex",
+ "satusd-crypto",
+ "satusd-types",
+]
+
+[[package]]
 name = "satusd-state"
 version = "0.1.0"
 dependencies = [

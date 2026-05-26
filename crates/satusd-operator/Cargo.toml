@@ -1,0 +1,15 @@
+[package]
+name = "satusd-operator"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+satusd-types = { path = "../satusd-types" }
+satusd-crypto = { path = "../satusd-crypto" }
+bitcoin = "0.32.9"
+bitcoincore-rpc = "0.19.0"
+hex.workspace = true
+
+[dev-dependencies]
