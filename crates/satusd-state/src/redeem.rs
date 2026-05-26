@@ -17,7 +17,10 @@
 use satusd_crypto::nums::tap_tweak;
 use satusd_crypto::smt;
 use satusd_crypto::state::state_root_hash;
-use satusd_types::derive::{lock_record_hash, lock_tweak, redeem_intent_hash};
+use satusd_ta_proof::{parse_proof_file, verify_lineage};
+use satusd_types::derive::{
+    asset_family_id, lineage_proof_hash, lock_record_hash, lock_tweak, redeem_intent_hash,
+};
 use satusd_types::types::{LockRecord, LockRefundRecord, RedeemIntent, StateRoot, TransitionType};
 
 /// Minimum / maximum redemption amount in atoms (§18.3).
@@ -48,8 +51,11 @@ pub enum RedeemRejectReason {
     OperatorIdMissing,
     CsvTooShort, // R-05
     PaymentHashMismatch,
-    LineageInvalid, // M3 fake lineage
+    LineageInvalid, // M3 fake lineage (broken anchoring / split commitment)
+    LineageProofMalformed,
     LineageProofHashMismatch,
+    LineageAnchorMismatch,
+    GroupKeyMissing,
     LockAlreadyExists,
     LockNotActive,
     LockConsumed,     // R-09 (double finalize), R-17 (refund-after-finalize)
@@ -138,16 +144,82 @@ pub(crate) fn check_intent_lock_binding(
     Ok(())
 }
 
+/// §5.D15 (DL-23) lineage → lock binding. Independently re-verify the submitted
+/// tapd `proof.File` (the genesis→lock-output Taproot Asset lineage) and bind its
+/// head — the lock output — to the `LockRecord`. `asset_proof_hash` is **not** a
+/// trust anchor: the state node recomputes everything.
+///
+/// Enforces the §5.D15 bindings against the verified head asset:
+/// 1-2. genesis→lock lineage valid + every intermediate split commitment
+///      consistent ([`verify_lineage`]).
+/// 3.   lock output `script_key` (x-only) == `lock.lock_script_key` — which
+///      [`check_intent_lock_binding`] in turn pins to `derive_lock_script_key`.
+/// 4.   lock output `asset_family_id` == `lock.asset_family_id`.
+/// 5.   lock output `amount` == `lock.lock_amount_atoms`.
+/// Plus: the verified head IS the claimed `lock_anchor_outpoint`, and the proof's
+/// hash equals `lock.lineage_proof_hash` (§5.D15 step 3).
+///
+/// `chain_id` is the network byte for the asset-family id (§5.D1).
+pub(crate) fn check_lineage_lock_binding(
+    proof_file_bytes: &[u8],
+    lock: &LockRecord,
+    chain_id: u8,
+) -> Result<(), RedeemRejectReason> {
+    use RedeemRejectReason::*;
+    let file = parse_proof_file(proof_file_bytes).map_err(|_| LineageProofMalformed)?;
+    let proofs = file.parsed().map_err(|_| LineageProofMalformed)?;
+    // (1-2) full lineage: every step anchored + asset committed + chained.
+    let head = verify_lineage(&proofs).map_err(|_| LineageInvalid)?;
+
+    let head_leaf = proofs
+        .last()
+        .ok_or(LineageInvalid)?
+        .asset_leaf()
+        .map_err(|_| LineageProofMalformed)?;
+
+    // (3) lock output script_key (33-byte compressed → 32-byte x-only).
+    ensure!(head_leaf.script_key.len() == 33, LineageProofMalformed);
+    ensure!(
+        head_leaf.script_key[1..33] == lock.lock_script_key,
+        LockScriptKeyMismatch
+    );
+
+    // (5) lock output amount.
+    ensure!(head_leaf.amount == lock.lock_amount_atoms, AmountMismatch);
+
+    // (4) lock output asset_family_id = SHA256(domain ‖ genesis_id ‖ group_key ‖
+    // chain_id) — SatUSD is a grouped reissuable asset (§5.D1).
+    let group_key: [u8; 33] = head_leaf
+        .group_key
+        .and_then(|g| <[u8; 33]>::try_from(g).ok())
+        .ok_or(GroupKeyMissing)?;
+    let family = asset_family_id(&head_leaf.genesis.asset_id(), &group_key, chain_id);
+    ensure!(family == lock.asset_family_id, AssetFamilyMismatch);
+
+    // The verified head must be exactly the claimed lock anchor output.
+    ensure!(
+        head.txid == lock.lock_anchor_outpoint.txid
+            && head.output_index == lock.lock_anchor_outpoint.vout,
+        LineageAnchorMismatch
+    );
+
+    // §5.D15 step 3: the LockRecord commits the verified proof's hash.
+    ensure!(
+        lineage_proof_hash(proof_file_bytes) == lock.lineage_proof_hash,
+        LineageProofHashMismatch
+    );
+    Ok(())
+}
+
 /// REDEEM_FAST_LOCK (§5.D10, §5.D15): submit a LockRecord into `lock_record_root`.
 pub struct RedeemLockWitness {
     pub redeem_intent: RedeemIntent,
     pub lock_record: LockRecord,
     /// `lock_record_hash` ∉ prev.lock_record_root.
     pub lock_exclusion_proof: Vec<[u8; 32]>,
-    /// TA lineage verifier result (DL-23, modeled as a fact this chunk).
-    pub lineage_ok: bool,
-    /// SHA256 of the verified lineage proof bytes, written into the LockRecord.
-    pub lineage_proof_hash: [u8; 32],
+    /// The full tapd `proof.File` (genesis→lock-output lineage), independently
+    /// re-verified here (DL-23); `asset_proof_hash` is not a trust anchor.
+    pub lineage_proof: Vec<u8>,
 }
 
 /// Build the post-state for REDEEM_FAST_LOCK (executor).
@@ -155,23 +227,19 @@ pub fn apply_redeem_lock(
     prev: &StateRoot,
     w: &RedeemLockWitness,
 ) -> Result<StateRoot, RedeemRejectReason> {
-    use RedeemRejectReason::*;
     check_intent_lock_binding(
         &w.redeem_intent,
         &w.lock_record,
         &prev.satusd_asset_family_id,
     )?;
 
-    ensure!(w.lineage_ok, LineageInvalid);
-    ensure!(
-        w.lock_record.lineage_proof_hash == w.lineage_proof_hash,
-        LineageProofHashMismatch
-    );
+    // §5.D15: re-verify the TA lineage and bind its head to the LockRecord.
+    check_lineage_lock_binding(&w.lineage_proof, &w.lock_record, w.redeem_intent.network)?;
 
     let lr_hash = lock_record_hash(&w.lock_record);
     ensure!(
         smt::verify_exclusion(&prev.lock_record_root, &lr_hash, &w.lock_exclusion_proof),
-        LockAlreadyExists
+        RedeemRejectReason::LockAlreadyExists
     );
 
     let mut expected = next_state(prev, TransitionType::RedeemFastLock);
@@ -367,15 +435,116 @@ mod tests {
         n
     }
 
-    // ---- REDEEM_FAST_LOCK ----
-    #[test]
-    fn lock_happy_path() {
-        let it = intent();
-        let lr = lock_record(&it);
-        let lr_hash = lock_record_hash(&lr);
-        let prev = base_state(200_000_000, 4_000_000_000);
-        let proof = set_tree(&[]).prove(&lr_hash); // exclusion against empty record set
+    // ---- §5.D15 lineage → lock binding (real grouped tapd vector) ----
+    // A grouped (reissuable) SatUSD lineage exported from a live tapd v0.7.2; the
+    // head (proof[1]) is the 400000-atom split output.
+    const GROUPED_HEX: &str =
+        include_str!("../../../integration/lineage_vectors/grouped_transfer.hex");
 
+    fn grouped_bytes() -> Vec<u8> {
+        hex::decode(GROUPED_HEX.trim()).unwrap()
+    }
+
+    /// A LockRecord that mirrors the verified head asset of the grouped lineage —
+    /// i.e. a lock anchor that genuinely commits this SatUSD output.
+    fn head_lock() -> LockRecord {
+        let bytes = grouped_bytes();
+        let f = parse_proof_file(&bytes).unwrap();
+        let proofs = f.parsed().unwrap();
+        let head = verify_lineage(&proofs).unwrap();
+        let leaf = proofs.last().unwrap().asset_leaf().unwrap();
+        let mut sk = [0u8; 32];
+        sk.copy_from_slice(&leaf.script_key[1..33]);
+        let gk: [u8; 33] = leaf.group_key.unwrap().try_into().unwrap();
+        LockRecord {
+            lock_record_version: 1,
+            redeem_intent_hash: [0; 32], // not checked by the lineage binding
+            lock_anchor_outpoint: OutPoint {
+                txid: head.txid,
+                vout: head.output_index,
+            },
+            lock_anchor_txid: head.txid,
+            lock_script_key: sk,
+            lock_amount_atoms: leaf.amount,
+            asset_family_id: asset_family_id(&leaf.genesis.asset_id(), &gk, 0),
+            asset_lock_csv_delta: 288,
+            payment_hash: [0; 32],
+            lineage_proof_hash: lineage_proof_hash(&bytes),
+            lineage_verified_by: vec![],
+            anchor_inclusion_height: 1,
+        }
+    }
+
+    // The grouped devnet asset's family (matches capture_lock_vector + claim.rs).
+    const LOCK_VECTOR_FAMILY: [u8; 32] = [
+        0x0c, 0x58, 0x77, 0x1b, 0xaf, 0x09, 0x1f, 0xbc, 0xea, 0xdf, 0x1c, 0x22, 0x39, 0x4e, 0x9e,
+        0x72, 0xad, 0x91, 0xc6, 0xa1, 0x35, 0xd7, 0xbf, 0x78, 0x30, 0x08, 0x62, 0xa0, 0x63, 0xc4,
+        0xbf, 0x9b,
+    ];
+    const LOCK_ANCHOR_HEX: &str =
+        include_str!("../../../integration/lineage_vectors/lock_anchor.hex");
+
+    /// The canonical lock-vector intent — mirrors `capture_lock_vector`'s
+    /// `canonical_intent` verbatim, so `derive_lock_script_key` reproduces the
+    /// script key the captured anchor commits to.
+    fn lock_vector_intent() -> RedeemIntent {
+        RedeemIntent {
+            version: 1,
+            network: 0,
+            redemption_id: [0x77; 32],
+            satusd_asset_family_id: LOCK_VECTOR_FAMILY,
+            amount_satusd_atoms: 4_000,
+            user_btc_refund_pubkey: [0x31; 32],
+            user_btc_claim_pubkey: [0x32; 32],
+            user_asset_refund_key: derive_nums_key("satusd-lock-vector-user", &[]),
+            operator_id: Some(OPERATOR),
+            mode: MODE_FAST_OPERATOR,
+            payment_hash: payment_hash(),
+            asset_lock_csv_delta: 288,
+            btc_htlc_csv_delta: 144,
+            max_operator_fee_bps: 50,
+            l1_anchor_height: 840_000,
+            l1_anchor_hash: [0x33; 32],
+            expiry_height: 900_000,
+            nonce: [0x34; 32],
+        }
+    }
+
+    #[test]
+    fn lock_real_anchor_end_to_end() {
+        // A real on-chain lock anchor: a grouped SatUSD genuinely sent (via tapd)
+        // to `derive_lock_script_key(intent)` with the NUMS anchor internal key
+        // and finalize/refund tapscript sibling. apply_redeem_lock must pass BOTH
+        // bindings (intent↔lock and the §5.D15 lineage↔lock) against the real proof.
+        let bytes = hex::decode(LOCK_ANCHOR_HEX.trim()).unwrap();
+        let it = lock_vector_intent();
+        let rih = rih_of(&it);
+        let head = verify_lineage(&parse_proof_file(&bytes).unwrap().parsed().unwrap()).unwrap();
+
+        let lr = LockRecord {
+            lock_record_version: 1,
+            redeem_intent_hash: rih,
+            lock_anchor_outpoint: OutPoint {
+                txid: head.txid,
+                vout: head.output_index,
+            },
+            lock_anchor_txid: head.txid,
+            lock_script_key: tap_tweak(
+                &it.user_asset_refund_key,
+                &lock_tweak(&rih, &it.payment_hash),
+            ),
+            lock_amount_atoms: it.amount_satusd_atoms,
+            asset_family_id: LOCK_VECTOR_FAMILY,
+            asset_lock_csv_delta: it.asset_lock_csv_delta,
+            payment_hash: it.payment_hash,
+            lineage_proof_hash: satusd_types::derive::lineage_proof_hash(&bytes),
+            lineage_verified_by: vec![],
+            anchor_inclusion_height: 1,
+        };
+        let lr_hash = lock_record_hash(&lr);
+        let mut prev = base_state(200_000_000, 4_000_000_000);
+        prev.satusd_asset_family_id = LOCK_VECTOR_FAMILY;
+        let proof = set_tree(&[]).prove(&lr_hash);
         let mut new = with_epoch(&prev, TransitionType::RedeemFastLock);
         new.lock_record_root = smt::root_after_update(&lr_hash, &SET_MEMBER, &proof);
 
@@ -383,14 +552,104 @@ mod tests {
             redeem_intent: it,
             lock_record: lr,
             lock_exclusion_proof: proof,
-            lineage_ok: true,
-            lineage_proof_hash: [0x99; 32],
+            lineage_proof: bytes,
         };
-        verify_redeem_lock(&prev, &new, &w).expect("lock ok");
+        verify_redeem_lock(&prev, &new, &w).expect("real lock anchor verifies end-to-end");
     }
 
     #[test]
-    fn lock_fake_lineage_rejected() {
+    fn lineage_binding_holds() {
+        // All §5.D15 bindings hold for a lock that mirrors the verified head.
+        check_lineage_lock_binding(&grouped_bytes(), &head_lock(), 0).expect("bindings hold");
+    }
+
+    #[test]
+    fn lineage_binding_rejects_wrong_script_key() {
+        let mut lock = head_lock();
+        lock.lock_script_key[0] ^= 1;
+        assert_eq!(
+            check_lineage_lock_binding(&grouped_bytes(), &lock, 0),
+            Err(RedeemRejectReason::LockScriptKeyMismatch)
+        );
+    }
+
+    #[test]
+    fn lineage_binding_rejects_wrong_amount() {
+        let mut lock = head_lock();
+        lock.lock_amount_atoms += 1;
+        assert_eq!(
+            check_lineage_lock_binding(&grouped_bytes(), &lock, 0),
+            Err(RedeemRejectReason::AmountMismatch)
+        );
+    }
+
+    #[test]
+    fn lineage_binding_rejects_wrong_family() {
+        // Wrong family id (e.g. wrong chain_id) ⇒ AssetFamilyMismatch.
+        assert_eq!(
+            check_lineage_lock_binding(&grouped_bytes(), &head_lock(), 2),
+            Err(RedeemRejectReason::AssetFamilyMismatch)
+        );
+    }
+
+    #[test]
+    fn lineage_binding_rejects_wrong_anchor() {
+        let mut lock = head_lock();
+        lock.lock_anchor_outpoint.vout ^= 1;
+        assert_eq!(
+            check_lineage_lock_binding(&grouped_bytes(), &lock, 0),
+            Err(RedeemRejectReason::LineageAnchorMismatch)
+        );
+    }
+
+    #[test]
+    fn lineage_binding_rejects_wrong_proof_hash() {
+        let mut lock = head_lock();
+        lock.lineage_proof_hash[0] ^= 1;
+        assert_eq!(
+            check_lineage_lock_binding(&grouped_bytes(), &lock, 0),
+            Err(RedeemRejectReason::LineageProofHashMismatch)
+        );
+    }
+
+    #[test]
+    fn lineage_binding_rejects_tampered_proof() {
+        // Flipping a byte inside the proof breaks the proof.File hash chain.
+        let mut bytes = grouped_bytes();
+        let i = bytes.len() / 2;
+        bytes[i] ^= 1;
+        assert_eq!(
+            check_lineage_lock_binding(&bytes, &head_lock(), 0),
+            Err(RedeemRejectReason::LineageProofMalformed)
+        );
+    }
+
+    // ---- REDEEM_FAST_LOCK (apply wiring) ----
+    #[test]
+    fn lock_rejects_lineage_not_matching_lock() {
+        // An intent-consistent lock whose claimed script_key (derived from the
+        // intent) does NOT match the on-chain asset's script_key ⇒ the §5.D15
+        // binding rejects, even though the intent↔lock binding passes.
+        let it = intent();
+        let lr = lock_record(&it); // lock_script_key = derive_lock_script_key(intent)
+        let lr_hash = lock_record_hash(&lr);
+        let prev = base_state(200_000_000, 4_000_000_000);
+        let proof = set_tree(&[]).prove(&lr_hash);
+        let new = with_epoch(&prev, TransitionType::RedeemFastLock);
+        let w = RedeemLockWitness {
+            redeem_intent: it,
+            lock_record: lr,
+            lock_exclusion_proof: proof,
+            lineage_proof: grouped_bytes(),
+        };
+        assert_eq!(
+            verify_redeem_lock(&prev, &new, &w),
+            Err(RedeemRejectReason::LockScriptKeyMismatch)
+        );
+    }
+
+    #[test]
+    fn lock_rejects_malformed_lineage_proof() {
         let it = intent();
         let lr = lock_record(&it);
         let lr_hash = lock_record_hash(&lr);
@@ -401,12 +660,11 @@ mod tests {
             redeem_intent: it,
             lock_record: lr,
             lock_exclusion_proof: proof,
-            lineage_ok: false,
-            lineage_proof_hash: [0x99; 32],
+            lineage_proof: vec![0x01, 0x02, 0x03],
         };
         assert_eq!(
             verify_redeem_lock(&prev, &new, &w),
-            Err(RedeemRejectReason::LineageInvalid)
+            Err(RedeemRejectReason::LineageProofMalformed)
         );
     }
 

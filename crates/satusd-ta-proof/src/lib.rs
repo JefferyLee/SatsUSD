@@ -14,13 +14,20 @@
 //!   → block header merkle root; extracts the P2TR output key.
 //! - Asset→output-key commitment ([`verify_asset_inclusion`]): asset →
 //!   AssetCommitment → TapCommitment MS-SMTs → V2 tapscript leaf → taptweak, must
-//!   equal the on-chain output key (DL-23 inclusion). Single-asset, non-STXO.
-//! - Lineage continuity ([`verify_lineage`]): each step anchored + `prev_out`
-//!   chains to the prior step's anchored output.
+//!   equal the on-chain output key (DL-23 inclusion). Works for both mint outputs
+//!   and transfer (split) outputs — split outputs commit the asset leaf with the
+//!   split-commitment witness stripped, and the MS-SMT folds use the proof's own
+//!   siblings (general compressed proofs, not an assumed single-leaf path).
+//!   Also supports an optional tapscript sibling (lock anchors): the output's
+//!   tapscript root is the BIP341 `TapBranch` of the TA-commitment leaf with the
+//!   sibling preimage's tap hash. Handles grouped (reissuable) assets — the inner
+//!   AssetCommitment is keyed by `sha256(asset_id || xonly(scriptkey))`.
+//! - Lineage continuity ([`verify_lineage`]): every step's asset is committed in
+//!   its anchor output AND `prev_out` chains to the prior step's anchored output.
 //!
-//! WIP: transfer-output commitments (V2 STXO), multi-asset commitments, V0/V1
-//! tapscript, tapscript siblings (lock anchors), general compressed MS-SMT proofs;
-//! then §5.D15 bindings + wire into `redeem_lock`.
+//! The §5.D15 lineage→lock bindings consume this verifier in
+//! `satusd-state::redeem`. Not needed for SatUSD (single asset per
+//! lock/finalize output): multi-asset commitments, V0/V1 TapCommitments.
 
 use sha2::{Digest, Sha256};
 
@@ -61,6 +68,8 @@ pub enum ProofError {
     /// A proof step's input (prev_out) is not the previous step's anchored output.
     LineageBroken,
     EmptyLineage,
+    /// A tapscript sibling preimage had an unknown type or invalid length.
+    BadTapSibling,
 }
 
 /// Top-level `proof.Proof` TLV type numbers (tapd v0.7.2 `proof/records.go`).
@@ -399,6 +408,9 @@ pub struct TaprootProof<'a> {
 pub mod commitment_tlv {
     pub const ASSET_PROOF: u64 = 1;
     pub const TAPROOT_ASSET_PROOF: u64 = 2;
+    /// Optional tapscript sibling preimage hashed with the TA-commitment leaf to
+    /// form the output's tapscript root (SatUSD lock anchors carry one).
+    pub const TAP_SIBLING_PREIMAGE: u64 = 5;
     // AssetProof inner TLV
     pub const AP_VERSION: u64 = 0;
     pub const AP_ASSET_ID: u64 = 2; // the AssetCommitment's tap key (asset_id)
@@ -432,6 +444,11 @@ pub struct TaprootAssetProof<'a> {
 pub struct CommitmentProof<'a> {
     pub asset_proof: AssetProof<'a>,
     pub taproot_asset_proof: TaprootAssetProof<'a>,
+    /// Optional tapscript sibling preimage (`[siblingType:u8] || preimage`): a
+    /// leaf (`version || compactsize(len) || script`) or a 64-byte branch
+    /// (`left || right`). When present the output's tapscript root is the
+    /// `TapBranch` of the TA-commitment leaf with this sibling.
+    pub tap_sibling: Option<&'a [u8]>,
 }
 
 fn u8_field(v: &[u8]) -> Result<u8, ProofError> {
@@ -464,6 +481,7 @@ pub fn parse_commitment_proof(value: &[u8]) -> Result<CommitmentProof<'_>, Proof
     Ok(CommitmentProof {
         asset_proof,
         taproot_asset_proof,
+        tap_sibling: get(TAP_SIBLING_PREIMAGE),
     })
 }
 
@@ -489,6 +507,80 @@ pub fn parse_taproot_proof(value: &[u8]) -> Result<TaprootProof<'_>, ProofError>
         commitment_proof: get(COMMITMENT_PROOF),
         tapscript_proof: get(TAPSCRIPT_PROOF),
     })
+}
+
+/// Witness sub-record TLV types (tapd `asset/records.go`).
+mod witness_tlv {
+    pub const PREV_ID: u64 = 1;
+    pub const TX_WITNESS: u64 = 3;
+    pub const SPLIT_COMMITMENT: u64 = 5;
+}
+
+/// The asset-leaf bytes that tapd commits to its output. For a split output —
+/// an asset whose single prev-witness is a split-commitment witness (PrevID
+/// present, no TxWitness, SplitCommitment present) — tapd nulls the
+/// `SplitCommitment` before hashing the leaf (proof/taproot.go
+/// `DeriveByAssetInclusion`: "the output of the receiver was created without
+/// this present"). This re-encodes the asset leaf with that sub-record stripped.
+/// Returns `None` when the asset is not a split-commitment witness, in which case
+/// the raw asset-leaf bytes are already the committed leaf (e.g. mint outputs).
+fn split_committed_leaf_bytes(asset_leaf_bytes: &[u8]) -> Option<Vec<u8>> {
+    let recs = parse_tlv(asset_leaf_bytes).ok()?;
+    let pw = recs
+        .iter()
+        .find(|(t, _)| *t == asset_tlv::PREV_WITNESS)
+        .map(|(_, v)| *v)?;
+
+    // PrevWitness value = BigSize(count) || count×( BigSize(len) || witness_tlv ).
+    // A split-commitment witness asset has exactly one prev-witness.
+    let mut c = Cursor { b: pw, i: 0 };
+    if c.bigsize().ok()? != 1 {
+        return None;
+    }
+    let wlen = c.bigsize().ok()? as usize;
+    let witness = c.take(wlen).ok()?;
+    if c.i != pw.len() {
+        return None;
+    }
+
+    // IsSplitCommitWitness: PrevID present, no TxWitness, SplitCommitment present.
+    let wrecs = parse_tlv(witness).ok()?;
+    let has = |t: u64| wrecs.iter().any(|(ty, _)| *ty == t);
+    if !(has(witness_tlv::PREV_ID)
+        && !has(witness_tlv::TX_WITNESS)
+        && has(witness_tlv::SPLIT_COMMITMENT))
+    {
+        return None;
+    }
+
+    // Re-encode the witness without the split-commitment (type 5) record, then
+    // re-wrap the PrevWitness value, then re-encode the whole asset TLV stream.
+    let mut new_witness = Vec::new();
+    for (ty, v) in &wrecs {
+        if *ty == witness_tlv::SPLIT_COMMITMENT {
+            continue;
+        }
+        write_bigsize(*ty, &mut new_witness);
+        write_bigsize(v.len() as u64, &mut new_witness);
+        new_witness.extend_from_slice(v);
+    }
+    let mut new_pw = Vec::new();
+    write_bigsize(1, &mut new_pw);
+    write_bigsize(new_witness.len() as u64, &mut new_pw);
+    new_pw.extend_from_slice(&new_witness);
+
+    let mut out = Vec::new();
+    for (ty, v) in &recs {
+        write_bigsize(*ty, &mut out);
+        let value: &[u8] = if *ty == asset_tlv::PREV_WITNESS {
+            &new_pw
+        } else {
+            v
+        };
+        write_bigsize(value.len() as u64, &mut out);
+        out.extend_from_slice(value);
+    }
+    Some(out)
 }
 
 fn dsha256(parts: &[&[u8]]) -> [u8; 32] {
@@ -624,6 +716,36 @@ fn tagged_hash(tag: &[u8], msg: &[u8]) -> [u8; 32] {
     sha256(&[&th, &th, msg])
 }
 
+/// BIP341 `TapBranch`: hash the two child hashes in lexicographic order
+/// (`tapd asset.TapBranchHash`).
+fn tap_branch_hash(a: &[u8; 32], b: &[u8; 32]) -> [u8; 32] {
+    let (l, r) = if a[..] <= b[..] { (a, b) } else { (b, a) };
+    let mut msg = [0u8; 64];
+    msg[..32].copy_from_slice(l);
+    msg[32..].copy_from_slice(r);
+    tagged_hash(b"TapBranch", &msg)
+}
+
+/// Tap-hash of a tapd `TapscriptPreimage` wire value (`[siblingType:u8] ||
+/// preimage`). A leaf preimage (type 0) is already a TapLeaf preimage
+/// (`leafVersion || compactsize(len) || script`) ⇒ `TapLeaf` tagged hash; a
+/// branch preimage (type 1) is `left(32) || right(32)` ⇒ `TapBranch`.
+fn sibling_tap_hash(value: &[u8]) -> Result<[u8; 32], ProofError> {
+    let (ty, preimage) = value.split_first().ok_or(ProofError::BadTapSibling)?;
+    match ty {
+        0 => Ok(tagged_hash(b"TapLeaf", preimage)),
+        1 => {
+            if preimage.len() != 64 {
+                return Err(ProofError::BadTapSibling);
+            }
+            let l: [u8; 32] = preimage[..32].try_into().unwrap();
+            let r: [u8; 32] = preimage[32..].try_into().unwrap();
+            Ok(tap_branch_hash(&l, &r))
+        }
+        _ => Err(ProofError::BadTapSibling),
+    }
+}
+
 /// Reconstruct the on-chain x-only taproot output key that a proof's asset must
 /// be committed under, from the asset leaf + its `CommitmentProof`. This is the
 /// cryptographic heart of DL-23: it ties the asset (amount, script_key) to the
@@ -631,9 +753,9 @@ fn tagged_hash(tag: &[u8], msg: &[u8]) -> [u8; 32] {
 /// tapscript leaf, and the taproot tweak. Verified byte-for-byte against live
 /// tapd (`commitment`/`mssmt`).
 ///
-/// Scope: single-leaf commitments (SatUSD's one-asset-per-commitment layout;
-/// `numNodes = 0`), V2 TapCommitment, no tapscript sibling. Multi-asset
-/// commitments, V0/V1, and lock-anchor siblings are later work.
+/// Handles mint and transfer (split) outputs, general compressed MS-SMT proofs,
+/// and an optional tapscript sibling (lock anchors). Scope still pending:
+/// multi-asset commitments, V0/V1 TapCommitments, grouped assets.
 pub fn reconstruct_output_key(
     asset: &AssetLeaf,
     asset_leaf_bytes: &[u8],
@@ -650,11 +772,27 @@ pub fn reconstruct_output_key(
         .map_err(|_| ProofError::BadFieldLength)?;
 
     // Inner MS-SMT: asset in its AssetCommitment, keyed by sha256(xonly(scriptkey)).
+    // Fold through the proof's own siblings (single-leaf for mint outputs, but
+    // transfer outputs commit additional leaves — e.g. STXO — so the siblings
+    // are not all empty: `walkUp`, not an assumed empty path).
     if asset.script_key.len() != 33 {
         return Err(ProofError::BadFieldLength);
     }
-    let ack = sha256(&[&asset.script_key[1..33]]);
-    let (inner, l, r) = mssmt::single_leaf_root(&ack, mssmt::leaf(asset_leaf_bytes, asset.amount));
+    // Inner AssetCommitment key (`asset.AssetCommitmentKey`): for a grouped asset
+    // (issuance enabled) it is `sha256(genesis_asset_id || xonly(scriptkey))`;
+    // for an ungrouped asset just `sha256(xonly(scriptkey))`.
+    let ack = if asset.group_key.is_some() {
+        sha256(&[&asset.genesis.asset_id(), &asset.script_key[1..33]])
+    } else {
+        sha256(&[&asset.script_key[1..33]])
+    };
+    // Split outputs commit the asset leaf with the split-commitment witness
+    // stripped; mint outputs commit the raw leaf.
+    let stripped = split_committed_leaf_bytes(asset_leaf_bytes);
+    let leaf_value: &[u8] = stripped.as_deref().unwrap_or(asset_leaf_bytes);
+    let inner_sib = mssmt::parse_compressed_proof(cp.asset_proof.mssmt_proof)
+        .ok_or(ProofError::BadFieldLength)?;
+    let (inner, l, r) = mssmt::proof_root(&ack, mssmt::leaf(leaf_value, asset.amount), &inner_sib);
 
     // AssetCommitment.Root() = sha256(asset_id || rootL || rootR || u64_be(sum)).
     let ac_root = sha256(&[&asset_id, &l, &r, &inner.sum.to_be_bytes()]);
@@ -665,7 +803,10 @@ pub fn reconstruct_output_key(
     tcl_value.push(cp.asset_proof.version);
     tcl_value.extend_from_slice(&ac_root);
     tcl_value.extend_from_slice(&inner.sum.to_be_bytes());
-    let (outer, _, _) = mssmt::single_leaf_root(&asset_id, mssmt::leaf(&tcl_value, inner.sum));
+    let outer_sib = mssmt::parse_compressed_proof(cp.taproot_asset_proof.mssmt_proof)
+        .ok_or(ProofError::BadFieldLength)?;
+    let (outer, _, _) =
+        mssmt::proof_root(&asset_id, mssmt::leaf(&tcl_value, inner.sum), &outer_sib);
 
     // V2 tapscript leaf: tag || version || rootHash || u64_be(rootSum).
     if cp.taproot_asset_proof.version != 2 {
@@ -682,9 +823,17 @@ pub fn reconstruct_output_key(
     preimage.push(0xc0);
     preimage.push(script.len() as u8);
     preimage.extend_from_slice(&script);
-    let tapscript_root = tagged_hash(b"TapLeaf", &preimage);
+    let ta_leaf_hash = tagged_hash(b"TapLeaf", &preimage);
 
-    // Taproot output key = taptweak(internal_xonly, tapscript_root) (no sibling).
+    // Tapscript root: the TA-commitment leaf alone, or — if the output committed
+    // a tapscript sibling (e.g. a SatUSD lock's finalize/refund tree) — the
+    // BIP341 `TapBranch` of the TA leaf with the sibling's tap hash.
+    let tapscript_root = match cp.tap_sibling {
+        None => ta_leaf_hash,
+        Some(sib) => tap_branch_hash(&ta_leaf_hash, &sibling_tap_hash(sib)?),
+    };
+
+    // Taproot output key = taptweak(internal_xonly, tapscript_root).
     let internal_xonly: [u8; 32] = taproot.internal_key[1..33]
         .try_into()
         .map_err(|_| ProofError::BadFieldLength)?;
@@ -726,19 +875,19 @@ fn prev_outpoint(proof: &Proof) -> Result<([u8; 32], u32), ProofError> {
     Ok((txid, vout))
 }
 
-/// Verify a proof file's lineage: every step is anchored on-chain (`verify_anchor`)
-/// and each step's input (`prev_out`) is the previous step's anchored output — a
-/// connected chain of Bitcoin transactions from genesis to the latest state.
+/// Verify a proof file's lineage: every step's asset is committed in its anchor
+/// output (`verify_asset_inclusion`) AND each step's input (`prev_out`) is the
+/// previous step's anchored output — a connected chain of Bitcoin transactions,
+/// each cryptographically committing its asset, from genesis to the latest state.
 /// Returns the head (latest) `AnchorInfo`.
 ///
-/// Per-step asset→commitment inclusion is `verify_asset_inclusion` (single-asset,
-/// non-STXO commitments — genesis/mint outputs). Transfer outputs carry V2 STXO
-/// commitments whose reconstruction is WIP, so this checks their on-chain
-/// anchoring + continuity but not (yet) their asset→key commitment.
+/// Both mint outputs and transfer (split) outputs are fully verified: split
+/// outputs commit the asset leaf with the split-commitment witness stripped
+/// (handled in `reconstruct_output_key`).
 pub fn verify_lineage(proofs: &[Proof]) -> Result<AnchorInfo, ProofError> {
     let mut prev: Option<AnchorInfo> = None;
     for p in proofs {
-        let anchor = verify_anchor(p)?;
+        let anchor = verify_asset_inclusion(p)?;
         if let Some(prev) = &prev {
             let (txid, vout) = prev_outpoint(p)?;
             if txid != prev.txid || vout != prev.output_index {
@@ -777,6 +926,10 @@ mod tests {
 
     fn bytes(hex_str: &str) -> Vec<u8> {
         hex::decode(hex_str.trim()).unwrap()
+    }
+
+    fn h32(hex_str: &str) -> [u8; 32] {
+        hex::decode(hex_str).unwrap().try_into().unwrap()
     }
 
     #[test]
@@ -964,18 +1117,190 @@ mod tests {
 
     #[test]
     fn lineage_continuity_holds() {
-        // genesis → transfer: each step anchored, and the transfer's input is the
-        // genesis's anchored output. Head = the transfer output.
+        // genesis → transfer: each step's asset is committed in its anchor, and
+        // the transfer's input is the genesis's anchored output. Head = transfer.
         let data = bytes(TRANSFER_HEX);
         let f = parse_proof_file(&data).unwrap();
         let proofs = f.parsed().unwrap();
-        let head = verify_lineage(&proofs).expect("connected lineage");
+        let head = verify_lineage(&proofs).expect("connected, fully-committed lineage");
         // The head's prev_out chains back to the genesis mint output.
         let (txid, vout) = prev_outpoint(&proofs[1]).unwrap();
         let genesis_anchor = verify_anchor(&proofs[0]).unwrap();
         assert_eq!(txid, genesis_anchor.txid);
         assert_eq!(vout, genesis_anchor.output_index);
         assert_eq!(head.output_index, 1); // the 250000 split output (vout 0 = change)
+    }
+
+    // ---- tapscript siblings (lock anchors) ----
+    // Ground truth from the Go oracle (tapd `commitment`/`txscript`) over the
+    // split asset: ta_leaf_hash af8eb0fc…, a leaf sibling (OP_TRUE) and a branch
+    // sibling, with their tap hashes and the resulting `TapscriptRoot(sibling)`.
+
+    #[test]
+    fn sibling_tap_hash_leaf_and_branch() {
+        // Leaf preimage wire `00 c0 01 51` ⇒ TapLeaf(leafVersion 0xc0, [OP_TRUE]).
+        assert_eq!(
+            sibling_tap_hash(&hex::decode("00c00151").unwrap()).unwrap(),
+            h32("a85b2107f791b26a84e7586c28cec7cb61202ed3d01944d832500f363782d675")
+        );
+        // Branch preimage wire `01 || left(32) || right(32)`.
+        let branch = "01a85b2107f791b26a84e7586c28cec7cb61202ed3d01944d832500f363782d675\
+                      c276fef1386890619b80e10a4a328572d97493add269df1a15a7f89f8ae8ec09";
+        assert_eq!(
+            sibling_tap_hash(&hex::decode(branch).unwrap()).unwrap(),
+            h32("6496f0779f38b871013be71ee7dcce8fcdcc02afc4c688acb159fc5de2fba55e")
+        );
+    }
+
+    #[test]
+    fn tap_branch_hash_matches_tapd() {
+        // TapBranch(ta_leaf, sibling) == tapd's TapscriptRoot(sibling), for both
+        // a leaf sibling and a branch sibling (BIP341 lexicographic sort).
+        let ta_leaf = h32("af8eb0fc01e5e6d342b48deec552452c6fff2c61ac21ce229f97aca5468eae7f");
+        let leaf_sib = h32("a85b2107f791b26a84e7586c28cec7cb61202ed3d01944d832500f363782d675");
+        assert_eq!(
+            tap_branch_hash(&ta_leaf, &leaf_sib),
+            h32("8d8826d1ed3d11cdf23d1be46fed96ad2bb26129c627bc96d5c9f6383af47225")
+        );
+        let branch_sib = h32("6496f0779f38b871013be71ee7dcce8fcdcc02afc4c688acb159fc5de2fba55e");
+        assert_eq!(
+            tap_branch_hash(&ta_leaf, &branch_sib),
+            h32("aff8777b1a315b81813cdd802491d8975b93c19032a5bf8abf20154d8eb48aa3")
+        );
+    }
+
+    #[test]
+    fn bad_sibling_rejected() {
+        assert_eq!(sibling_tap_hash(&[]), Err(ProofError::BadTapSibling));
+        assert_eq!(sibling_tap_hash(&[2, 0, 0]), Err(ProofError::BadTapSibling)); // unknown type
+        assert_eq!(sibling_tap_hash(&[1, 0, 0]), Err(ProofError::BadTapSibling));
+        // branch ≠ 64B
+    }
+
+    #[test]
+    fn reconstruct_with_tapscript_sibling() {
+        // Inject a leaf tapscript sibling into the split output's commitment proof
+        // (as a lock anchor would carry): the reconstructed key must equal
+        // taptweak(internal, TapBranch(ta_leaf, sibling)) — tapd's tapscript root.
+        let sib_wire = hex::decode("00c00151").unwrap();
+        let data = bytes(TRANSFER_HEX);
+        let f = parse_proof_file(&data).unwrap();
+        let p = parse_proof(f.proofs[1]).unwrap();
+        let asset = p.asset_leaf().unwrap();
+        let leaf_bytes = p.get(tlv::ASSET_LEAF).unwrap();
+        let tp = parse_taproot_proof(p.get(tlv::INCLUSION_PROOF).unwrap()).unwrap();
+        let mut cp = tp.parse_commitment().unwrap().unwrap();
+        cp.tap_sibling = Some(&sib_wire);
+
+        let key = reconstruct_output_key(&asset, leaf_bytes, &cp, &tp).unwrap();
+        let internal_xonly: [u8; 32] = tp.internal_key[1..33].try_into().unwrap();
+        let ts_root = h32("8d8826d1ed3d11cdf23d1be46fed96ad2bb26129c627bc96d5c9f6383af47225");
+        assert_eq!(
+            key,
+            satusd_crypto::nums::tap_tweak(&internal_xonly, &ts_root)
+        );
+
+        // Without the sibling (no-sibling root) the key differs.
+        cp.tap_sibling = None;
+        assert_ne!(
+            reconstruct_output_key(&asset, leaf_bytes, &cp, &tp).unwrap(),
+            key
+        );
+    }
+
+    // ---- grouped (reissuable) assets ----
+    const GROUPED_HEX: &str =
+        include_str!("../../../integration/lineage_vectors/grouped_transfer.hex");
+
+    #[test]
+    fn grouped_lineage_fully_committed() {
+        // A grouped asset keys its inner AssetCommitment by
+        // sha256(asset_id || xonly(scriptkey)); the whole genesis→transfer lineage
+        // must still verify (anchoring + asset→key commitment per step).
+        let data = bytes(GROUPED_HEX);
+        let f = parse_proof_file(&data).unwrap();
+        let proofs = f.parsed().unwrap();
+        assert_eq!(proofs.len(), 2);
+        let head = verify_lineage(&proofs).expect("grouped lineage verifies end-to-end");
+        let leaf = proofs.last().unwrap().asset_leaf().unwrap();
+        assert_eq!(leaf.amount, 400_000); // the split output
+        assert_eq!(leaf.group_key.map(|g| g.len()), Some(33)); // carries a group key
+                                                               // x-only of the head asset's script key is committed under the anchor key.
+        assert_eq!(head.output_index, 1);
+    }
+
+    #[test]
+    fn burn_lineage_fully_committed() {
+        // A real tapd burn: genesis → transfers → burn output (50000 units sent to
+        // a provably-unspendable burn script key). The whole lineage, including the
+        // burn output's asset→key commitment, must verify.
+        let data = bytes(include_str!(
+            "../../../integration/lineage_vectors/burn_transfer.hex"
+        ));
+        let f = parse_proof_file(&data).unwrap();
+        let proofs = f.parsed().unwrap();
+        let head = verify_lineage(&proofs).expect("burn lineage verifies end-to-end");
+        let leaf = proofs.last().unwrap().asset_leaf().unwrap();
+        assert_eq!(leaf.amount, 50_000); // the burned amount
+        assert_eq!(head.output_index, 0); // burn output anchored at vout 0
+    }
+
+    #[test]
+    fn burn_to_sink_lineage_verifies() {
+        // A grouped SatUSD sent to the protocol NUMS burn sink: the whole lineage
+        // (genesis → … → burn output) verifies, and the head output commits the
+        // asset to the sink script key the state node will bind against (D16).
+        let data = bytes(include_str!(
+            "../../../integration/lineage_vectors/burn_to_sink.hex"
+        ));
+        let f = parse_proof_file(&data).unwrap();
+        let proofs = f.parsed().unwrap();
+        verify_lineage(&proofs).expect("burn-to-sink lineage verifies end-to-end");
+        let leaf = proofs.last().unwrap().asset_leaf().unwrap();
+        assert_eq!(leaf.amount, 4_000);
+        // The committed x-only script key is the protocol burn sink.
+        assert_eq!(
+            hex::encode(&leaf.script_key[1..33]),
+            "c2945baf61de43d509b9bc70aa20759dfd7902011dba68f8e97eae24451d2131"
+        );
+    }
+
+    #[test]
+    fn lock_anchor_with_real_tapscript_sibling_verifies() {
+        // A real SatUSD lock anchor: the asset is committed in a P2TR whose
+        // tapscript tree is TapBranch(TA-commitment, finalize/refund sibling). The
+        // head's commitment proof carries a real TapSiblingPreimage, and the whole
+        // lineage verifies — the sibling path against genuine tapd bytes (not just
+        // the oracle-synthesised siblings).
+        let data = bytes(include_str!(
+            "../../../integration/lineage_vectors/lock_anchor.hex"
+        ));
+        let f = parse_proof_file(&data).unwrap();
+        let proofs = f.parsed().unwrap();
+        verify_lineage(&proofs).expect("lock-anchor lineage verifies end-to-end");
+        let head = proofs.last().unwrap();
+        let tp = parse_taproot_proof(head.get(tlv::INCLUSION_PROOF).unwrap()).unwrap();
+        let cp = tp.parse_commitment().unwrap().unwrap();
+        assert!(
+            cp.tap_sibling.is_some(),
+            "lock anchor commits a tapscript sibling"
+        );
+    }
+
+    #[test]
+    fn grouped_tampered_amount_breaks_commitment() {
+        let data = bytes(GROUPED_HEX);
+        let f = parse_proof_file(&data).unwrap();
+        let p = parse_proof(f.proofs[1]).unwrap();
+        let asset = p.asset_leaf().unwrap();
+        let leaf_bytes = p.get(tlv::ASSET_LEAF).unwrap();
+        let tp = parse_taproot_proof(p.get(tlv::INCLUSION_PROOF).unwrap()).unwrap();
+        let cp = tp.parse_commitment().unwrap().unwrap();
+        let anchor = verify_anchor(&p).unwrap();
+        let mut bad = asset;
+        bad.amount ^= 1;
+        let key = reconstruct_output_key(&bad, leaf_bytes, &cp, &tp).unwrap();
+        assert_ne!(key, anchor.taproot_output_key);
     }
 
     #[test]
@@ -989,17 +1314,56 @@ mod tests {
     }
 
     #[test]
-    fn lineage_genesis_step_committed() {
-        // The genesis (mint) step of the lineage is committed in its anchor. The
-        // split transfer output (proof[1]) commits its asset with additional
-        // split-commitment structure not yet reconstructed (follow-up) — its
-        // anchoring is still verified by `verify_anchor`, only the asset→key
-        // commitment reconstruction is pending for split outputs.
+    fn transfer_split_output_committed_in_anchor() {
+        // The split transfer output (proof[1]) commits its asset in its anchor:
+        // tapd strips the split-commitment witness before hashing the leaf, and
+        // the reconstructed taproot output key equals the on-chain key.
         let data = bytes(TRANSFER_HEX);
         let f = parse_proof_file(&data).unwrap();
         let proofs = f.parsed().unwrap();
-        verify_asset_inclusion(&proofs[0]).expect("genesis step committed on-chain");
-        verify_anchor(&proofs[1]).expect("split output is anchored on-chain");
+        let anchor = verify_asset_inclusion(&proofs[1]).expect("split output committed on-chain");
+        // The 250000 split output's on-chain x-only taproot key (from bitcoind).
+        assert_eq!(
+            hex::encode(anchor.taproot_output_key),
+            "c74aed02a691d58a20c6e5e0401bd8bca5ce1cf9cf3053421162fc512648a537"
+        );
+    }
+
+    #[test]
+    fn split_output_uses_stripped_leaf() {
+        // The committed leaf for a split output is NOT the raw asset-leaf bytes:
+        // the split-commitment witness sub-record is removed first. Using the raw
+        // leaf (no strip) must fail to reconstruct the on-chain key.
+        let data = bytes(TRANSFER_HEX);
+        let f = parse_proof_file(&data).unwrap();
+        let p = parse_proof(f.proofs[1]).unwrap();
+        let leaf_bytes = p.get(tlv::ASSET_LEAF).unwrap();
+        assert!(
+            split_committed_leaf_bytes(leaf_bytes).is_some(),
+            "split output asset is a split-commitment witness"
+        );
+        // The genesis (mint) asset is not a split-commitment witness ⇒ raw leaf.
+        let gdata = bytes(GENESIS_HEX);
+        let gf = parse_proof_file(&gdata).unwrap();
+        let g = parse_proof(gf.proofs[0]).unwrap();
+        assert!(split_committed_leaf_bytes(g.get(tlv::ASSET_LEAF).unwrap()).is_none());
+    }
+
+    #[test]
+    fn tampered_split_amount_breaks_commitment() {
+        // Flip the split output's committed amount ⇒ reconstructed key ≠ on-chain.
+        let data = bytes(TRANSFER_HEX);
+        let f = parse_proof_file(&data).unwrap();
+        let p = parse_proof(f.proofs[1]).unwrap();
+        let asset = p.asset_leaf().unwrap();
+        let leaf_bytes = p.get(tlv::ASSET_LEAF).unwrap();
+        let tp = parse_taproot_proof(p.get(tlv::INCLUSION_PROOF).unwrap()).unwrap();
+        let cp = tp.parse_commitment().unwrap().unwrap();
+        let anchor = verify_anchor(&p).unwrap();
+        let mut bad = asset;
+        bad.amount ^= 1;
+        let key = reconstruct_output_key(&bad, leaf_bytes, &cp, &tp).unwrap();
+        assert_ne!(key, anchor.taproot_output_key);
     }
 
     #[test]

@@ -20,6 +20,13 @@ pub fn asset_family_id(
     sha256(&[tag, genesis_asset_id, group_key, &[chain_id]])
 }
 
+/// `lineage_proof_hash` (§5.D15 step 3): `SHA256` over the canonical tapd
+/// `proof.File` serialization, domain-tagged. Written into the `LockRecord` and
+/// independently recomputed by challengers (DA-06).
+pub fn lineage_proof_hash(proof_file_bytes: &[u8]) -> [u8; 32] {
+    tagged_hash(domain::LINEAGE_PROOF, proof_file_bytes)
+}
+
 /// `redeem_intent_hash` (§5.D2 / §18.1).
 pub fn redeem_intent_hash(intent: &RedeemIntent) -> [u8; 32] {
     tagged_hash(domain::REDEEM_INTENT, &canonical_encode(intent))
