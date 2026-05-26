@@ -31,6 +31,8 @@ pub mod assetwalletrpc {
 pub use assetwalletrpc::asset_wallet_client::AssetWalletClient;
 pub use taprpc::taproot_assets_client::TaprootAssetsClient;
 
+pub mod proof_assembly;
+
 /// Injects the `macaroon: <hex>` metadata header tapd requires.
 #[derive(Clone)]
 pub struct MacaroonInterceptor {
