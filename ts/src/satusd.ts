@@ -3,7 +3,7 @@
 
 import { createHash } from "node:crypto";
 import { Encoder, hexToBytes, bytesToHex } from "./encoder.ts";
-import { hashBytesHex } from "./crypto.ts";
+import { foldLimbsHex } from "./crypto.ts";
 
 type Fields = Record<string, any>;
 
@@ -232,6 +232,48 @@ function encodeStateRoot(e: Encoder, f: Fields): void {
   e.u64(U(f, "l1_anchor_chain_time"));
 }
 
+// state_root_hash (§6.1, ADR-010): Poseidon-over-fields. Each scalar field
+// directly; each 32-byte value as two 128-bit big-endian limbs (hi, lo); in
+// declaration order (42 elements); poseidon2-folded. Mirrors
+// satusd_crypto::state::{state_field_elements, state_root_hash}.
+export function stateCommitFieldsHex(f: Fields): string {
+  const out: string[] = [];
+  const sc = (n: number | bigint) => out.push(BigInt(n).toString(16));
+  const h = (k: string) => {
+    const b = B(f, k);
+    out.push(bytesToHex(b.slice(0, 16)), bytesToHex(b.slice(16, 32)));
+  };
+  sc(N(f, "protocol_version"));
+  sc(U(f, "state_epoch"));
+  h("prev_state_root");
+  sc(N(f, "transition_type"));
+  h("satusd_asset_family_id");
+  sc(U(f, "sat_usd_supply_atoms"));
+  sc(U(f, "reserve_btc_sats"));
+  sc(U(f, "reserved_pending_claim_sats"));
+  sc(U(f, "collateral_ratio_ppm"));
+  sc(N(f, "emergency_tier"));
+  h("oracle_set_hash");
+  sc(U(f, "oracle_set_epoch"));
+  sc(U(f, "latest_oracle_epoch_seen"));
+  sc(U(f, "latest_oracle_price_e8"));
+  h("reserve_committee_hash");
+  h("issuer_positions_root");
+  h("operator_registry_root");
+  h("lock_record_root");
+  h("lock_consumed_root");
+  h("lock_refund_root");
+  h("redemption_nullifier_root");
+  h("pending_claim_root");
+  h("live_da_root");
+  h("archival_da_root");
+  h("l1_anchor_hash");
+  sc(N(f, "l1_anchor_height"));
+  sc(U(f, "l1_anchor_mtp"));
+  sc(U(f, "l1_anchor_chain_time"));
+  return foldLimbsHex(out);
+}
+
 function encodeIssuerPosition(e: Encoder, f: Fields): void {
   e.fixed(B(f, "issuer_id"));
   e.enumU8(N(f, "status"));
@@ -340,7 +382,7 @@ export function structHashes(type: string, fields: Fields): Record<string, strin
       };
     case "StateRoot":
       return {
-        state_root_hash: hashBytesHex(bytesToHex(encodeByType(type, fields))),
+        state_root_hash: stateCommitFieldsHex(fields),
       };
     default:
       return {};

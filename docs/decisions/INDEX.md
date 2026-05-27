@@ -10,7 +10,8 @@
 | [ADR-006](ADR-006-circuit-state-commit-and-transition.md) | In-circuit state commit (StateCommit gadget) + monolithic transition deferred to M7 (Poseidon-of-fields) | accepted |
 | [ADR-007](ADR-007-bitvm3-dispute-architecture.md) | BitVM3 dispute architecture — lineage + lock-binding sub-circuits as off-circuit recompute-and-compare (M8) | accepted |
 | [ADR-008](ADR-008-live-da-bundle-root.md) | Live DA bundle format + `live_da_root` = §10.3 per-section root (supersedes §10.1 flat hash) | accepted |
-| [ADR-009](ADR-009-monolithic-transition-circuit.md) | Poseidon-over-fields state commit + monolithic REDEEM_FAST_FINALIZE transition circuit (realizes ADR-006 M7) | accepted |
+| [ADR-009](ADR-009-monolithic-transition-circuit.md) | Poseidon-over-fields state commit + monolithic REDEEM_FAST_FINALIZE transition circuit (realizes ADR-006 M7); §2 parallel-commitment **superseded by ADR-010** | accepted |
+| [ADR-010](ADR-010-unify-state-commitment-poseidon-of-fields.md) | Unify `state_root_hash` on Poseidon-over-fields, retire the byte `hash_bytes(encode)` form (closes the m7↔chain commitment gap) | accepted |
 | [ADR-0011](ADR-0011-domain-separator-encoding.md) | Canonical hash domain-separator convention (raw ASCII, no padding) | accepted |
 | [ADR-0012](ADR-0012-claim-id-preimage.md) | `claim_id` preimage excludes `claim_id` and `operator_signature` (amended by ADR-0022) | accepted |
 | [ADR-0013](ADR-0013-poseidon-bn254.md) | Poseidon parameterization (circomlib BN254) + byte→field packing | accepted |

@@ -749,30 +749,9 @@ fn main() {
         }));
     }
 
-    // state_commit: state_root_hash = hash_bytes(canonical_encode(StateRoot)),
-    // folded as 31-byte big-endian limbs via poseidon2 (M4 circuit `StateCommit`).
-    {
-        let s = build_state_root(&mut d);
-        let enc = canonical_encode(&s);
-        let limbs: Vec<Value> = enc
-            .chunks(31)
-            .map(|c| {
-                let mut buf = [0u8; 32];
-                buf[32 - c.len()..].copy_from_slice(c); // BE, left-padded < Fr
-                Value::from(hex::encode(buf))
-            })
-            .collect();
-        vectors.push(json!({
-            "name": "state_commit_0",
-            "kind": "crypto",
-            "op": "state_commit",
-            "inputs": { "limbs": Value::Array(limbs), "byte_len": enc.len() },
-            "output": hex::encode(crypto::state::state_root_hash(&s)),
-        }));
-    }
-
-    // state_commit_fields: Poseidon-over-fields state commitment (ADR-006, M7) —
-    // 42 field elements (scalars + each 32-byte value as hi/lo limbs), poseidon2-fold.
+    // state_commit_fields: the canonical state commitment (ADR-010) — `state_root_hash`
+    // = Poseidon-over-fields: 42 field elements (scalars + each 32-byte value as hi/lo
+    // limbs), poseidon2-fold. (Replaced the byte-oriented hash_bytes form.)
     let fields_hex = |s: &StateRoot| -> Vec<Value> {
         crypto::state::state_field_elements(s)
             .iter()
@@ -786,7 +765,7 @@ fn main() {
             "kind": "crypto",
             "op": "state_commit_fields",
             "inputs": { "fields": Value::Array(fields_hex(&s)) },
-            "output": hex::encode(crypto::state::state_commit_fields(&s)),
+            "output": hex::encode(crypto::state::state_root_hash(&s)),
         }));
     }
 
@@ -844,8 +823,8 @@ fn main() {
                 "nf_siblings": hl(&nf_siblings),
                 "amount": amount.to_string(),
             },
-            "prev_commit": hex::encode(crypto::state::state_commit_fields(&prev)),
-            "new_commit": hex::encode(crypto::state::state_commit_fields(&new)),
+            "prev_commit": hex::encode(crypto::state::state_root_hash(&prev)),
+            "new_commit": hex::encode(crypto::state::state_root_hash(&new)),
         }));
     }
 

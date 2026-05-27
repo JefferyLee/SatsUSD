@@ -16,8 +16,11 @@
 | `m4b_lock_insert` | §5.D17 set-insert (2 folds: old + new root) | 125,952 |
 | `m4b_lock_finalize` | REDEEM_FAST_FINALIZE transition (5 folds) | 314,880 |
 | `m4c_oracle_eddsa` | EdDSA-BabyJub verify + Poseidon msg hash (§5.D7) | 7,679 |
-| `m4_state_commit` | state_root_hash = fold 18 encoding limbs (§6.1; ADR-006) | 4,374 |
-| `m7_transition` | monolithic REDEEM_FAST_FINALIZE: 6 SMT folds + Poseidon-of-fields prev/new commit + root binding (§5.D17, ADR-009) | 336,828 |
+| `m7_transition` | monolithic REDEEM_FAST_FINALIZE: 6 SMT folds + Poseidon-of-fields prev/new commit (`Fold(42)`, = the canonical `state_root_hash`) + root binding (§5.D17, ADR-009/010) | 336,828 |
+
+> `m4_state_commit` (byte-oriented `StateCommit(18)` over the canonical-encoding
+> limbs, ~4,374 constraints) was **retired** by ADR-010 — `state_root_hash` is now
+> Poseidon-over-fields, whose in-circuit form is `m7_transition`'s `Fold(42)`.
 
 ## Reading the numbers
 

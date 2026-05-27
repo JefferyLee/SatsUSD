@@ -101,9 +101,6 @@ for (const v of doc.vectors as any[]) {
         );
         break;
       }
-      case "state_commit":
-        check(v.name, foldLimbsHex(v.inputs.limbs), v.output, "state_commit");
-        break;
       case "state_commit_fields":
         // Poseidon-over-fields commit (ADR-006 M7): fold the 42 field elements.
         check(v.name, foldLimbsHex(v.inputs.fields), v.output, "state_commit_fields");

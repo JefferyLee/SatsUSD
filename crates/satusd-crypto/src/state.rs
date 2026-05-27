@@ -5,14 +5,9 @@
 //! StateRoot encoding.
 
 use ark_bn254::Fr;
-use satusd_types::{canonical_encode, types::StateRoot};
+use satusd_types::types::StateRoot;
 
-use crate::poseidon::{fr_from_be_bytes, fr_to_be_bytes, hash_bytes_be, poseidon2};
-
-/// `state_root_hash = Poseidon(canonical_encode(StateRoot))`, big-endian 32 bytes.
-pub fn state_root_hash(state: &StateRoot) -> [u8; 32] {
-    hash_bytes_be(&canonical_encode(state))
-}
+use crate::poseidon::{fr_from_be_bytes, fr_to_be_bytes, poseidon2};
 
 fn fe_scalar(x: u64) -> [u8; 32] {
     fr_to_be_bytes(&Fr::from(x))
@@ -74,10 +69,13 @@ pub fn state_field_elements(s: &StateRoot) -> Vec<[u8; 32]> {
     v
 }
 
-/// Poseidon-over-fields state commitment (ADR-006, M7): `acc_0 = 0`,
-/// `acc_i = Poseidon2(acc_{i-1}, field_i)` over [`state_field_elements`].
-/// Parallel to (not a replacement for) the byte-oriented `state_root_hash`.
-pub fn state_commit_fields(s: &StateRoot) -> [u8; 32] {
+/// `state_root_hash` (§6.1) — the **canonical** state commitment (ADR-010):
+/// Poseidon-over-fields, `acc_0 = 0`, `acc_i = Poseidon2(acc_{i-1}, field_i)` over
+/// [`state_field_elements`]. This *replaced* the byte-oriented
+/// `hash_bytes(canonical_encode(StateRoot))` form so the in-circuit transition
+/// binds individual roots directly (ADR-006/009/010); the m7 circuit's prev/new
+/// commitments equal this value.
+pub fn state_root_hash(s: &StateRoot) -> [u8; 32] {
     let mut acc = Fr::from(0u64);
     for fe in state_field_elements(s) {
         acc = poseidon2(acc, fr_from_be_bytes(&fe));
@@ -144,10 +142,10 @@ mod tests {
         assert_eq!(fes[25][16..32], s.lock_consumed_root[0..16]); // hi from high bytes
         assert_eq!(fes[26][16..32], s.lock_consumed_root[16..32]); // lo from low bytes
 
-        let c = state_commit_fields(&s);
-        assert_eq!(c, state_commit_fields(&s));
+        let c = state_root_hash(&s);
+        assert_eq!(c, state_root_hash(&s));
         let mut s2 = s.clone();
         s2.lock_consumed_root[0] ^= 0xff;
-        assert_ne!(c, state_commit_fields(&s2));
+        assert_ne!(c, state_root_hash(&s2));
     }
 }

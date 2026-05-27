@@ -63,6 +63,9 @@ template Transition(HEIGHT, NF) {
     signal output newCommit;
 
     // field-element indices (declaration order; 32-byte field = hi, lo).
+    // ADR-010: `state_root_hash` IS this Poseidon-over-fields fold. If the StateRoot
+    // struct changes, bump NF and update these indices (+ Rust state_field_elements,
+    // TS stateCommitFieldsHex) and re-freeze the vectors — they must stay in sync.
     var EPOCH = 1;
     var SUPPLY = 7;
     var LR_HI = 23; var LR_LO = 24; // lock_record_root
