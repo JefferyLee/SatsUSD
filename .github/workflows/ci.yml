@@ -39,3 +39,29 @@ jobs:
 
       - name: Vectors are committed and up to date
         run: git diff --exit-code integration/vectors/vectors.json
+
+  circuits:
+    # circom witness-calc 3-way cross-check (Rust = TS = circuit) against the
+    # committed vectors. Separate job: needs circom + the circuits/ node deps.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Install circom
+        run: |
+          curl -fsSL https://github.com/iden3/circom/releases/latest/download/circom-linux-amd64 -o /usr/local/bin/circom
+          chmod +x /usr/local/bin/circom
+          circom --version
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+
+      - name: Install circuit deps
+        run: npm install
+        working-directory: circuits
+
+      - name: Circuit 3-way cross-check (witness calculators)
+        run: bash check.sh
+        working-directory: circuits

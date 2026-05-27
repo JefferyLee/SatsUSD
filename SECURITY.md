@@ -100,7 +100,9 @@ The §13 adversarial matrix (44 cases) is the acceptance contract. Status by cla
 | DA (DA) | DA-01..06 | `satusd-challenger` ✓ for DA-01/02/03/06; **DA-04/05 (multi-mirror) deferred** |
 | Reserve (RB) | RB-01..08 | **deferred** — signet/optimistic/BitVM3 (M6/M7/M8) |
 
-A complete coverage ledger (each ID → test) is recommended future work.
+The full per-ID coverage ledger is `docs/discovery/adversarial_coverage.md`: every
+consensus-relevant case is enforced + tested; the deferred set (DA-04/05 multi-mirror,
+RB-04..08 optimistic/BitVM3) is uniformly the on-chain/live-infra layer.
 
 ## 5. Cryptographic primitives
 
