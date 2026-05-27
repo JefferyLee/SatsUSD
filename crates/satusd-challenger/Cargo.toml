@@ -6,8 +6,10 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+satusd-types = { path = "../satusd-types" }
 satusd-da = { path = "../satusd-da" }
 satusd-ta-proof = { path = "../satusd-ta-proof" }
+satusd-state = { path = "../satusd-state" }
 
 [dev-dependencies]
 hex.workspace = true

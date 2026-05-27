@@ -9,15 +9,19 @@
 //! - checks the bundle carries the sections needed to recompute the claim — DA-03
 //!   (oracle messages, 0x08) / DA-06 (lineage, see [`LINEAGE_SECTION`]);
 //! - re-runs the TA lineage verifier (DL-23) on a proof from the DA — a fake
-//!   lineage is recomputed and flagged (§14.12 acceptance).
+//!   lineage is recomputed and flagged (§14.12 acceptance);
+//! - re-runs the BTC SPV payout verifier (DL-22) on a confirmation from the DA.
 //!
 //! All checks are independent of the state node: the challenger never trusts the
 //! operator's `asset_proof_hash` or the node's acceptance. Multi-mirror fetch
-//! (DA-04/05), Prometheus, and the dashboard are operational layers deferred past
-//! the verification core.
+//! (DA-04/05), Prometheus, the dashboard, and the full software-verifier recompute
+//! (which needs a bundle→witness decoder) are layers deferred past the
+//! verification core.
 
 use satusd_da::{section, LiveDABundle};
+use satusd_state::spv::{self, SpvError};
 use satusd_ta_proof::{parse_proof_file, verify_lineage};
+use satusd_types::types::BtcPayoutConfirmation;
 
 /// The DA section the challenger re-runs lineage against. PRD §10.3 reserves 0x03
 /// for lock-time TA lineage proofs; in the claim bundle the genesis→burn lineage
@@ -40,6 +44,8 @@ pub enum Alert {
     MissingSection(u8),
     /// The re-run TA lineage verifier rejected a proof from the DA (fake lineage).
     LineageInvalid,
+    /// The re-run BTC SPV payout verifier rejected a confirmation from the DA.
+    SpvInvalid(SpvError),
 }
 
 /// The outcome of inspecting one claim. Empty = nothing to flag.
@@ -102,6 +108,20 @@ pub fn recompute_lineage(proof_file_bytes: &[u8]) -> Result<(), Alert> {
     let proofs = file.parsed().map_err(|_| Alert::LineageInvalid)?;
     verify_lineage(&proofs).map_err(|_| Alert::LineageInvalid)?;
     Ok(())
+}
+
+/// Independently re-run the BTC SPV payout verifier (DL-22, §5.D14) on a
+/// confirmation from the DA. Returns `SpvInvalid` with the underlying reason if it
+/// does not verify (bad merkle/PoW/depth, or a claim tx that doesn't spend the
+/// HTLC — R-15).
+pub fn recompute_spv(
+    confirmation: &BtcPayoutConfirmation,
+    payment_hash: &[u8; 32],
+    min_depth: usize,
+    btc_tip_height: u32,
+) -> Result<(), Alert> {
+    spv::verify_payout_confirmation(confirmation, payment_hash, min_depth, btc_tip_height)
+        .map_err(Alert::SpvInvalid)
 }
 
 #[cfg(test)]
@@ -194,5 +214,36 @@ mod tests {
         let mid = data.len() / 2;
         data[mid] ^= 0xff;
         assert_eq!(recompute_lineage(&data), Err(Alert::LineageInvalid));
+    }
+
+    #[test]
+    fn spv_recompute_flags_invalid_confirmation() {
+        // A confirmation whose revealed preimage doesn't hash to the payment hash
+        // fails the DL-22 verifier → the challenger flags it. (The positive path is
+        // covered by satusd-state::spv against real regtest headers.)
+        let c = BtcPayoutConfirmation {
+            btc_htlc_txid: [0; 32],
+            btc_htlc_vout: 0,
+            htlc_output_value_sats: 0,
+            htlc_output_script: vec![],
+            htlc_inclusion_block_hash: [0; 32],
+            htlc_inclusion_block_height: 0,
+            htlc_inclusion_merkle_proof: vec![],
+            claim_spend_txid: [0; 32],
+            claim_spend_input_index: 0,
+            claim_spend_witness: vec![],
+            claim_tx_legacy: vec![],
+            revealed_preimage: [0; 32],
+            claim_inclusion_block_hash: [0; 32],
+            claim_inclusion_block_height: 0,
+            claim_inclusion_merkle_proof: vec![],
+            confirmation_headers: vec![],
+            htlc_tx_index: 0,
+            claim_tx_index: 0,
+            htlc_inclusion_header: [0; 80],
+            claim_inclusion_header: [0; 80],
+        };
+        let result = recompute_spv(&c, &[0xff; 32], 6, 100);
+        assert!(matches!(result, Err(Alert::SpvInvalid(_))), "{result:?}");
     }
 }

@@ -1551,7 +1551,9 @@ version = "0.1.0"
 dependencies = [
  "hex",
  "satusd-da",
+ "satusd-state",
  "satusd-ta-proof",
+ "satusd-types",
 ]
 
 [[package]]
