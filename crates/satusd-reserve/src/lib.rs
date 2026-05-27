@@ -104,6 +104,7 @@ struct Pending {
 // ---------------------------------------------------------------------------
 
 /// In-memory reserve: `finalize_claim` pays immediately (no committee, no BTC tx).
+#[derive(Clone)]
 pub struct MockReserve {
     total_sats: u64,
     reserved_sats: u64,
@@ -117,6 +118,13 @@ impl MockReserve {
             reserved_sats: 0,
             pending: HashMap::new(),
         }
+    }
+
+    /// Credit a confirmed BTC deposit into custody (an issuer reserve deposit
+    /// arriving on-chain; the trait has no deposit method — §5.D9 covers the claim
+    /// lifecycle, funding is custody-side).
+    pub fn credit(&mut self, sats: u64) {
+        self.total_sats += sats;
     }
 }
 

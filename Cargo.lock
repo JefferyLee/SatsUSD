@@ -1622,6 +1622,7 @@ dependencies = [
  "hex",
  "satusd-crypto",
  "satusd-da",
+ "satusd-reserve",
  "satusd-ta-proof",
  "satusd-types",
  "secp256k1 0.31.1",

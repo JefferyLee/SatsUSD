@@ -22,6 +22,7 @@ use std::collections::HashMap;
 use satusd_crypto::poseidon::batch_root_be;
 use satusd_crypto::smt::SparseMerkleTree;
 use satusd_crypto::state::state_root_hash;
+use satusd_reserve::{ClaimHandle, MockReserve, ReserveBackend, ReserveView};
 use satusd_types::derive::{
     claim_id, issuer_position_hash, lock_record_hash, operator_position_hash, pending_claim_hash,
     redemption_nullifier,
@@ -63,6 +64,11 @@ pub struct StateNode {
     lock_consumed_tree: SparseMerkleTree,
     lock_refund_tree: SparseMerkleTree,
     nullifier_tree: SparseMerkleTree,
+    /// BTC reserve custody (§5.D9). Tracks total/reserved sats in lockstep with the
+    /// on-chain `reserve_btc_sats` / `reserved_pending_claim_sats`; MockReserve is
+    /// the M0–M6 default (a MultisigReserve is the pilot custody authority — its
+    /// committee gate mirrors the consensus `registry::finalize_claim` check).
+    reserve: MockReserve,
 }
 
 impl StateNode {
@@ -116,11 +122,31 @@ impl StateNode {
             lock_consumed_tree: SparseMerkleTree::new(),
             lock_refund_tree: SparseMerkleTree::new(),
             nullifier_tree: SparseMerkleTree::new(),
+            reserve: MockReserve::new(0),
         }
     }
 
     pub fn state(&self) -> &StateRoot {
         &self.state
+    }
+
+    /// The reserve-custody view (§5.D9). Stays in lockstep with the on-chain
+    /// `reserve_btc_sats` / `reserved_pending_claim_sats` (see `reserve_consistent`).
+    pub fn reserve_view(&self) -> ReserveView {
+        self.reserve.reserve_view()
+    }
+
+    /// The custody backend must agree with the on-chain reserve fields after every
+    /// reserve-touching transition; a mismatch is an internal invariant break.
+    fn reserve_consistent(&self) -> Result<(), NodeError> {
+        let v = self.reserve.reserve_view();
+        if v.total_sats == self.state.reserve_btc_sats
+            && v.reserved_sats == self.state.reserved_pending_claim_sats
+        {
+            Ok(())
+        } else {
+            Err(NodeError::InvariantViolation)
+        }
     }
 
     pub fn state_root_hash(&self) -> [u8; 32] {
@@ -207,7 +233,12 @@ impl StateNode {
         self.issuer_tree
             .insert(issuer_id, &issuer_position_hash(&new_issuer));
         self.issuers.insert(issuer_id, new_issuer);
-        self.commit(new_state)
+        let root = self.commit(new_state)?;
+        // The deposit funds the reserve custody (§5.D9; commit added it to
+        // reserve_btc_sats).
+        self.reserve.credit(w.deposit_sats);
+        self.reserve_consistent()?;
+        Ok(root)
     }
 
     /// MINT_FINALIZE.
@@ -404,6 +435,9 @@ impl StateNode {
             .insert(id, &pending_claim_hash(&pending));
         self.pending_claims.insert(id, pending);
         self.commit(new)?;
+        // Reserve the reimbursement in custody (§5.D9; no payout yet).
+        self.reserve.submit_claim(&witness.claim);
+        self.reserve_consistent()?;
         Ok(id) // the claim handle for later settle/reclaim
     }
 
@@ -428,7 +462,13 @@ impl StateNode {
         self.pending_claim_tree
             .insert(claim_id, &pending_claim_hash(&reclaimed));
         self.pending_claims.insert(claim_id, reclaimed);
-        self.commit(new_state)
+        let root = self.commit(new_state)?;
+        // Free the reservation in custody (§5.D9; never paid).
+        self.reserve
+            .reclaim_stale(ClaimHandle(claim_id))
+            .map_err(|_| NodeError::InvariantViolation)?;
+        self.reserve_consistent()?;
+        Ok(root)
     }
 
     /// FINALIZE_CLAIM (§5.D12): pay out an approved PENDING claim — debit
@@ -461,7 +501,14 @@ impl StateNode {
         self.pending_claim_tree
             .insert(claim_id, &pending_claim_hash(&finalized));
         self.pending_claims.insert(claim_id, finalized);
-        self.commit(new_state)
+        let root = self.commit(new_state)?;
+        // Pay out from custody (§5.D9). The committee gate is the consensus
+        // `registry::apply_finalize_claim` above; MockReserve pays immediately.
+        self.reserve
+            .finalize_claim(ClaimHandle(claim_id))
+            .map_err(|_| NodeError::InvariantViolation)?;
+        self.reserve_consistent()?;
+        Ok(root)
     }
 }
 
@@ -941,6 +988,14 @@ mod tests {
         assert_eq!(
             node.pending_claim(&claim_id).unwrap().status,
             PendingClaimStatus::Pending
+        );
+        // The reserve-custody backend (§5.D9) tracks the on-chain reserve fields:
+        // funded by the mint deposit, the reimbursement reserved (not yet paid).
+        assert_eq!(node.reserve_view().total_sats, reserve_before);
+        assert_eq!(node.reserve_view().reserved_sats, 80_000);
+        assert_eq!(
+            node.reserve_view().available_sats(),
+            reserve_before - 80_000
         );
     }
 

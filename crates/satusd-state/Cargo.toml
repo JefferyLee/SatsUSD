@@ -10,6 +10,7 @@ satusd-types = { path = "../satusd-types" }
 satusd-crypto = { path = "../satusd-crypto" }
 satusd-ta-proof = { path = "../satusd-ta-proof" }
 satusd-da = { path = "../satusd-da" }
+satusd-reserve = { path = "../satusd-reserve" }
 
 [dev-dependencies]
 hex.workspace = true
