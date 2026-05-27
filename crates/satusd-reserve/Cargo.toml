@@ -1,0 +1,11 @@
+[package]
+name = "satusd-reserve"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+satusd-types = { path = "../satusd-types" }
+satusd-crypto = { path = "../satusd-crypto" }
+secp256k1 = "0.31.1"

@@ -1607,6 +1607,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-reserve"
+version = "0.1.0"
+dependencies = [
+ "satusd-crypto",
+ "satusd-types",
+ "secp256k1 0.31.1",
+]
+
+[[package]]
 name = "satusd-state"
 version = "0.1.0"
 dependencies = [
