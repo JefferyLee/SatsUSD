@@ -84,13 +84,39 @@ pub enum PauseReason {
 /// Deviation from the PRD sketch: methods take `&mut self` (a real backend mutates
 /// its custody/pending state), and `finalize_claim` returns the spend or a typed
 /// refusal rather than panicking.
-pub trait ReserveBackend {
+pub trait ReserveBackend: Send + Sync {
     fn reserve_view(&self) -> ReserveView;
+    /// Credit a confirmed BTC reserve deposit into custody.
+    fn credit(&mut self, sats: u64);
     fn submit_claim(&mut self, claim: &ReserveClaim) -> ClaimHandle;
     fn finalize_claim(&mut self, h: ClaimHandle) -> Result<ReserveSpend, FinalizeError>;
     fn emergency_pause(&mut self, reason: PauseReason);
     /// Free a stale claim's reservation; returns the freed sats.
     fn reclaim_stale(&mut self, h: ClaimHandle) -> Result<u64, FinalizeError>;
+
+    // --- committee hooks (no-ops on non-committee backends like MockReserve) ---
+    /// Lift an emergency pause.
+    fn resume(&mut self) {}
+    /// Record a committee member's approval of a claim.
+    fn add_approval(&mut self, _h: ClaimHandle, _a: Approval) -> Result<(), FinalizeError> {
+        Ok(())
+    }
+    /// A challenger's veto package against a claim.
+    fn veto(&mut self, _h: ClaimHandle) -> Result<(), FinalizeError> {
+        Ok(())
+    }
+    /// Rotate the committee (ROTATE_SHARD, §11.2): replaces the member set and
+    /// drops any approvals collected under the old set.
+    fn rotate_committee(&mut self, _new: Committee) {}
+
+    /// Clone into a box (lets `Box<dyn ReserveBackend>` be `Clone`).
+    fn clone_box(&self) -> Box<dyn ReserveBackend>;
+}
+
+impl Clone for Box<dyn ReserveBackend> {
+    fn clone(&self) -> Self {
+        self.clone_box()
+    }
 }
 
 #[derive(Clone)]
@@ -119,13 +145,6 @@ impl MockReserve {
             pending: HashMap::new(),
         }
     }
-
-    /// Credit a confirmed BTC deposit into custody (an issuer reserve deposit
-    /// arriving on-chain; the trait has no deposit method — §5.D9 covers the claim
-    /// lifecycle, funding is custody-side).
-    pub fn credit(&mut self, sats: u64) {
-        self.total_sats += sats;
-    }
 }
 
 impl ReserveBackend for MockReserve {
@@ -134,6 +153,14 @@ impl ReserveBackend for MockReserve {
             total_sats: self.total_sats,
             reserved_sats: self.reserved_sats,
         }
+    }
+
+    fn credit(&mut self, sats: u64) {
+        self.total_sats += sats;
+    }
+
+    fn clone_box(&self) -> Box<dyn ReserveBackend> {
+        Box::new(self.clone())
     }
 
     fn submit_claim(&mut self, claim: &ReserveClaim) -> ClaimHandle {
@@ -240,6 +267,7 @@ pub fn count_approvals(
     seen.len()
 }
 
+#[derive(Clone)]
 struct MsPending {
     operator_id: [u8; 32],
     amount_sats: u64,
@@ -253,6 +281,7 @@ struct MsPending {
 /// challenger may [`veto_package`](Self::veto_package); `finalize_claim` succeeds
 /// only when ≥ threshold distinct approvals are present, the backend is not paused,
 /// and the claim is not vetoed.
+#[derive(Clone)]
 pub struct MultisigReserve {
     total_sats: u64,
     reserved_sats: u64,
@@ -280,37 +309,7 @@ impl MultisigReserve {
         self.paused.is_some()
     }
 
-    /// Lift the emergency pause (committee resumes operations).
-    pub fn resume(&mut self) {
-        self.paused = None;
-    }
-
-    /// Record a committee member's approval of a pending claim. Ignores approvals
-    /// from non-members, duplicates, and invalid signatures (idempotent).
-    pub fn add_approval(
-        &mut self,
-        h: ClaimHandle,
-        approval: Approval,
-    ) -> Result<(), FinalizeError> {
-        let authorized = self.committee.pubkeys.contains(&approval.signer_pubkey)
-            && verify_ecdsa(&h.0, &approval.signer_pubkey, &approval.signature);
-        let p = self
-            .pending
-            .get_mut(&h.0)
-            .ok_or(FinalizeError::UnknownClaim)?;
-        if authorized
-            && !p
-                .approvals
-                .iter()
-                .any(|a| a.signer_pubkey == approval.signer_pubkey)
-        {
-            p.approvals.push(approval);
-        }
-        Ok(())
-    }
-
-    /// A challenger's veto package (§5.D9: not a trait method) — blocks finalize
-    /// pending committee review.
+    /// A challenger's veto package (§5.D9). Also reachable via the trait `veto`.
     pub fn veto_package(&mut self, h: ClaimHandle) -> Result<(), FinalizeError> {
         self.pending
             .get_mut(&h.0)
@@ -333,6 +332,51 @@ impl ReserveBackend for MultisigReserve {
         ReserveView {
             total_sats: self.total_sats,
             reserved_sats: self.reserved_sats,
+        }
+    }
+
+    fn credit(&mut self, sats: u64) {
+        self.total_sats += sats;
+    }
+
+    fn clone_box(&self) -> Box<dyn ReserveBackend> {
+        Box::new(self.clone())
+    }
+
+    fn resume(&mut self) {
+        self.paused = None;
+    }
+
+    /// Record a committee member's approval. Ignores approvals from non-members,
+    /// duplicates, and invalid signatures (idempotent).
+    fn add_approval(&mut self, h: ClaimHandle, approval: Approval) -> Result<(), FinalizeError> {
+        let authorized = self.committee.pubkeys.contains(&approval.signer_pubkey)
+            && verify_ecdsa(&h.0, &approval.signer_pubkey, &approval.signature);
+        let p = self
+            .pending
+            .get_mut(&h.0)
+            .ok_or(FinalizeError::UnknownClaim)?;
+        if authorized
+            && !p
+                .approvals
+                .iter()
+                .any(|a| a.signer_pubkey == approval.signer_pubkey)
+        {
+            p.approvals.push(approval);
+        }
+        Ok(())
+    }
+
+    fn veto(&mut self, h: ClaimHandle) -> Result<(), FinalizeError> {
+        self.veto_package(h)
+    }
+
+    /// ROTATE_SHARD (§11.2): swap the committee and drop approvals collected under
+    /// the old set — the new members must re-approve any pending claim.
+    fn rotate_committee(&mut self, new: Committee) {
+        self.committee = new;
+        for p in self.pending.values_mut() {
+            p.approvals.clear();
         }
     }
 

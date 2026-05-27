@@ -22,7 +22,10 @@ use std::collections::HashMap;
 use satusd_crypto::poseidon::batch_root_be;
 use satusd_crypto::smt::SparseMerkleTree;
 use satusd_crypto::state::state_root_hash;
-use satusd_reserve::{ClaimHandle, MockReserve, ReserveBackend, ReserveView};
+use satusd_reserve::{
+    Approval, ClaimHandle, Committee, FinalizeError, MockReserve, MultisigReserve, PauseReason,
+    ReserveBackend, ReserveView,
+};
 use satusd_types::derive::{
     claim_id, issuer_position_hash, lock_record_hash, operator_position_hash, pending_claim_hash,
     redemption_nullifier,
@@ -46,6 +49,9 @@ pub enum NodeError {
     Claim(claim::ClaimRejectReason),
     UnknownIssuer,
     UnknownClaim,
+    /// The reserve-custody backend refused the payout (emergency pause, challenger
+    /// veto, or insufficient committee approval — §11.2 MultisigReserve).
+    ReserveRefused(FinalizeError),
     /// The node's committed tree roots disagree with the executor's post-state —
     /// an internal invariant break (should never happen).
     InvariantViolation,
@@ -65,10 +71,11 @@ pub struct StateNode {
     lock_refund_tree: SparseMerkleTree,
     nullifier_tree: SparseMerkleTree,
     /// BTC reserve custody (§5.D9). Tracks total/reserved sats in lockstep with the
-    /// on-chain `reserve_btc_sats` / `reserved_pending_claim_sats`; MockReserve is
-    /// the M0–M6 default (a MultisigReserve is the pilot custody authority — its
-    /// committee gate mirrors the consensus `registry::finalize_claim` check).
-    reserve: MockReserve,
+    /// on-chain `reserve_btc_sats` / `reserved_pending_claim_sats`. MockReserve is
+    /// the M0–M6 default; `use_multisig_reserve` swaps in the §11.2 committee-gated
+    /// custody, which additionally enforces emergency pause + challenger veto at
+    /// finalize (the consensus threshold check stays in `registry::finalize_claim`).
+    reserve: Box<dyn ReserveBackend>,
 }
 
 impl StateNode {
@@ -122,7 +129,7 @@ impl StateNode {
             lock_consumed_tree: SparseMerkleTree::new(),
             lock_refund_tree: SparseMerkleTree::new(),
             nullifier_tree: SparseMerkleTree::new(),
-            reserve: MockReserve::new(0),
+            reserve: Box::new(MockReserve::new(0)),
         }
     }
 
@@ -167,6 +174,38 @@ impl StateNode {
     /// committed M-of-N then gates FINALIZE_CLAIM.
     pub fn set_reserve_committee(&mut self, reserve_committee_hash: [u8; 32]) {
         self.state.reserve_committee_hash = reserve_committee_hash;
+    }
+
+    /// Swap in the §11.2 MultisigReserve custody (Signet pilot), seeded from the
+    /// current reserve, and commit its committee. Call before any pending claims.
+    pub fn use_multisig_reserve(&mut self, committee: Committee) {
+        self.state.reserve_committee_hash = committee.hash();
+        self.reserve = Box::new(MultisigReserve::new(self.state.reserve_btc_sats, committee));
+    }
+
+    /// Emergency-pause the reserve custody — finalize is blocked until `resume`
+    /// (§11.2 runbook scenarios 1/2).
+    pub fn emergency_pause(&mut self, reason: PauseReason) {
+        self.reserve.emergency_pause(reason);
+    }
+
+    /// Lift the emergency pause.
+    pub fn resume_reserve(&mut self) {
+        self.reserve.resume();
+    }
+
+    /// A challenger veto package against a pending claim — blocks its finalize.
+    pub fn veto_claim(&mut self, claim_id: [u8; 32]) -> Result<(), NodeError> {
+        self.reserve
+            .veto(ClaimHandle(claim_id))
+            .map_err(NodeError::ReserveRefused)
+    }
+
+    /// ROTATE_SHARD (§11.2): rotate the reserve committee — recommit its hash and
+    /// drop stale approvals (the new members must re-approve pending claims).
+    pub fn rotate_reserve_committee(&mut self, new_committee: Committee) {
+        self.state.reserve_committee_hash = new_committee.hash();
+        self.reserve.rotate_committee(new_committee);
     }
 
     pub fn issuer(&self, issuer_id: &[u8; 32]) -> Option<&IssuerPosition> {
@@ -487,6 +526,7 @@ impl StateNode {
             .ok_or(NodeError::UnknownClaim)?
             .clone();
         let proof = self.pending_claim_tree.prove(&claim_id);
+        // Consensus authority (pure): threshold + pending + expiry + membership.
         let new_state = registry::apply_finalize_claim(
             &self.state,
             &prev_claim,
@@ -496,17 +536,33 @@ impl StateNode {
             current_height,
         )
         .map_err(NodeError::Registry)?;
+
+        // Custody backend: record the committee approvals and pay out. For a
+        // MultisigReserve this additionally enforces emergency pause / challenger
+        // veto (a no-op on MockReserve). Both happen before any node mutation, so a
+        // refusal leaves the state untouched.
+        let h = ClaimHandle(claim_id);
+        for a in approvals {
+            self.reserve
+                .add_approval(
+                    h,
+                    Approval {
+                        signer_pubkey: a.signer_pubkey,
+                        signature: a.signature,
+                    },
+                )
+                .map_err(NodeError::ReserveRefused)?;
+        }
+        self.reserve
+            .finalize_claim(h)
+            .map_err(NodeError::ReserveRefused)?;
+
         let mut finalized = prev_claim;
         finalized.status = PendingClaimStatus::Finalized;
         self.pending_claim_tree
             .insert(claim_id, &pending_claim_hash(&finalized));
         self.pending_claims.insert(claim_id, finalized);
         let root = self.commit(new_state)?;
-        // Pay out from custody (§5.D9). The committee gate is the consensus
-        // `registry::apply_finalize_claim` above; MockReserve pays immediately.
-        self.reserve
-            .finalize_claim(ClaimHandle(claim_id))
-            .map_err(|_| NodeError::InvariantViolation)?;
         self.reserve_consistent()?;
         Ok(root)
     }
@@ -804,10 +860,23 @@ mod tests {
     /// genesis → register → mint → lock → submit_claim. Returns the node, the
     /// `claim_id`, and the reserve balance before submit (claim expiry 840_100).
     fn setup_submitted() -> (StateNode, [u8; 32], u64) {
+        setup_submitted_backend(false)
+    }
+
+    /// As `setup_submitted`, but optionally swaps in the §11.2 MultisigReserve
+    /// custody (seeded before any deposits) instead of the default Mock backend.
+    fn setup_submitted_backend(multisig: bool) -> (StateNode, [u8; 32], u64) {
         let mut node =
             StateNode::genesis(FAMILY, oracle_set_hash(7, &oracle_pubkeys()), 7, PRICE_50K);
         node.set_l1_anchor(840_000, [0x0c; 32], ORACLE_MTP);
-        node.set_reserve_committee(reserve_committee_hash(3, &committee_pubkeys()));
+        if multisig {
+            node.use_multisig_reserve(Committee {
+                threshold: 3,
+                pubkeys: committee_pubkeys(),
+            });
+        } else {
+            node.set_reserve_committee(reserve_committee_hash(3, &committee_pubkeys()));
+        }
         node.issuer_register(issuer()).unwrap();
         node.mint_commit(ISSUER_ID, &commit_witness()).unwrap();
         let fin = mint::MintFinalizeWitness {
@@ -1038,6 +1107,67 @@ mod tests {
             Err(NodeError::Claim(claim::ClaimRejectReason::Redeem(
                 redeem::RedeemRejectReason::LockConsumed
             )))
+        );
+    }
+
+    /// With the MultisigReserve custody (§11.2), an emergency pause blocks finalize
+    /// even with full committee approval; resume lets it through.
+    #[test]
+    fn multisig_pause_blocks_finalize_then_resume() {
+        let (mut node, claim_id, reserve_before) = setup_submitted_backend(true);
+        let approvals = committee_approvals(&claim_id, 3);
+        node.emergency_pause(PauseReason::StateNodeBug);
+        assert_eq!(
+            node.finalize_claim(claim_id, &committee(), &approvals, 840_050),
+            Err(NodeError::ReserveRefused(FinalizeError::Paused))
+        );
+        // Still PENDING + nothing paid.
+        assert_eq!(node.state().reserve_btc_sats, reserve_before);
+        assert_eq!(
+            node.pending_claim(&claim_id).unwrap().status,
+            PendingClaimStatus::Pending
+        );
+        node.resume_reserve();
+        node.finalize_claim(claim_id, &committee(), &approvals, 840_050)
+            .expect("finalize after resume");
+        assert_eq!(node.state().reserve_btc_sats, reserve_before - 80_000);
+    }
+
+    /// A challenger veto blocks finalize on the MultisigReserve custody.
+    #[test]
+    fn multisig_veto_blocks_finalize() {
+        let (mut node, claim_id, _reserve) = setup_submitted_backend(true);
+        let approvals = committee_approvals(&claim_id, 3);
+        node.veto_claim(claim_id).unwrap();
+        assert_eq!(
+            node.finalize_claim(claim_id, &committee(), &approvals, 840_050),
+            Err(NodeError::ReserveRefused(FinalizeError::Vetoed))
+        );
+    }
+
+    /// ROTATE_SHARD: after rotating the committee, the old committee's approvals no
+    /// longer match the committed `reserve_committee_hash` (consensus rejects).
+    #[test]
+    fn rotate_committee_invalidates_old_approvals() {
+        let (mut node, claim_id, _reserve) = setup_submitted_backend(true);
+        let old_hash = node.state().reserve_committee_hash;
+        // Rotate one member out (a distinct pubkey set ⇒ a new commitment).
+        let mut pubkeys = committee_pubkeys();
+        pubkeys[0] = [0x02; 33];
+        let new_committee = Committee {
+            threshold: 3,
+            pubkeys,
+        };
+        node.rotate_reserve_committee(new_committee);
+        assert_ne!(node.state().reserve_committee_hash, old_hash);
+
+        // The OLD committee's approvals no longer satisfy the committed hash.
+        let approvals = committee_approvals(&claim_id, 3);
+        assert_eq!(
+            node.finalize_claim(claim_id, &committee(), &approvals, 840_050),
+            Err(NodeError::Registry(
+                registry::RegistryRejectReason::CommitteeMismatch
+            ))
         );
     }
 }
