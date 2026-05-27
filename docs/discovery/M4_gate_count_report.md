@@ -74,5 +74,11 @@ to (ADR-0013/0014), so there is zero parameter-alignment risk.
 - A full state-transition circuit composing the lock folds with the StateRoot
   Poseidon commitment + linkage (prev → new), per transition type.
 - Trusted setup (Groth16 powers-of-tau + circuit-specific) for proving/verifying
-  keys — deferred to the signet stage; the witness-calculator cross-checks here
-  need no setup.
+  keys. **Pipeline proven**: `prove.sh` runs the full fresh-ptau setup→prove→verify
+  on `m4a_cr_tier` (`snarkJS: OK!`). **m7 real proof**: `m7_transition` has 710,584
+  total constraints, so Groth16 phase-2 needs `2^21` ptau (`2*constraints`); a fresh
+  2^21 ptau in snarkjs (pure JS) needs multi-GB + ~1h and OOMs in a small sandbox —
+  see `prove_m7.sh` (corrected to 2^21 + a Node heap raise) for a big-memory host.
+  The m7 witness-calc 3-way cross-check (`check.sh`) already proves the circuit is
+  satisfiable with the real witness, i.e. a valid Groth16 proof exists; the actual
+  prove/verify run is environment-bound, not a circuit issue.

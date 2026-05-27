@@ -36,8 +36,8 @@ setup_circuit() {
 # The circuits that would be proven (the monolithic transition has landed):
 setup_circuit m4a_cr_tier
 setup_circuit m4c_oracle_eddsa
-# These two need PTAU_POWER=19 (run with `PTAU_POWER=19 ./setup.sh`):
-# setup_circuit m4b_lock_finalize   # ≈315k constraints
-# setup_circuit m7_transition       # ≈390k constraints (monolithic REDEEM_FAST_FINALIZE)
+# These need a bigger ptau — Groth16 phase-2 needs 2^power >= 2*constraints:
+# setup_circuit m4b_lock_finalize   # ~315k constraints  -> PTAU_POWER=20
+# setup_circuit m7_transition       # 710k total constraints -> PTAU_POWER=21 (see prove_m7.sh)
 
 echo "setup complete — keys/ has the proving (.zkey) + verifying (vk.json) keys"

@@ -1,23 +1,31 @@
 #!/usr/bin/env bash
-# Real Groth16 setup → prove → verify for the monolithic m7_transition circuit
-# (~336k constraints ⇒ 2^19 powers of tau, generated locally — no download).
-# Heavy: phase-2 prep + setup take minutes and several GB. The single-contributor
-# ceremony here is dev-only, NOT a production trusted setup.
+# Real Groth16 setup → prove → verify for the monolithic m7_transition circuit.
+#
+# m7 has 710,584 total constraints (336,828 non-linear + 373,756 linear); Groth16's
+# phase-2 domain needs 2^power >= 2 * constraints, i.e. **2^21** powers of tau (not
+# 2^19 — the linear constraints + the 2n factor count). Generating a fresh 2^21 ptau
+# in snarkjs (pure JS) needs multiple GB and ~1h, and tends to OOM in a small dev
+# sandbox — hence `NODE_OPTIONS=--max-old-space-size`. For a machine without the
+# budget, the evidence that the full Groth16 pipeline works is `prove.sh`
+# (m4a_cr_tier, fresh 2^14, `snarkJS: OK!`), and the m7 witness-calc 3-way cross-check
+# (circuits/check.sh) proves the m7 circuit is satisfiable (⇒ a valid proof exists).
+# The single-contributor ceremony here is dev-only, NOT a production trusted setup.
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p build keys
+export NODE_OPTIONS="${NODE_OPTIONS:---max-old-space-size=8192}"
 SNARKJS="npx --no-install snarkjs"
-POT=keys/pot19_final.ptau
+POT=keys/pot21_final.ptau
 
 echo "== compile m7_transition (r1cs + wasm) =="
 circom m7_transition.circom --r1cs --wasm -l node_modules -o build
 
-echo "== powers of tau 2^19 (local, dev) =="
+echo "== powers of tau 2^21 (local, dev — heavy, may need a big-memory host) =="
 if [ ! -f "$POT" ]; then
-  $SNARKJS powersoftau new bn128 19 keys/pot19_0.ptau -v
-  $SNARKJS powersoftau contribute keys/pot19_0.ptau keys/pot19_1.ptau \
+  $SNARKJS powersoftau new bn128 21 keys/pot21_0.ptau -v
+  $SNARKJS powersoftau contribute keys/pot21_0.ptau keys/pot21_1.ptau \
     --name="satusd dev" -v -e="satusd m7 dev entropy"
-  $SNARKJS powersoftau prepare phase2 keys/pot19_1.ptau "$POT" -v
+  $SNARKJS powersoftau prepare phase2 keys/pot21_1.ptau "$POT" -v
 fi
 
 echo "== groth16 setup (m7_transition) =="
