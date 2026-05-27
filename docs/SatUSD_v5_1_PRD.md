@@ -39,6 +39,24 @@
 
 ---
 
+## 文档勘误（实现回填）
+
+实现/discovery 过程中发现的 PRD 原文错误或与实现冲突之处，统一在此登记。**冲突时以"更正"列与权威来源为准**；ADR 是单一权威。状态列：`已回填` = PRD 正文已就地改正；`仅登记` = 正文为大段流程、未逐字改，以本表 + ADR 为准。
+
+| § | PRD 原文（错误/过时） | 更正 | 权威来源 | 状态 |
+|---|---|---|---|---|
+| 18.1 | 域分隔符 `zero-padded to 32B` | 域名是 **raw ASCII 字节、不补零**：`SHA256(name_bytes ‖ body)` | ADR-0011；`satusd-types::domain` | 已回填 |
+| 10.1 / 10.3 | §10.1 `live_da_root = SHA-256(canonical-encode(bundle))` 与 §10.3 per-section 形式冲突 | 采用 §10.3 **per-section** 根 `SHA256(concat(SHA256(section_i)))`（只有它能检出缺 section，DA-03/06）；§10.1 flat 表述废弃 | ADR-008；`satusd-da` | 已回填 |
+| 5.D8 | "极小 supply" 行原写 `5×10^14` ppm | `5×10^10`（reserve $50k / supply $1 = 50000× = 5×10^10）；笔误，公式本身正确 | ADR-003；`satusd-types::tier` | 已回填（v5.2） |
+| 5.D7 step5 | "`\|max-min\|/median ≤ 5%` 否则 reject" | 按 median ±2% 过滤 inlier、要求 ≥3，**不做全局 5% 硬拒**（原文与 §13.2 O-05 冲突） | §13.2 O-05；`satusd-state::oracle` | 已回填（v5.2） |
+| 5.D13 / 6 | `claim_id` preimage 排除项 | 排除 `claim_id`、`operator_signature` **与 `new_state_root`**（否则 pending_claim_root fixpoint） | ADR-0012 + ADR-0022 | 已回填（§6 line ~1243） |
+| 5.D3 | 自定义 lock anchor 走 `FundVirtualPsbt + AnchorVirtualPsbts` (vPSBT) | 高层 **`NewAddr + SendAsset`** 直接造广播即可（tapd 接受外来 script_key + NUMS internal + tapscript sibling）；vPSBT/`CommitVirtualPsbts` 是更细控制的下层备选，非必需 | ADR-001；G1 报告；`satusd-tapd-client` | 仅登记 |
+| 6.1 | `state_root_hash` 为唯一状态承诺 | 电路另用 **Poseidon-over-fields** 承诺（`state_commit_fields`），与字节版 `state_root_hash` 并行（非替换）；未来统一 | ADR-009 | 仅登记 |
+
+> 维护约定：今后任何"实现发现 PRD 有误"都应（a）就地改正可逐字改的部分，（b）在本表加一行 + 写/引 ADR。新人读 PRD 时本表是第一入口。
+
+---
+
 ## 0. Decision Log (v3 → v4 → v4.1 → v5.0 → v5.1)
 
 本节列出所有相对前序版本的**实质性**决策变更。开发与评审必须以此版为准。`v5.X` 标记 v5.0 的变更；`v5.1.X` 标记本版（v5.1）的变更——它们都直接对应到 v5.0 review feedback 的具体 P0/P1 项。
@@ -2327,7 +2345,7 @@ MVP 不实现。M3 后并行开发：TA-aware channel、HTLC routing with SatUSD
 **DA SLA**：
 
 - Operator 必须**在 submit_claim 之前**完成 Live DA 上传。
-- `live_da_root = SHA-256(canonical-encode(LiveDABundle))`，嵌入 `ReserveClaim`。
+- `live_da_root` 按 **§10.3 per-section 形式**计算（`SHA256(concat(SHA256(section_i)))`），嵌入 `ReserveClaim`。原"`SHA-256(canonical-encode(LiveDABundle))`"flat 表述已废弃（per-section 才能检出缺 section，DA-03/06）——见勘误表 / ADR-008。
 - Challenger 在 1 小时内必须能从至少 2 个 mirror 获取 bundle。
 - 失败 → DA alert（MVP）或 DA challenge transition（M7+）。
 
@@ -3430,7 +3448,7 @@ nonce               (32B)
 ```
 
 `redeem_intent_hash = SHA256(domain || canonical_encode(RedeemIntent))`
-其中 `domain = b"SATUSD_REDEEM_INTENT_V1"` zero-padded to 32B。
+其中 `domain = b"SATUSD_REDEEM_INTENT_V1"` 为 **raw ASCII 字节、不补零**（见勘误表 §18.1 / ADR-0011；原"zero-padded to 32B"为笔误）。
 
 ### 18.2 Domain Separator Registry
 
