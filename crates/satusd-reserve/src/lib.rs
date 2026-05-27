@@ -57,6 +57,10 @@ pub enum FinalizeError {
     },
     /// The reserve does not hold enough sats to pay the claim.
     ReserveInsufficient,
+    /// (Optimistic) the challenge window is still open — withdraw not yet allowed.
+    WindowOpen,
+    /// (Optimistic) the claim was disproven — slashed, no withdraw.
+    Disproven,
 }
 
 /// The reserve-spend the backend would broadcast to reimburse the operator. On
@@ -117,6 +121,46 @@ impl Clone for Box<dyn ReserveBackend> {
     fn clone(&self) -> Self {
         self.clone_box()
     }
+}
+
+/// A Bitcoin transaction id (the on-chain assert/disprove/withdraw txns).
+pub type Txid = [u8; 32];
+
+/// Where a claim sits in its optimistic challenge window (§11.3/§11.4).
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum WindowStatus {
+    /// Asserted; the challenge window is still open.
+    Open,
+    /// Window elapsed with no successful disprove — withdraw is allowed.
+    Elapsed,
+    /// A disprove succeeded — the claim is slashed, no withdraw.
+    Disproven,
+}
+
+/// The on-chain disprove a challenger broadcasts: the operator's claimed value and
+/// the challenger's recomputed correct value (the BitVM3 garbled sub-circuit proves
+/// `claimed != correct` ⇒ the operator lied). Produced by `satusd-dispute`.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub struct Disprove {
+    pub claim_id: [u8; 32],
+    pub claimed: [u8; 32],
+    pub correct: [u8; 32],
+}
+
+/// §5.D9 / DL-7 second layer. Optimistic backends — OptimisticPlayground (M7),
+/// BitVM2Reserve (fallback) and BitVM3Reserve (M8) — add the three-phase
+/// assert/disprove/withdraw enforcement on top of [`ReserveBackend`]. The
+/// `submit_*` calls model the on-chain transactions; the actual tx graph + garbled
+/// circuits + setup ceremony are the signet/upstream integration (G4/G6).
+pub trait OptimisticEnforcementBackend: ReserveBackend {
+    /// Post the assert tx for a claim, opening its challenge window.
+    fn submit_assert(&mut self, claim: &ReserveClaim) -> Txid;
+    /// Post a disprove tx; the claim is slashed (no withdraw).
+    fn submit_disprove(&mut self, disprove: &Disprove) -> Txid;
+    /// After an un-disproven challenge window, withdraw (pay) the claim.
+    fn finalize_withdraw(&mut self, h: ClaimHandle) -> Result<ReserveSpend, FinalizeError>;
+    /// The current challenge-window status of a claim.
+    fn observe_challenge_window(&self, h: ClaimHandle) -> WindowStatus;
 }
 
 #[derive(Clone)]

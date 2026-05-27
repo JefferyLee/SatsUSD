@@ -8,6 +8,7 @@
 | [ADR-004](ADR-004-mint-finalize-cr-recheck.md) | Mint finalize CR re-check on post-mint supply (G3 / DL-27) | accepted |
 | [ADR-005](ADR-005-zk-toolchain.md) | zk toolchain — circom + circomlib + Groth16/BN254 | accepted |
 | [ADR-006](ADR-006-circuit-state-commit-and-transition.md) | In-circuit state commit (StateCommit gadget) + monolithic transition deferred to M7 (Poseidon-of-fields) | accepted |
+| [ADR-007](ADR-007-bitvm3-dispute-architecture.md) | BitVM3 dispute architecture — lineage + lock-binding sub-circuits as off-circuit recompute-and-compare (M8) | accepted |
 | [ADR-008](ADR-008-live-da-bundle-root.md) | Live DA bundle format + `live_da_root` = §10.3 per-section root (supersedes §10.1 flat hash) | accepted |
 | [ADR-009](ADR-009-monolithic-transition-circuit.md) | Poseidon-over-fields state commit + monolithic REDEEM_FAST_FINALIZE transition circuit (realizes ADR-006 M7) | accepted |
 | [ADR-0011](ADR-0011-domain-separator-encoding.md) | Canonical hash domain-separator convention (raw ASCII, no padding) | accepted |
@@ -25,7 +26,6 @@
 | [ADR-0023](ADR-0023-reserve-committee-approval.md) | Reserve-committee 3-of-5 approval gates FINALIZE_CLAIM (`reserve_committee_hash` in StateRoot) | accepted |
 
 Discovery reports: `docs/discovery/` — G1 (lock), G2 (BTC SPV payout), G3 (CR/tier
-formula), M1 (BurnAsset), M4 (gate-count report). G1/G2/G3 all **passed**.
-
-Reserved (placeholders to be filled later, per PRD §14):
-ADR-007 (BitVM3 lineage dispute, M8).
+formula), M1 (BurnAsset), M4 (gate-count report), M5 (challenger + DA), G4 (lineage
+dispute path). G1/G2/G3 all **passed**.
+Runbooks: `docs/runbooks/` — M6 emergency recovery, M6 signet deployment.

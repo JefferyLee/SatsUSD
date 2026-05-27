@@ -1580,6 +1580,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-dispute"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-crypto",
+ "satusd-reserve",
+ "satusd-ta-proof",
+ "satusd-types",
+]
+
+[[package]]
 name = "satusd-lock"
 version = "0.1.0"
 dependencies = [

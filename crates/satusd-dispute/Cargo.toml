@@ -1,0 +1,15 @@
+[package]
+name = "satusd-dispute"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+satusd-types = { path = "../satusd-types" }
+satusd-crypto = { path = "../satusd-crypto" }
+satusd-ta-proof = { path = "../satusd-ta-proof" }
+satusd-reserve = { path = "../satusd-reserve" }
+
+[dev-dependencies]
+hex.workspace = true
