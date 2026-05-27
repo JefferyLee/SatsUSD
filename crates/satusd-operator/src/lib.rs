@@ -12,6 +12,7 @@
 pub mod htlc;
 pub mod observer;
 pub mod quote;
+pub mod reserve_spend;
 pub mod submit;
 
 pub use htlc::{build_btc_htlc, BtcHtlc};
