@@ -1,10 +1,11 @@
 #!/usr/bin/env bash
-# Groth16 trusted setup for the SatUSD circuits (BN254). DEFERRED TO SIGNET — the
-# MVP cross-checks (check.sh) use witness calculators only and need NO setup. This
-# script is the documented recipe for when proving/verifying keys are required
-# (M6 signet pilot onward). The phase-2 contribution is per-circuit and MUST be a
-# real multi-party ceremony for production; the single-contributor flow below is
-# for local proving only.
+# Groth16 trusted setup for the SatUSD circuits (BN254). The MVP cross-checks
+# (check.sh) use witness calculators only and need NO setup. `prove.sh` already
+# runs the full setup→prove→verify loop on m4a_cr_tier with a fresh local ptau
+# (no download) — that is the runnable demonstration. This script is the per-circuit
+# key recipe for the larger circuits (M6 signet pilot onward). The phase-2
+# contribution is per-circuit and MUST be a real multi-party ceremony for
+# production; the single-contributor flow below is for local proving only.
 set -euo pipefail
 cd "$(dirname "$0")"
 mkdir -p build keys
@@ -32,9 +33,11 @@ setup_circuit() {
   npx snarkjs zkey export verificationkey "keys/${name}_final.zkey" "keys/${name}_vk.json"
 }
 
-# The circuits that would be proven (extend as the monolithic transition lands):
+# The circuits that would be proven (the monolithic transition has landed):
 setup_circuit m4a_cr_tier
 setup_circuit m4c_oracle_eddsa
-# setup_circuit m4b_lock_finalize   # needs PTAU_POWER=19 (≈315k constraints)
+# These two need PTAU_POWER=19 (run with `PTAU_POWER=19 ./setup.sh`):
+# setup_circuit m4b_lock_finalize   # ≈315k constraints
+# setup_circuit m7_transition       # ≈390k constraints (monolithic REDEEM_FAST_FINALIZE)
 
 echo "setup complete — keys/ has the proving (.zkey) + verifying (vk.json) keys"

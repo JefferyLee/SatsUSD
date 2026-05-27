@@ -17,6 +17,7 @@
 | `m4b_lock_finalize` | REDEEM_FAST_FINALIZE transition (5 folds) | 314,880 |
 | `m4c_oracle_eddsa` | EdDSA-BabyJub verify + Poseidon msg hash (§5.D7) | 7,679 |
 | `m4_state_commit` | state_root_hash = fold 18 encoding limbs (§6.1; ADR-006) | 4,374 |
+| `m7_transition` | monolithic REDEEM_FAST_FINALIZE: 6 SMT folds + Poseidon-of-fields prev/new commit + root binding (§5.D17, ADR-009) | 336,828 |
 
 ## Reading the numbers
 

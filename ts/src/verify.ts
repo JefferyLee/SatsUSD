@@ -104,6 +104,15 @@ for (const v of doc.vectors as any[]) {
       case "state_commit":
         check(v.name, foldLimbsHex(v.inputs.limbs), v.output, "state_commit");
         break;
+      case "state_commit_fields":
+        // Poseidon-over-fields commit (ADR-006 M7): fold the 42 field elements.
+        check(v.name, foldLimbsHex(v.inputs.fields), v.output, "state_commit_fields");
+        break;
+      case "m7_transition":
+        // The circuit binds the lock folds; TS re-checks the prev/new commits fold.
+        check(v.name, foldLimbsHex(v.inputs.prev_fields), v.prev_commit, "m7_prev_commit");
+        check(v.name, foldLimbsHex(v.inputs.new_fields), v.new_commit, "m7_new_commit");
+        break;
       case "oracle_eddsa": {
         // The Poseidon message hash is 3-way (Rust=TS=circuit); the EdDSA sig
         // itself is cross-checked by Rust (babyjubjub-rs) + the circuit (circomlib).
