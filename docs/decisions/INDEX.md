@@ -29,4 +29,4 @@
 Discovery reports: `docs/discovery/` — G1 (lock), G2 (BTC SPV payout), G3 (CR/tier
 formula), M1 (BurnAsset), M4 (gate-count report), M5 (challenger + DA), G4 (lineage
 dispute path). G1/G2/G3 all **passed**.
-Runbooks: `docs/runbooks/` — M6 emergency recovery, M6 signet deployment.
+Runbooks: `docs/runbooks/` — M6 emergency recovery, M6 signet deployment, M6 signet pilot playbook.

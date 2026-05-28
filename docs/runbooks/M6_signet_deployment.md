@@ -8,6 +8,8 @@
   (committee-gated finalize + pause/veto/rotate) is implemented and unit-tested;
   this runbook is the operational procedure to run it on signet with real BTC and
   ≥ 1 third-party node. It is **not** executed in CI (no signet access here).
+- **For step-by-step execution + the missing-services gap analysis + phased
+  rollout, see the companion `M6_signet_pilot_playbook.md`.**
 
 ## Topology
 
