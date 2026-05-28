@@ -35,10 +35,13 @@ pub enum MintRejectReason {
     Overflow,
     IssuerMismatch,
     IssuerNotInState,
-    IssuerNotActive,         // I-05
-    DepositNotConfirmed,     // I-01
-    DepositNotToReserve,     // I-02
-    MultisigThresholdNotMet, // I-06
+    IssuerNotActive,          // I-05
+    DepositNotConfirmed,      // I-01
+    DepositNotToReserve,      // I-02
+    DepositSpvInvalid,        // SPV merkle/PoW/chain/txid/tx body malformed
+    DepositAmountMismatch,    // declared deposit_sats ≠ actual reserve output value
+    ReserveCommitteeMismatch, // mint witness pubkeys/threshold don't bind to prev.reserve_committee_hash
+    MultisigThresholdNotMet,  // I-06
     PendingMintExists,
     ZeroMintAmount,
     InsufficientCollateralAtCommit {
@@ -76,12 +79,18 @@ pub struct MintCommitWitness {
     pub requested_mint_atoms: u64,
     pub deposit_txid: [u8; 32],
     pub deposit_sats: u64,
-    pub deposit_confirmations: u32,
-    pub deposit_to_reserve: bool,
     pub asset_metadata_commitment: [u8; 32],
     /// Issuer 2-of-3 multisig signatures over `mint_request_sighash`.
     pub signatures: Vec<MultisigSig>,
     pub oracle_price_e8: u64,
+    /// SPV proof of the deposit on Bitcoin: the verifier independently checks
+    /// the tx is buried ≥ `DEPOSIT_MIN_CONFIRMATIONS` and pays the committee
+    /// P2WSH for `deposit_sats` (post-MVP tightening, was a witness fact).
+    pub deposit_confirmation: satusd_types::types::BtcDepositConfirmation,
+    /// Committee pubkeys + threshold used to derive the reserve P2WSH spk; bound
+    /// to the committed `prev.reserve_committee_hash`.
+    pub reserve_committee_pubkeys: Vec<[u8; 33]>,
+    pub reserve_committee_threshold: u8,
 }
 
 /// Count distinct, authorized, valid signatures over `sighash` (§5.D11). A sig
@@ -223,11 +232,34 @@ pub fn apply_mint_commit(
     issuer_in_state(&prev_state.issuer_positions_root, prev_issuer, issuer_proof)?;
 
     ensure!(prev_issuer.status == IssuerStatus::Active, IssuerNotActive); // I-05
+
+    // Reserve-committee binding (must match the committed reserve_committee_hash
+    // — otherwise an attacker could pick any P2WSH and call it "the reserve").
     ensure!(
-        w.deposit_confirmations >= DEPOSIT_MIN_CONFIRMATIONS,
-        DepositNotConfirmed
-    ); // I-01
-    ensure!(w.deposit_to_reserve, DepositNotToReserve); // I-02
+        satusd_types::derive::reserve_committee_hash(
+            w.reserve_committee_threshold,
+            &w.reserve_committee_pubkeys,
+        ) == prev_state.reserve_committee_hash,
+        ReserveCommitteeMismatch
+    );
+    // In-state SPV verification of the deposit on Bitcoin (replaces the I-01 +
+    // I-02 witness facts): tx body hashes to deposit_txid, an output pays the
+    // committee P2WSH for deposit_sats, and the inclusion + ≥ K-deep confirmation
+    // chain hold with valid PoW.
+    crate::spv::verify_deposit_confirmation(
+        &w.deposit_confirmation,
+        &w.deposit_txid,
+        w.deposit_sats,
+        &w.reserve_committee_pubkeys,
+        w.reserve_committee_threshold,
+        DEPOSIT_MIN_CONFIRMATIONS as usize,
+    )
+    .map_err(|e| match e {
+        crate::spv::DepositSpvError::ConfirmationDepthInsufficient => DepositNotConfirmed, // I-01
+        crate::spv::DepositSpvError::DepositNotToReserve => DepositNotToReserve,           // I-02
+        crate::spv::DepositSpvError::DepositAmountMismatch => DepositAmountMismatch,
+        _ => DepositSpvInvalid,
+    })?;
     let sighash = mint_request_sighash(
         &w.issuer_id,
         w.requested_mint_atoms,
@@ -365,8 +397,40 @@ mod tests {
 
     const PRICE_50K: u64 = 5_000_000_000_000; // $50,000 × 10^8
     const ISSUER_ID: [u8; 32] = [0xab; 32];
-    const DEPOSIT_TXID: [u8; 32] = [0xcd; 32];
     const META: [u8; 32] = [0xef; 32];
+    const COMMITTEE_THRESHOLD: u8 = 3;
+
+    /// 5 fixed 33-byte "pubkeys" for the reserve committee. The deposit verifier
+    /// SHA-256s the multisig witness script bytes — it does not curve-check the
+    /// points — so distinct opaque bytes suffice for the test.
+    fn mint_test_committee() -> Vec<[u8; 33]> {
+        (1..=5u8)
+            .map(|i| {
+                let mut pk = [0u8; 33];
+                pk[0] = 0x02;
+                pk[1] = i;
+                pk
+            })
+            .collect()
+    }
+
+    /// A cached synthetic deposit SPV proof (grinding PoW once per test process)
+    /// + the deterministic txid derived from its canonical legacy tx body.
+    fn test_deposit() -> (satusd_types::types::BtcDepositConfirmation, [u8; 32]) {
+        use std::sync::OnceLock;
+        static CACHE: OnceLock<(satusd_types::types::BtcDepositConfirmation, [u8; 32])> =
+            OnceLock::new();
+        CACHE
+            .get_or_init(|| {
+                crate::spv::build_deposit_confirmation(
+                    4_000_000_000,
+                    &mint_test_committee(),
+                    COMMITTEE_THRESHOLD,
+                    6,
+                )
+            })
+            .clone()
+    }
 
     fn signer_keys() -> [SecretKey; 3] {
         [
@@ -423,7 +487,10 @@ mod tests {
             oracle_set_epoch: 3,
             latest_oracle_epoch_seen: 3,
             latest_oracle_price_e8: PRICE_50K,
-            reserve_committee_hash: [0x0d; 32],
+            reserve_committee_hash: satusd_types::derive::reserve_committee_hash(
+                COMMITTEE_THRESHOLD,
+                &mint_test_committee(),
+            ),
             issuer_positions_root: issuer_root,
             operator_registry_root: [0x04; 32],
             lock_record_root: [0x05; 32],
@@ -477,11 +544,12 @@ mod tests {
     fn signed_commit_witness(n_sigs: usize) -> MintCommitWitness {
         let requested_mint_atoms = 100_000_000u64; // $1M
         let deposit_sats = 4_000_000_000u64; // 40 BTC ⇒ 400% post-mint
+        let (deposit_conf, deposit_txid) = test_deposit();
         let sighash = mint_request_sighash(
             &ISSUER_ID,
             requested_mint_atoms,
             deposit_sats,
-            &DEPOSIT_TXID,
+            &deposit_txid,
             &META,
         );
         let keys = signer_keys();
@@ -495,13 +563,14 @@ mod tests {
         MintCommitWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid,
             deposit_sats,
-            deposit_confirmations: 6,
-            deposit_to_reserve: true,
             asset_metadata_commitment: META,
             signatures,
             oracle_price_e8: PRICE_50K,
+            deposit_confirmation: deposit_conf,
+            reserve_committee_pubkeys: mint_test_committee(),
+            reserve_committee_threshold: COMMITTEE_THRESHOLD,
         }
     }
 
@@ -548,7 +617,7 @@ mod tests {
         let fw = MintFinalizeWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms: cw.requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid: test_deposit().1,
             asset_metadata_commitment: META,
             mint_anchor_confirmations: 6,
             mint_proof_ok: true,
@@ -573,11 +642,12 @@ mod tests {
 
     #[test]
     fn i01_deposit_unconfirmed_rejected() {
+        // Drop one confirmation header so the chain is only 5 deep (need 6).
         let prev_issuer = issuer(None, IssuerStatus::Active);
         let (_t, proof, root) = tree_with(&prev_issuer);
         let prev = base_state(0, 0, root);
         let mut w = commit_witness();
-        w.deposit_confirmations = 5;
+        w.deposit_confirmation.confirmation_headers.pop();
         let new = make_new(
             &prev,
             TransitionType::MintCommit,
@@ -594,11 +664,46 @@ mod tests {
 
     #[test]
     fn i02_deposit_to_non_reserve_rejected() {
+        // Build the SPV proof against a DIFFERENT committee → the deposit tx pays
+        // a different P2WSH than the one the verifier derives from `w`'s
+        // committee → DepositNotToReserve.
         let prev_issuer = issuer(None, IssuerStatus::Active);
         let (_t, proof, root) = tree_with(&prev_issuer);
         let prev = base_state(0, 0, root);
         let mut w = commit_witness();
-        w.deposit_to_reserve = false;
+        let other_committee: Vec<[u8; 33]> = (101..=105u8)
+            .map(|i| {
+                let mut pk = [0u8; 33];
+                pk[0] = 0x02;
+                pk[1] = i;
+                pk
+            })
+            .collect();
+        let (decoy_conf, decoy_txid) = crate::spv::build_deposit_confirmation(
+            w.deposit_sats,
+            &other_committee,
+            COMMITTEE_THRESHOLD,
+            6,
+        );
+        w.deposit_confirmation = decoy_conf;
+        w.deposit_txid = decoy_txid;
+        // Re-sign with the new txid so the multisig still verifies (the deposit
+        // SPV check fails first regardless, but we want a clean error).
+        let sighash = mint_request_sighash(
+            &w.issuer_id,
+            w.requested_mint_atoms,
+            w.deposit_sats,
+            &decoy_txid,
+            &w.asset_metadata_commitment,
+        );
+        let keys = signer_keys();
+        let pks = signer_pubkeys();
+        w.signatures = (0..2)
+            .map(|i| MultisigSig {
+                signer_pubkey: pks[i],
+                signature: sign(&keys[i], &sighash),
+            })
+            .collect();
         let new = make_new(
             &prev,
             TransitionType::MintCommit,
@@ -621,7 +726,7 @@ mod tests {
         let fw = MintFinalizeWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms: cw.requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid: test_deposit().1,
             asset_metadata_commitment: [0x00; 32], // ≠ committed META
             mint_anchor_confirmations: 6,
             mint_proof_ok: true,
@@ -652,7 +757,7 @@ mod tests {
         let fw = MintFinalizeWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms: cw.requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid: test_deposit().1,
             asset_metadata_commitment: META,
             mint_anchor_confirmations: 6,
             mint_proof_ok: true,
@@ -736,7 +841,7 @@ mod tests {
         let fw = MintFinalizeWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms: cw.requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid: test_deposit().1,
             asset_metadata_commitment: META,
             mint_anchor_confirmations: 6,
             mint_proof_ok: true,

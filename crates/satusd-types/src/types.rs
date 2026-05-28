@@ -283,6 +283,32 @@ impl Encode for BtcHtlcPayoutRecord {
     }
 }
 
+/// SPV proof of an on-chain reserve deposit (§5.D11 / I-01/I-02). The mint
+/// verifier recomputes the deposit txid from `deposit_tx_legacy`, finds an output
+/// paying the committee P2WSH reserve for `deposit_sats`, and re-verifies the
+/// merkle inclusion + PoW + ≥ K-deep confirmation chain. Mirrors the redemption
+/// SPV (`BtcPayoutConfirmation`, DL-22) but for the *input* side of the protocol.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct BtcDepositConfirmation {
+    /// Raw legacy serialization of the deposit transaction; `dsha256(.) ==
+    /// MintCommitWitness.deposit_txid`. An output of this tx must pay the
+    /// committee P2WSH (derived from `reserve_committee_pubkeys/threshold`) for
+    /// `deposit_sats`.
+    pub deposit_tx_legacy: Vec<u8>,
+    /// The 80-byte BTC block header containing the deposit tx.
+    pub inclusion_header: [u8; 80],
+    /// `dsha256(inclusion_header)`.
+    pub inclusion_block_hash: [u8; 32],
+    pub inclusion_block_height: u32,
+    /// Merkle inclusion path (sibling hashes, leaf→root, indexed by tx_index).
+    pub inclusion_merkle_proof: Vec<[u8; 32]>,
+    /// Position of the deposit tx in the block's merkle tree.
+    pub tx_index: u32,
+    /// `N-1` headers chaining onto `inclusion_header`; together with the
+    /// inclusion header itself the deposit is buried `1 + N-1 = N` blocks deep.
+    pub confirmation_headers: Vec<[u8; 80]>,
+}
+
 /// BtcPayoutConfirmation (§5.D14, §6.6).
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct BtcPayoutConfirmation {

@@ -10,7 +10,7 @@ use bitcoin::consensus::encode::serialize;
 use bitcoin::hashes::Hash;
 use bitcoin::{Transaction, Txid};
 use bitcoincore_rpc::{Client, RpcApi};
-use satusd_types::types::{BtcPayoutConfirmation, OutPoint};
+use satusd_types::types::{BtcDepositConfirmation, BtcPayoutConfirmation, OutPoint};
 
 type Err = Box<dyn std::error::Error>;
 
@@ -155,5 +155,41 @@ pub fn build_payout_confirmation(
         claim_tx_index: claim.tx_index,
         htlc_inclusion_header: htlc.header,
         claim_inclusion_header: claim.header,
+    })
+}
+
+/// Build the SPV `BtcDepositConfirmation` for a confirmed reserve deposit. The
+/// dual of `satusd_state::spv::verify_deposit_confirmation`: the issuer produces
+/// exactly the evidence the state node will re-verify before accepting
+/// `mint_commit` (the M2-→-prod tightening of the `deposit_confirmations` /
+/// `deposit_to_reserve` witness facts; see SECURITY.md §3).
+pub fn build_deposit_confirmation(
+    btc: &Client,
+    deposit_txid: [u8; 32],
+    min_depth: usize,
+) -> Result<BtcDepositConfirmation, Err> {
+    let txid = Txid::from_byte_array(deposit_txid);
+    let inclusion = locate(btc, &txid)?;
+    let tx = btc.get_raw_transaction(&txid, None)?;
+
+    let mut confirmation_headers = Vec::with_capacity(min_depth.saturating_sub(1));
+    let mut h = bitcoin::BlockHash::from_byte_array(inclusion.block_hash);
+    for _ in 0..min_depth.saturating_sub(1) {
+        h = btc.get_block_hash(btc.get_block_header_info(&h)?.height as u64 + 1)?;
+        confirmation_headers.push(
+            serialize(&btc.get_block_header(&h)?)
+                .try_into()
+                .map_err(|_| "header len")?,
+        );
+    }
+
+    Ok(BtcDepositConfirmation {
+        deposit_tx_legacy: legacy_bytes(&tx),
+        inclusion_header: inclusion.header,
+        inclusion_block_hash: inclusion.block_hash,
+        inclusion_block_height: inclusion.height,
+        inclusion_merkle_proof: inclusion.merkle_proof,
+        tx_index: inclusion.tx_index,
+        confirmation_headers,
     })
 }

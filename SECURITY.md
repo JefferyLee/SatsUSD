@@ -56,6 +56,12 @@ independently (§5.D18), so neither has to be trusted for those.
 
 ## 3. What is trusted / not-yet-enforced (honest gaps)
 
+- **(closed)** ~~Reserve deposit was a witness fact at mint_commit.~~ As of the
+  deposit-SPV upgrade, `mint_commit` independently re-verifies the deposit on
+  Bitcoin: tx body → txid, an output pays the committee P2WSH for `deposit_sats`,
+  merkle inclusion + PoW + ≥ K-deep confirmation chain. The same machinery as the
+  redemption SPV (DL-22). Issuer + operator build the proof via
+  `satusd_operator::build_deposit_confirmation`. The full regtest E2E exercises it.
 - **The succinct proof is NOT consensus-authoritative yet.** The MVP proves
   transitions with the **software verifier**; the challenger re-runs it. The Groth16
   circuit is supplementary:

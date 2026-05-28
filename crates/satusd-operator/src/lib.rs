@@ -16,6 +16,6 @@ pub mod reserve_spend;
 pub mod submit;
 
 pub use htlc::{build_btc_htlc, BtcHtlc};
-pub use observer::build_payout_confirmation;
+pub use observer::{build_deposit_confirmation, build_payout_confirmation};
 pub use quote::{quote, Quote, QuoteError};
 pub use submit::{submit_transition, SubmitError};

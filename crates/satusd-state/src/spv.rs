@@ -17,7 +17,140 @@
 //! parsing).
 
 use satusd_types::sha256;
-use satusd_types::types::BtcPayoutConfirmation;
+use satusd_types::types::{BtcDepositConfirmation, BtcPayoutConfirmation};
+
+/// 3-of-5-style multisig witnessScript: `OP_M <pk1>..<pkN> OP_N OP_CHECKMULTISIG`.
+fn reserve_witness_script(pubkeys: &[[u8; 33]], threshold: u8) -> Vec<u8> {
+    let mut s = Vec::with_capacity(2 + pubkeys.len() * 34);
+    s.push(0x50 + threshold); // OP_M (OP_1=0x51 .. OP_16=0x60)
+    for pk in pubkeys {
+        s.push(0x21); // PUSH_33
+        s.extend_from_slice(pk);
+    }
+    s.push(0x50 + pubkeys.len() as u8); // OP_N
+    s.push(0xae); // OP_CHECKMULTISIG
+    s
+}
+
+/// The 34-byte P2WSH scriptPubKey committing to a 3-of-5 reserve committee.
+fn reserve_p2wsh_spk(pubkeys: &[[u8; 33]], threshold: u8) -> [u8; 34] {
+    let ws = reserve_witness_script(pubkeys, threshold);
+    let h = sha256(&[&ws]);
+    let mut spk = [0u8; 34];
+    spk[0] = 0x00; // segwit v0
+    spk[1] = 0x20; // PUSH_32
+    spk[2..].copy_from_slice(&h);
+    spk
+}
+
+/// Parse the outputs of a legacy (no-witness) Bitcoin tx as `(value, spk)` pairs.
+/// Returns `None` if malformed.
+fn legacy_tx_outputs(tx: &[u8]) -> Option<Vec<(u64, Vec<u8>)>> {
+    let mut i = 4usize; // version
+    let n_in = read_varint(tx, &mut i)?;
+    for _ in 0..n_in {
+        if i + 36 > tx.len() {
+            return None;
+        }
+        i += 32 + 4; // prev txid + vout
+        let script_len = read_varint(tx, &mut i)? as usize;
+        if i + script_len + 4 > tx.len() {
+            return None;
+        }
+        i += script_len + 4; // script + sequence
+    }
+    let n_out = read_varint(tx, &mut i)?;
+    let mut outs = Vec::with_capacity(n_out as usize);
+    for _ in 0..n_out {
+        if i + 8 > tx.len() {
+            return None;
+        }
+        let value = u64::from_le_bytes(tx[i..i + 8].try_into().unwrap());
+        i += 8;
+        let script_len = read_varint(tx, &mut i)? as usize;
+        if i + script_len > tx.len() {
+            return None;
+        }
+        outs.push((value, tx[i..i + script_len].to_vec()));
+        i += script_len;
+    }
+    Some(outs)
+}
+
+/// Why a `BtcDepositConfirmation` failed verification (mint_commit input side).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum DepositSpvError {
+    MalformedTx,
+    TxidMismatch,
+    DepositNotToReserve, // I-02
+    DepositAmountMismatch,
+    InclusionHeaderMismatch,
+    InclusionMerkleInvalid,
+    ConfirmationDepthInsufficient, // I-01
+    HeaderChainBroken,
+    HeaderPowInvalid,
+}
+
+/// Verify a deposit's on-chain confirmation: the recomputed txid binds the tx
+/// body; an output of the tx pays the committee P2WSH for `deposit_sats`; merkle
+/// inclusion + PoW + the ≥ `min_depth` header chain all hold. Closes the M2
+/// "deposit confirmation is a witness fact" gap.
+pub fn verify_deposit_confirmation(
+    c: &BtcDepositConfirmation,
+    deposit_txid: &[u8; 32],
+    deposit_sats: u64,
+    reserve_committee_pubkeys: &[[u8; 33]],
+    reserve_committee_threshold: u8,
+    min_depth: usize,
+) -> Result<(), DepositSpvError> {
+    use DepositSpvError::*;
+
+    macro_rules! ensure {
+        ($cond:expr, $err:expr) => {
+            if !($cond) {
+                return Err($err);
+            }
+        };
+    }
+
+    // 1. txid binding: the deposit tx body hashes to the claimed txid.
+    ensure!(dsha256(&c.deposit_tx_legacy) == *deposit_txid, TxidMismatch);
+
+    // 2. The tx has an output paying the committee P2WSH for the claimed sats.
+    let reserve_spk = reserve_p2wsh_spk(reserve_committee_pubkeys, reserve_committee_threshold);
+    let outs = legacy_tx_outputs(&c.deposit_tx_legacy).ok_or(MalformedTx)?;
+    let reserve_out = outs.iter().find(|(_, spk)| spk.as_slice() == reserve_spk);
+    let (paid, _) = reserve_out.ok_or(DepositNotToReserve)?;
+    ensure!(*paid == deposit_sats, DepositAmountMismatch);
+
+    // 3. Inclusion header consistent with the block hash + has valid PoW.
+    ensure!(
+        block_hash(&c.inclusion_header) == c.inclusion_block_hash,
+        InclusionHeaderMismatch
+    );
+    ensure!(pow_ok(&c.inclusion_header), HeaderPowInvalid);
+
+    // 4. Merkle inclusion of the deposit tx in its block.
+    ensure!(
+        merkle_root_from_proof(*deposit_txid, c.tx_index, &c.inclusion_merkle_proof)
+            == merkle_root_field(&c.inclusion_header),
+        InclusionMerkleInvalid
+    );
+
+    // 5. Confirmation depth + chain on top of the inclusion block.
+    ensure!(
+        c.confirmation_headers.len() + 1 >= min_depth,
+        ConfirmationDepthInsufficient
+    );
+    let mut prior = c.inclusion_block_hash;
+    for h in &c.confirmation_headers {
+        ensure!(pow_ok(h), HeaderPowInvalid);
+        ensure!(prev_block_hash(h) == prior, HeaderChainBroken);
+        prior = block_hash(h);
+    }
+
+    Ok(())
+}
 
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum SpvError {
@@ -344,6 +477,78 @@ pub(crate) fn build_confirmation_spending(
     }
 }
 
+// ---------------------------------------------------------------------------
+// Deposit SPV — test helper (synthetic regtest-difficulty header chain + a
+// canonical deposit tx paying the committee P2WSH). The real-bitcoind builder
+// for live signet/regtest is `satusd_operator::observer::build_deposit_confirmation`.
+// ---------------------------------------------------------------------------
+
+#[cfg(test)]
+pub(crate) fn build_deposit_confirmation(
+    deposit_sats: u64,
+    reserve_committee_pubkeys: &[[u8; 33]],
+    reserve_committee_threshold: u8,
+    depth: usize,
+) -> (satusd_types::types::BtcDepositConfirmation, [u8; 32]) {
+    fn grind(prev: [u8; 32], merkle: [u8; 32]) -> [u8; 80] {
+        let mut h = [0u8; 80];
+        h[0..4].copy_from_slice(&1u32.to_le_bytes());
+        h[4..36].copy_from_slice(&prev);
+        h[36..68].copy_from_slice(&merkle);
+        h[68..72].copy_from_slice(&1_700_000_000u32.to_le_bytes());
+        h[72..76].copy_from_slice(&0x207f_ffffu32.to_le_bytes());
+        for n in 0u32..u32::MAX {
+            h[76..80].copy_from_slice(&n.to_le_bytes());
+            if pow_ok(&h) {
+                return h;
+            }
+        }
+        panic!("no nonce");
+    }
+    // A canonical legacy tx with one coinbase-like input and one output paying
+    // the committee P2WSH for `deposit_sats`. Fixed bytes ⇒ deterministic txid.
+    let reserve_spk = reserve_p2wsh_spk(reserve_committee_pubkeys, reserve_committee_threshold);
+    let tx_legacy = {
+        let mut t = Vec::new();
+        t.extend_from_slice(&2u32.to_le_bytes()); // version
+        t.push(1); // input count
+        t.extend_from_slice(&[0u8; 32]); // prev txid
+        t.extend_from_slice(&u32::MAX.to_le_bytes()); // prev vout
+        t.push(0); // scriptSig len
+        t.extend_from_slice(&0xffff_ffffu32.to_le_bytes()); // sequence
+        t.push(1); // output count
+        t.extend_from_slice(&deposit_sats.to_le_bytes()); // value (LE)
+        t.push(reserve_spk.len() as u8); // script len (34 fits in 1 byte)
+        t.extend_from_slice(&reserve_spk);
+        t.extend_from_slice(&0u32.to_le_bytes()); // locktime
+        t
+    };
+    let txid = dsha256(&tx_legacy);
+    let sib = [0x33; 32];
+    let merkle = merkle_root_from_proof(txid, 0, &[sib]);
+    let inclusion = grind([0; 32], merkle);
+    let inclusion_bh = block_hash(&inclusion);
+    let mut confs = Vec::new();
+    let mut prev = inclusion_bh;
+    for _ in 0..depth.saturating_sub(1) {
+        let h = grind(prev, [0x44; 32]);
+        prev = block_hash(&h);
+        confs.push(h);
+    }
+    (
+        satusd_types::types::BtcDepositConfirmation {
+            deposit_tx_legacy: tx_legacy,
+            inclusion_header: inclusion,
+            inclusion_block_hash: inclusion_bh,
+            inclusion_block_height: 100,
+            inclusion_merkle_proof: vec![sib],
+            tx_index: 0,
+            confirmation_headers: confs,
+        },
+        txid,
+    )
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -436,3 +641,5 @@ mod tests {
         );
     }
 }
+
+// (build_deposit_confirmation moved before `mod tests` — see above)

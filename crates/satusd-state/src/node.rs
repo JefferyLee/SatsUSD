@@ -689,7 +689,8 @@ mod tests {
     const ISSUER_ID: [u8; 32] = [0xaa; 32];
     const OPERATOR: [u8; 32] = [0x20; 32];
     const META: [u8; 32] = [0xef; 32];
-    const DEPOSIT_TXID: [u8; 32] = [0xcd; 32];
+    // Deposit txid is now derived from the SPV-verified deposit tx body (see
+    // `test_deposit_for_node`), not a fixed const.
 
     fn keys() -> [SecretKey; 3] {
         [
@@ -724,14 +725,29 @@ mod tests {
         }
     }
 
+    /// Cached synthetic deposit SPV proof + txid (built against the committee
+    /// the node tests use). Shared by `commit_witness` and the `full_redemption_e2e`
+    /// finalize witness so they reference the same `deposit_txid`.
+    fn test_deposit_for_node() -> (satusd_types::types::BtcDepositConfirmation, [u8; 32]) {
+        use std::sync::OnceLock;
+        static CACHE: OnceLock<(satusd_types::types::BtcDepositConfirmation, [u8; 32])> =
+            OnceLock::new();
+        CACHE
+            .get_or_init(|| {
+                crate::spv::build_deposit_confirmation(4_000_000_000, &committee_pubkeys(), 3, 6)
+            })
+            .clone()
+    }
+
     fn commit_witness() -> mint::MintCommitWitness {
         let requested_mint_atoms = 100_000_000u64;
         let deposit_sats = 4_000_000_000u64;
+        let (deposit_conf, deposit_txid) = test_deposit_for_node();
         let sighash = satusd_types::derive::mint_request_sighash(
             &ISSUER_ID,
             requested_mint_atoms,
             deposit_sats,
-            &DEPOSIT_TXID,
+            &deposit_txid,
             &META,
         );
         let secp = Secp256k1::new();
@@ -748,13 +764,14 @@ mod tests {
         mint::MintCommitWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid,
             deposit_sats,
-            deposit_confirmations: 6,
-            deposit_to_reserve: true,
             asset_metadata_commitment: META,
             signatures,
             oracle_price_e8: PRICE_50K,
+            deposit_confirmation: deposit_conf,
+            reserve_committee_pubkeys: committee_pubkeys(),
+            reserve_committee_threshold: 3,
         }
     }
 
@@ -888,7 +905,7 @@ mod tests {
         let fin = mint::MintFinalizeWitness {
             issuer_id: ISSUER_ID,
             requested_mint_atoms: 100_000_000,
-            deposit_txid: DEPOSIT_TXID,
+            deposit_txid: test_deposit_for_node().1,
             asset_metadata_commitment: META,
             mint_anchor_confirmations: 6,
             mint_proof_ok: true,
@@ -972,7 +989,7 @@ mod tests {
             &mint::MintFinalizeWitness {
                 issuer_id: ISSUER_ID,
                 requested_mint_atoms: 100_000_000,
-                deposit_txid: DEPOSIT_TXID,
+                deposit_txid: test_deposit_for_node().1,
                 asset_metadata_commitment: META,
                 mint_anchor_confirmations: 6,
                 mint_proof_ok: true,

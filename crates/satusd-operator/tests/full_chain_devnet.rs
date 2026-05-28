@@ -175,6 +175,9 @@ fn burn_vector() -> (Vec<u8>, [u8; 32], u32) {
 fn commit_witness(
     secp: &Secp256k1<bitcoin::secp256k1::All>,
     deposit_txid: [u8; 32],
+    deposit_confirmation: satusd_types::types::BtcDepositConfirmation,
+    reserve_committee_pubkeys: Vec<[u8; 33]>,
+    reserve_committee_threshold: u8,
 ) -> mint::MintCommitWitness {
     let deposit_sats = 4_000_000_000u64;
     let sighash = satusd_types::derive::mint_request_sighash(
@@ -198,11 +201,12 @@ fn commit_witness(
         requested_mint_atoms: REQUESTED_MINT_ATOMS,
         deposit_txid,
         deposit_sats,
-        deposit_confirmations: 6,
-        deposit_to_reserve: true,
         asset_metadata_commitment: META,
         signatures,
         oracle_price_e8: PRICE_50K,
+        deposit_confirmation,
+        reserve_committee_pubkeys,
+        reserve_committee_threshold,
     }
 }
 
@@ -268,7 +272,9 @@ fn full_chain_regtest_e2e() {
             None,
         )
         .unwrap();
-    btc.generate_to_address(1, &miner).unwrap();
+    // Bury the deposit ≥ 6 blocks so the in-state SPV verifier (post-MVP
+    // tightening of the I-01 witness-fact check) accepts it.
+    btc.generate_to_address(6, &miner).unwrap();
     let deposit_tx = btc.get_raw_transaction(&deposit_txid_btc, None).unwrap();
     let reserve_vout = deposit_tx
         .output
@@ -292,8 +298,15 @@ fn full_chain_regtest_e2e() {
 
     // ---- issuer_register + mint with the REAL deposit txid ----
     node.issuer_register(issuer()).unwrap();
-    node.mint_commit(ISSUER_ID, &commit_witness(&secp, deposit_txid))
-        .unwrap();
+    // Build the deposit SPV proof from bitcoind (the real-bitcoind dual of the
+    // synthetic `crate::spv::build_deposit_confirmation` test helper).
+    let deposit_conf = satusd_operator::build_deposit_confirmation(&btc, deposit_txid, 6)
+        .expect("build_deposit_confirmation");
+    node.mint_commit(
+        ISSUER_ID,
+        &commit_witness(&secp, deposit_txid, deposit_conf, comm_pks_state.clone(), 3),
+    )
+    .unwrap();
     node.mint_finalize(
         ISSUER_ID,
         &mint::MintFinalizeWitness {

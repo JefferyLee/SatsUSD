@@ -139,26 +139,37 @@ pub struct MultisigSigDto {
 }
 
 #[derive(Deserialize)]
+pub struct BtcDepositConfirmationDto {
+    pub deposit_tx_legacy: String, // hex
+    pub inclusion_header: Hex<80>,
+    pub inclusion_block_hash: Hex<32>,
+    pub inclusion_block_height: u32,
+    pub inclusion_merkle_proof: Vec<Hex<32>>,
+    pub tx_index: u32,
+    pub confirmation_headers: Vec<Hex<80>>,
+}
+
+#[derive(Deserialize)]
 pub struct MintCommitDto {
     pub issuer_id: Hex<32>,
     pub requested_mint_atoms: u64,
     pub deposit_txid: Hex<32>,
     pub deposit_sats: u64,
-    pub deposit_confirmations: u32,
-    pub deposit_to_reserve: bool,
     pub asset_metadata_commitment: Hex<32>,
     pub signatures: Vec<MultisigSigDto>,
     pub oracle_price_e8: u64,
+    pub deposit_confirmation: BtcDepositConfirmationDto,
+    pub reserve_committee_pubkeys: Vec<Hex<33>>,
+    pub reserve_committee_threshold: u8,
 }
 impl MintCommitDto {
     pub fn into_witness(self) -> MintCommitWitness {
+        let d = self.deposit_confirmation;
         MintCommitWitness {
             issuer_id: self.issuer_id.0,
             requested_mint_atoms: self.requested_mint_atoms,
             deposit_txid: self.deposit_txid.0,
             deposit_sats: self.deposit_sats,
-            deposit_confirmations: self.deposit_confirmations,
-            deposit_to_reserve: self.deposit_to_reserve,
             asset_metadata_commitment: self.asset_metadata_commitment.0,
             signatures: self
                 .signatures
@@ -169,6 +180,21 @@ impl MintCommitDto {
                 })
                 .collect(),
             oracle_price_e8: self.oracle_price_e8,
+            deposit_confirmation: satusd_types::types::BtcDepositConfirmation {
+                deposit_tx_legacy: hex::decode(&d.deposit_tx_legacy).unwrap_or_default(),
+                inclusion_header: d.inclusion_header.0,
+                inclusion_block_hash: d.inclusion_block_hash.0,
+                inclusion_block_height: d.inclusion_block_height,
+                inclusion_merkle_proof: d.inclusion_merkle_proof.into_iter().map(|h| h.0).collect(),
+                tx_index: d.tx_index,
+                confirmation_headers: d.confirmation_headers.into_iter().map(|h| h.0).collect(),
+            },
+            reserve_committee_pubkeys: self
+                .reserve_committee_pubkeys
+                .into_iter()
+                .map(|h| h.0)
+                .collect(),
+            reserve_committee_threshold: self.reserve_committee_threshold,
         }
     }
 }
