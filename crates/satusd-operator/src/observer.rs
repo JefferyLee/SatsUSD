@@ -99,6 +99,13 @@ pub fn build_payout_confirmation(
 ) -> Result<BtcPayoutConfirmation, Err> {
     let htlc_txid = Txid::from_byte_array(htlc_outpoint.txid);
     let htlc = locate(btc, &htlc_txid)?;
+    let htlc_tx = btc.get_raw_transaction(&htlc_txid, None)?;
+    let htlc_out = htlc_tx
+        .output
+        .get(htlc_outpoint.vout as usize)
+        .ok_or("htlc vout out of range")?;
+    let htlc_value_sats = htlc_out.value.to_sat();
+    let htlc_spk = htlc_out.script_pubkey.to_bytes();
     let claim = locate(btc, &claim_txid)?;
     let claim_tx = btc.get_raw_transaction(&claim_txid, None)?;
 
@@ -130,8 +137,8 @@ pub fn build_payout_confirmation(
     Ok(BtcPayoutConfirmation {
         btc_htlc_txid: htlc_outpoint.txid,
         btc_htlc_vout: htlc_outpoint.vout,
-        htlc_output_value_sats: 0, // not checked by the SPV verifier
-        htlc_output_script: vec![],
+        htlc_output_value_sats: htlc_value_sats,
+        htlc_output_script: htlc_spk,
         htlc_inclusion_block_hash: htlc.block_hash,
         htlc_inclusion_block_height: htlc.height,
         htlc_inclusion_merkle_proof: htlc.merkle_proof,

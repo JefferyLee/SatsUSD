@@ -16,4 +16,6 @@ serde_json = { workspace = true }
 
 [dev-dependencies]
 satusd-state-node = { path = "../satusd-state-node" }
+satusd-reserve = { path = "../satusd-reserve" }
+satusd-ta-proof = { path = "../satusd-ta-proof" }
 tokio = { version = "1.52.3", features = ["rt-multi-thread", "net"] }
