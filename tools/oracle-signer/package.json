@@ -1,0 +1,14 @@
+{
+  "name": "satusd-oracle-signer",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "Live oracle signer daemon for the SatUSD M6 pilot (BabyJubjub EdDSA via circomlibjs)",
+  "main": "index.mjs",
+  "scripts": {
+    "start": "node index.mjs"
+  },
+  "dependencies": {
+    "circomlibjs": "^0.1.7"
+  }
+}
