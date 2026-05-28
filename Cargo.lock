@@ -1647,11 +1647,14 @@ version = "0.1.0"
 dependencies = [
  "axum",
  "hex",
+ "http-body-util",
+ "satusd-da",
  "satusd-state",
  "satusd-types",
  "serde",
  "serde_json",
  "tokio",
+ "tower",
 ]
 
 [[package]]

@@ -337,6 +337,12 @@ impl StateNode {
         self.pending_claims.get(claim_id)
     }
 
+    /// All PENDING / FINALIZED / RECLAIMED claims the node has seen (for
+    /// challenger / keeper iteration).
+    pub fn pending_claims(&self) -> &HashMap<[u8; 32], PendingClaim> {
+        &self.pending_claims
+    }
+
     /// REDEEM_FAST_FINALIZE submit_claim (§5.D12): reserve the reimbursement and
     /// create a PENDING claim (no `reserve_btc_sats` debit). `redemptions` carry
     /// the business data; the node fills their SMT proof fields and builds the

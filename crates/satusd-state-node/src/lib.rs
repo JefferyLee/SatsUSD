@@ -7,6 +7,7 @@
 //!
 //! Body is a `{"transition": "...", ...}` tagged JSON object (see `dto`).
 
+pub mod da_mirror;
 pub mod dto;
 
 use std::sync::{Arc, Mutex};
@@ -90,7 +91,27 @@ async fn get_state(State(s): State<Shared>) -> Json<Value> {
         "reserve_btc_sats": st.reserve_btc_sats,
         "collateral_ratio_ppm": st.collateral_ratio_ppm,
         "emergency_tier": st.emergency_tier,
+        "l1_anchor_height": st.l1_anchor_height,
     }))
+}
+
+async fn get_pending_claims(State(s): State<Shared>) -> Json<Value> {
+    let node = s.lock().unwrap();
+    let claims: Vec<Value> = node
+        .pending_claims()
+        .iter()
+        .map(|(id, p)| {
+            json!({
+                "claim_id": hex::encode(id),
+                "operator_id": hex::encode(p.operator_id),
+                "reserved_sats": p.reserved_sats,
+                "claim_created_height": p.claim_created_height,
+                "claim_expiry_height": p.claim_expiry_height,
+                "status": p.status as u8,
+            })
+        })
+        .collect();
+    Json(json!({ "pending_claims": claims }))
 }
 
 async fn submit(
@@ -115,6 +136,7 @@ pub fn router(node: StateNode) -> Router {
     let shared: Shared = Arc::new(Mutex::new(node));
     Router::new()
         .route("/v1/state", get(get_state))
+        .route("/v1/pending_claims", get(get_pending_claims))
         .route("/v1/transition/simulate", post(simulate))
         .route("/v1/transition/submit", post(submit))
         .with_state(shared)
