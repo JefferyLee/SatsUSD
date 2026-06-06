@@ -52,6 +52,7 @@
 | 5.D13 / 6 | `claim_id` preimage 排除项 | 排除 `claim_id`、`operator_signature` **与 `new_state_root`**（否则 pending_claim_root fixpoint） | ADR-0012 + ADR-0022 | 已回填（§6 line ~1243） |
 | 5.D3 | 自定义 lock anchor 走 `FundVirtualPsbt + AnchorVirtualPsbts` (vPSBT) | 高层 **`NewAddr + SendAsset`** 直接造广播即可（tapd 接受外来 script_key + NUMS internal + tapscript sibling）；vPSBT/`CommitVirtualPsbts` 是更细控制的下层备选，非必需 | ADR-001；G1 报告；`satusd-tapd-client` | 仅登记 |
 | 6.1 | `state_root_hash` 为唯一状态承诺 | 电路另用 **Poseidon-over-fields** 承诺（`state_commit_fields`），与字节版 `state_root_hash` 并行（非替换）；未来统一 | ADR-009 | 仅登记 |
+| 5.D11 / 6.1 | `IssuerPosition` 只用 `pending_mint_atoms` 聚合计数器，无 per-commit 记录 | 新增 `pending_mint_commitment: Option<[u8;32]>` 字段：MINT_COMMIT 设为 `mint_commitment(...)`、MINT_FINALIZE 验证匹配后清空。一 issuer 一笔在途，是 I-03（finalize 必须匹配 commit）与 I-07（防重复 finalize）的 enabling state | ADR-0019；`satusd-state::mint`；DL-19 | 已回填（§6.1 line 1156） |
 
 > 维护约定：今后任何"实现发现 PRD 有误"都应（a）就地改正可逐字改的部分，（b）在本表加一行 + 写/引 ADR。新人读 PRD 时本表是第一入口。
 

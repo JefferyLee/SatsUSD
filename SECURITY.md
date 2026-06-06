@@ -87,6 +87,15 @@ independently (§5.D18), so neither has to be trusted for those.
 - **Reserve custody is modelled, not on-chain.** `satusd-reserve` tracks custody +
   committee approval in lockstep with state; the actual 3-of-5 P2WSH/P2TR reserve
   spend on signet is pilot work (M6).
+- **Committee rotation is a stub, not on-chain enforcement.** If a
+  Reserve committee member's key is lost or compromised, the
+  `ROTATE_SHARD` transition (`0x50`, §11.2) marks the rotation in
+  state, but the actual key exchange + custody handoff is **manual,
+  off-chain**, and announced via the operator runbook
+  (`docs/runbooks/M6_emergency_recovery.md`). The 3-of-5 multisig is
+  **not immutable** — it can rotate — but until BitVM3 (M8) replaces
+  the committee, rotation honesty rests on the same trust assumption
+  as the committee itself.
 - **Test fixtures are pinned to a devnet asset** — see
   `integration/lineage_vectors/PROVENANCE.md`; a devnet rebuild requires
   `make recapture-vectors` + constant updates (drift fails loudly).
