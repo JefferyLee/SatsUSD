@@ -1620,6 +1620,22 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-rail"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "sha2",
+]
+
+[[package]]
+name = "satusd-rail0"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-rail",
+]
+
+[[package]]
 name = "satusd-reserve"
 version = "0.1.0"
 dependencies = [
