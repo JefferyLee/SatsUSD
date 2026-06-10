@@ -9,5 +9,6 @@
 //! unit-tested. The tapd-driving builder and the devnet E2E live in
 //! the follow-up increment (task: Rail-0 tapd builder + J3 E2E).
 
+pub mod burn_key;
 pub mod plan;
 pub mod rail;

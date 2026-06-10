@@ -32,12 +32,19 @@ fn tagged_hash(tag: &str, msg: &[u8]) -> [u8; 32] {
 /// `TapTweak(internal, tweak)` (ADR-0014): the BIP341 output key
 /// `internal + tagged_hash("TapTweak", internal_xonly || tweak) * G`, x-only.
 pub fn tap_tweak(internal_xonly: &[u8; 32], tweak: &[u8; 32]) -> [u8; 32] {
+    tap_tweak_data(internal_xonly, tweak)
+}
+
+/// BIP341 output-key derivation over arbitrary-length tweak data —
+/// `txscript.ComputeTaprootOutputKey` semantics. Needed by tapd's
+/// burn-key derivation, whose tweak data exceeds 32 bytes.
+pub fn tap_tweak_data(internal_xonly: &[u8; 32], data: &[u8]) -> [u8; 32] {
     let secp = Secp256k1::verification_only();
     let internal = XOnlyPublicKey::from_byte_array(*internal_xonly)
         .expect("internal key must be valid x-only");
-    let mut msg = Vec::with_capacity(64);
+    let mut msg = Vec::with_capacity(32 + data.len());
     msg.extend_from_slice(internal_xonly);
-    msg.extend_from_slice(tweak);
+    msg.extend_from_slice(data);
     let t = Scalar::from_be_bytes(tagged_hash("TapTweak", &msg)).expect("tweak scalar in range");
     let (tweaked, _parity) = internal.add_tweak(&secp, &t).expect("taproot tweak");
     tweaked.serialize()

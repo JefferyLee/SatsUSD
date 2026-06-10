@@ -1632,7 +1632,10 @@ name = "satusd-rail0"
 version = "0.1.0"
 dependencies = [
  "hex",
+ "satusd-crypto",
  "satusd-rail",
+ "satusd-tapd-client",
+ "tokio",
 ]
 
 [[package]]

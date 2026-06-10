@@ -6,7 +6,10 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+satusd-crypto = { path = "../satusd-crypto" }
 satusd-rail = { path = "../satusd-rail" }
 
 [dev-dependencies]
 hex.workspace = true
+satusd-tapd-client = { path = "../satusd-tapd-client" }
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
