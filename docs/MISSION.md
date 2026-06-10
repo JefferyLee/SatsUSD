@@ -188,11 +188,26 @@ in the founding document so that no one — including us — can
 later pretend this project was meant to live forever and collect
 rent.
 
-We estimate Phase 0→1 in years, Phase 1→2 in more years, Phase
-3 in a decade, Phase 4 generational. The engineering can be
-fast; adoption runs on the world's clock, not ours. We assume we
-will be wrong about specifics, and we are committed to being
-right about direction.
+**We put no dates on these phases.** Forecasts of the future are
+wrong by nature, and a schedule serves no one: too cautious, it
+deflates; too bold, it embarrasses. The phases above are
+recognized by metrics, not calendars.
+
+What we will say is this: the slope is steepening. AI now
+compounds the speed of engineering — this project is itself
+built that way. More deeply, AI agents are becoming economic
+actors in their own right: they hold no dollar habit, cannot
+open bank accounts, cannot pass KYC, and choose their money on
+engineering merit alone. The network-effect moat this bridge
+exists to cross is a phenomenon of human habit — and the
+fastest-growing population of new economic actors has no habits
+at all. Machine-verifiable, permissionless, programmable money
+is not merely available to them; it is the only money they can
+natively use.
+
+Adoption runs on the world's clock, not ours — and the world's
+clock is accelerating. We assume we will be wrong about
+specifics. We are committed to being right about direction.
 
 ## Self-referencing: why it is necessary — and why this is not Terra
 
