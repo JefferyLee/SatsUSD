@@ -1,4 +1,9 @@
-# Active ADR Index
+> **SUPERSEDED (2026-06-09).** This entire ADR series (ADR-001..0023)
+> belongs to the pre-restart architecture and is retained for
+> historical reference only. The active ADR series restarts at
+> `docs/decisions/ADR-0001-restart-from-mission-v2.md`.
+
+# ADR Index (superseded series)
 
 | ADR | Title | Status |
 |---|---|---|

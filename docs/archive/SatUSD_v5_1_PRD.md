@@ -1,3 +1,9 @@
+> **SUPERSEDED (2026-06-09).** This document describes the pre-restart
+> architecture and is retained for historical reference only. The
+> project was rebuilt from `docs/MISSION.md` (v2); see
+> `docs/decisions/ADR-0001-restart-from-mission-v2.md`. Nothing in
+> this file is authoritative.
+
 # SatUSD v5.1 — Product Requirements Document
 
 **BitVM3-Backed BTC Reserve + Taproot Asset Payment Stablecoin**
