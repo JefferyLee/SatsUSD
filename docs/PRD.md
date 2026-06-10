@@ -160,6 +160,8 @@ it ships with every release.
 | Founder-funded reserve | bootstrap without VC or entity | external LP/holder base large enough that founder share < 50% of reserve |
 | Founder-run epoch allotment (Stage 1) | enforcement before ceremony tooling exists | M-E: Stage-2 ceremony operational |
 | Founder-run single oracle (Rail-1) | dlcspecs oracle market is empty today | ≥ 1 independent oracle class live with market share |
+| TA group key custody (issuance authority) | grouped-asset issuance requires a signature; threshold/covenant issuance not yet built (spec 01 §3) | FROST k-of-n group key among independent parties, or covenant-gated issuance |
+| Reference marker provider | an external BTC/USD marker is needed until the internal market earns authority (spec 03 §5) | internal_twap switchover criterion met (03 §5.3); external marker demoted to sanity anchor |
 | Founder-run universe/proof + disclosure servers | someone must seed S3 availability | ≥ 2 independent mirrors serving the same data |
 | Founder as sole maintainer | solo + AI build phase | ≥ 2 maintainers with full release capability |
 | Manual slash execution (FR-10 v0) | dispute automation staged | Stage-2 optimistic dispute flow live |
