@@ -48,6 +48,52 @@ field appendix, evidence table, and reproduction commands
 (`make devnet-up` + one `cargo test`):
 [LINK to docs/proposals/0001-ta-in-dlc-funding-output.md]
 
+## Prior art (and why this isn't 10101)
+
+This design space has bodies in it, so positioning honestly:
+
+- **[10101](https://10101.finance/blog/10101-is-shutting-down/)** is
+  the closest prior art: a synthetic USD as a 1x-short position
+  inside a DLC channel, coordinator as counterparty. It shut down in
+  2024 citing Lightning channel plumbing ("route not found" ate the
+  engineering budget) and lack of traction — not a failure of DLC
+  settlement itself. The channel problem doesn't carry over here:
+  this is an on-chain L1 asset, no channels needed to hold or
+  transfer it. Two structural problems DO carry over, and I'd rather
+  name them than be told: someone must fund the over-collateralized
+  long side, and the peg-holder's carry cost reappears at every
+  expiry/roll. (My answers: collateral is posted by minters opening
+  leveraged-long vault positions — the "who wants the long side"
+  and "where does collateral come from" questions are the same
+  question; and the roll cost is an explicit fee that accrues to the
+  common reserve rather than to an exchange.)
+- **Perp-hedge synthetics** ([Stablesats](https://stablesats.com/),
+  [Hermetica](https://www.coingecko.com/en/coins/hermetica-usdh)):
+  replace the exchange/coordinator counterparty and continuous
+  margin with fixed-expiry CET settlement on L1.
+- **Sidechain CDPs** ([Sovryn
+  Zero](https://wiki.sovryn.com/en/sovryn-dapp/subprotocols/zero-zusd),
+  Citrea's ctUSD): no bridge, no federation, no liquidation engine —
+  gap risk is bounded by over-collateralization plus short tenors
+  and is priced ex-ante instead of depending on liquidation bots
+  that fail exactly when needed.
+- **DLC custody/loans** ([Lava](https://stacker.news/items/1279809),
+  iBTC/[BitSafe](https://media.bitsafe.finance/p/dlc-link-to-bitsafe),
+  Firefish, Lendasat): these produce bilateral credit positions;
+  the novel part here is making the stable claim itself a
+  *transferable bearer asset* — the TA commitment living inside the
+  DLC funding output. Worth noting soberly: Lava quietly moved off
+  DLC custody in 2025, and iBTC pivoted to institutional custody.
+  DLC ops are hard; "anyone-can-broadcast with deterministic CETs"
+  is my bet on why settlement (not custody UX) is the right place
+  for DLCs.
+- **[Tether on Taproot
+  Assets](https://tether.io/news/tether-brings-usdt-to-bitcoins-lightning-network-ushering-in-a-new-era-of-unstoppable-technology/)**
+  is live and is the incumbent on these very rails. Same rails,
+  opposite trust model: no issuer, no fiat reserve, no freeze key.
+  I don't claim better liquidity or UX — I claim a different
+  product, for holders an issuer can't or won't serve.
+
 The three open questions I'd most value input on:
 
 1. Should BIP-tap explicitly bless "asset commitment in a
