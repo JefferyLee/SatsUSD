@@ -1,0 +1,10 @@
+[Application Options]
+debuglevel=info
+network=signet
+rpclisten=127.0.0.1:10030
+restlisten=127.0.0.1:8090
+
+[lnd]
+lnd.host=127.0.0.1:10010
+lnd.macaroonpath=__ROOT__/signet/data/lnd/data/chain/bitcoin/signet/admin.macaroon
+lnd.tlspath=__ROOT__/signet/data/lnd/tls.cert

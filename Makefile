@@ -1,4 +1,4 @@
-.PHONY: check fmt clippy test vectors verify devnet-up devnet-down recapture-vectors
+.PHONY: check fmt clippy test vectors verify devnet-up devnet-down recapture-vectors signet-up signet-down signet-status
 
 # Full local gate: formatting, lints, Rust tests, regenerate vectors, cross-language match.
 check: fmt clippy test vectors verify
@@ -33,6 +33,16 @@ devnet-up:
 
 devnet-down:
 	./devnet/devnet-down.sh
+
+# Public signet node set (M-B): bitcoind + lnd + tapd. See signet/README.md.
+signet-up:
+	./signet/signet-up.sh
+
+signet-down:
+	./signet/signet-down.sh
+
+signet-status:
+	./signet/signet-status.sh
 
 # Recapture the real tapd lineage fixtures from a LIVE devnet (bitcoind+lnd+tapd up,
 # with a grouped SatUSD asset minted — see integration/lineage_vectors/PROVENANCE.md).

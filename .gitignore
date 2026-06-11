@@ -25,3 +25,7 @@ devnet/logs/
 
 # Pre-SatUSD 2023 legacy files, archived out of the way (kept on disk, not tracked)
 legacy/
+
+# Signet runtime (chain/wallet data, logs) — not committed
+signet/data/
+signet/logs/
