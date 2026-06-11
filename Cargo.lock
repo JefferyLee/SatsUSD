@@ -1620,6 +1620,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-oracle"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-rail",
+ "secp256k1 0.31.1",
+ "sha2",
+]
+
+[[package]]
 name = "satusd-rail"
 version = "0.1.0"
 dependencies = [
@@ -1639,6 +1649,16 @@ dependencies = [
  "satusd-tapd-client",
  "serde_json",
  "tokio",
+]
+
+[[package]]
+name = "satusd-rail1"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "satusd-oracle",
+ "satusd-rail",
+ "secp256k1 0.31.1",
 ]
 
 [[package]]

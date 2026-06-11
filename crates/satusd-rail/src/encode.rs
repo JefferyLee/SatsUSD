@@ -76,6 +76,11 @@ impl Encoder {
         }
     }
 
+    /// Raw bytes, no prefix — for pre-encoded substructures.
+    pub fn put_raw(&mut self, v: &[u8]) {
+        self.buf.extend_from_slice(v);
+    }
+
     /// BigSize length prefix followed by the raw bytes.
     pub fn put_varbytes(&mut self, v: &[u8]) {
         self.put_bigsize(v.len() as u64);
