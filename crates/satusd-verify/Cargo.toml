@@ -1,0 +1,14 @@
+[package]
+name = "satusd-verify"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+bitcoin = "0.32.9"
+satusd-rail = { path = "../satusd-rail" }
+satusd-rail0 = { path = "../satusd-rail0" }
+
+[dev-dependencies]
+hex.workspace = true
