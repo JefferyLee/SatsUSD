@@ -76,6 +76,13 @@ ahead of maturity, in batches (RECOMMENDED: one batch per minute
 covering the next two minutes of events at 1 s cadence). Wire
 vectors for both message types are pinned in `satusd-oracle`.
 
+Transport is **not** part of this standard — only the TLVs are.
+The reference daemon (`oracled`) serves them as hex over HTTP:
+`GET /v0/pubkey`, `/v0/announcement/<unix_ts>`,
+`/v0/attestation/<unix_ts>`, `/v0/latest`. Any mirror serving the
+same bytes is equivalent; clients MUST verify signatures, never
+endpoints.
+
 ### 3.3 Nonce discipline
 
 Per-event, per-digit nonces MUST be derived deterministically from
