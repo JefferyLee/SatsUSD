@@ -89,10 +89,13 @@ pub fn vpsbt_anchor_input(funded_vpsbt: &[u8]) -> Result<AnchorInInfo, Box<dyn s
         return Err("PrevID too short".into());
     }
     // Txid stores wire byte order internally — no reversal needed.
+    // The vout is BIG-endian here (tlv-package convention) — unlike
+    // DeriveBurnKey's Go wire format, which is little-endian; both
+    // are devnet-validated.
     use bitcoin::hashes::Hash;
     let outpoint = OutPoint::new(
         bitcoin::Txid::from_byte_array(prev_id[..32].try_into().unwrap()),
-        u32::from_le_bytes(prev_id[32..36].try_into().unwrap()),
+        u32::from_be_bytes(prev_id[32..36].try_into().unwrap()),
     );
 
     let value_sats = get(T_ANCHOR_VALUE)
@@ -255,25 +258,31 @@ pub fn build_anchor_template(
     // forms, mirroring the vPSBT's anchor data — tapd's publish-time
     // ValidateAnchorOutputs checks all three for equality.
     for (i, info) in anchor_keys.iter().enumerate() {
-        psbt.outputs[i].tap_internal_key = Some(info.internal_key);
-        if let Some((pk, val)) = &info.bip32 {
-            if let Some(origin) = parse_origin(val) {
-                psbt.outputs[i].bip32_derivation.insert(*pk, origin);
-            }
+        apply_anchor_out_info(&mut psbt.outputs[i], info);
+    }
+    psbt
+}
+
+/// Mirror one anchor output's vPSBT data onto a PSBT output —
+/// internal key + both derivation forms. tapd's publish-time
+/// ValidateAnchorOutputs checks all three for equality, so every
+/// template builder (Rail-0's and Rail-1's alike) must apply this.
+pub fn apply_anchor_out_info(out: &mut bitcoin::psbt::Output, info: &AnchorOutInfo) {
+    out.tap_internal_key = Some(info.internal_key);
+    if let Some((pk, val)) = &info.bip32 {
+        if let Some(origin) = parse_origin(val) {
+            out.bip32_derivation.insert(*pk, origin);
         }
-        if let Some((xonly, val)) = &info.tap_origin {
-            // BIP-371 value layout: <compact hashes len><leaf hashes>
-            // <fingerprint><path>; tapd anchors carry zero leaf hashes.
-            if val.first() == Some(&0) {
-                if let Some(origin) = parse_origin(&val[1..]) {
-                    psbt.outputs[i]
-                        .tap_key_origins
-                        .insert(*xonly, (vec![], origin));
-                }
+    }
+    if let Some((xonly, val)) = &info.tap_origin {
+        // BIP-371 value layout: <compact hashes len><leaf hashes>
+        // <fingerprint><path>; tapd anchors carry zero leaf hashes.
+        if val.first() == Some(&0) {
+            if let Some(origin) = parse_origin(&val[1..]) {
+                out.tap_key_origins.insert(*xonly, (vec![], origin));
             }
         }
     }
-    psbt
 }
 
 /// Outcome of the commit step: the funded anchor PSBT awaiting BTC

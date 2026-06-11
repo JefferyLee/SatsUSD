@@ -1661,6 +1661,7 @@ dependencies = [
  "satusd-crypto",
  "satusd-oracle",
  "satusd-rail",
+ "satusd-rail0",
  "satusd-tapd-client",
  "secp256k1 0.31.1",
  "serde_json",
