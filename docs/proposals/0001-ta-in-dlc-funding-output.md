@@ -1,12 +1,13 @@
 # Taproot Assets in Taproot+MuSig2 DLC Funding Outputs
 # 在 Taproot+MuSig2 DLC funding output 中承载 Taproot Assets 资产
 
-**Status / 状态:** Draft for community review / 公开征求意见草案
+**Status / 状态:** Draft v2 — implemented & devnet-validated / 第 2 稿——已实现并经 devnet 验证
+**Implementation / 实现:** https://github.com/JefferyLee/SatsUSD (`satusd-rail1`, `satusd-rail0`, `satusd-oracle`)
 **Author / 作者:** Jeffery Lee (SatUSD project)
 **Target venues / 投递目标:**
 - English: dlcspecs (GitHub), delvingbitcoin.org, lightning-dev mailing list
 - 中文: BitcoinTalk 中文区, Delving Bitcoin Chinese, 各 BTC L2 团队 issue
-**Date / 日期:** 2026-06-07
+**Date / 日期:** v1 2026-06-07 · v2 2026-06-10
 
 ---
 
@@ -23,8 +24,14 @@ is conventionally empty *by choice*, not by protocol requirement, and that
 BIP-tap places its asset commitment in a tap leaf whose role is inclusion
 proof rather than spending path. We outline the funding transaction, CET
 structure, PSBT field requirements, and the verifier-side recognition
-problem. We ask the community to weigh in on three specific open questions
-before this becomes a real spec.
+problem. Since the first draft, the construction has been implemented
+and validated on regtest against tapd v0.7.2: real Taproot Assets
+land inside the DLC-shaped output with the on-chain output key
+byte-identical to the independent reconstruction, and a complete
+oracle-gated DLC settlement — pre-signed CETs, selective bucket
+decryption, key-path spend — has executed end-to-end (§8). We ask
+the community to weigh in on three specific open questions before
+this becomes a real spec.
 
 ## 1. Motivation
 
@@ -118,6 +125,17 @@ The funding transaction takes two inputs:
 
 It produces one funding output of value `Y` BTC and TA-committed for $X.
 
+*Implementation note*: tapd supports this natively — `NewAddr`
+accepts a foreign `internal_key`, an explicit asset `script_key`,
+and a `tapscript_sibling` preimage (`0x00 LeafPreimage ‖ 0xc0 leaf
+version ‖ compact_size ‖ script`); the asset lands in the
+construction through the ordinary address flow. The receiving
+daemon reports both `taproot_asset_root` and the full `merkle_root`,
+from which any verifier reconstructs Q byte-exactly. Our v0 uses a
+single funding key (the rust secp256k1 crate does not yet expose a
+musig module); the MuSig2 aggregation is a declared upgrade, not a
+prerequisite.
+
 ### 3.2 CET set
 
 For each of N discretized oracle outcomes (a price bucket `p_i` at the
@@ -130,8 +148,24 @@ binding to a CET with these outputs:
 | `o_sink` | NUMS-derived burn address | TA-committed: asset_id = SatUSD, amount = $X |
 | `o_lp` | LP | BTC remainder = `Y − ⌊$X / p_i⌋ − dust − fee` |
 
-`o_sink` is a P2TR with internal key fixed to a NUMS point chosen per
-BIP-tap convention; this constitutes a verifiable burn at the TA layer.
+`o_sink` uses the TA-native burn: the asset script key is tapd's
+`DeriveBurnKey(first PrevID)` — per-burn unique, provably
+unspendable, and recognized by every tapd-compatible verifier (we
+replicate the derivation in Rust and validate it byte-exactly
+against a live `BurnAsset` call). A variant worth noting: the TA
+leg may instead pay the counterparty's own script key (a pure
+swap), deferring the burn to a later reserve-interaction step —
+in our protocol the reserve only reimburses against a burn
+artifact, preserving supply conservation without forcing the burn
+into the settlement transaction itself.
+
+CETs are made fully deterministic *before* signing via tapd's
+`CommitVirtualPsbts` with `skip_funding`: the same signed virtual
+transaction is committed once per outcome bucket, each yielding a
+fixed anchor transaction whose BIP-341 key-spend sighash is the
+adaptor message. With base-2 digit decomposition, 2^m aligned price
+buckets need one adaptor signature each (digit-prefix wildcards),
+not one per outcome.
 
 ### 3.3 Settlement
 
@@ -145,8 +179,12 @@ broadcaster — LP, User, or a third-party relay — can:
 
 The settlement is final the moment `CET_{p_actual}` is included in a block.
 TA lineage is verified out-of-band by the receiving wallet (or by a
-standalone TA verifier) by reading the asset transfer proof for `in₀` and
-checking that `o_sink` preserves `asset_id` and `amount`.
+standalone TA verifier) by reading the asset transfer proof for
+`in₀` and checking that the TA leg preserves `asset_id` and
+`amount`. *Validated*: the decrypted adaptor signature inserts as
+`PSBT_IN_TAP_KEY_SIG` and any standard finalizer assembles the
+witness; the settlement broadcasts and confirms like any other
+transaction.
 
 ### 3.4 Refund
 
@@ -184,6 +222,21 @@ This is a placeholder — we believe the right long-term home is
 `PSBT_*_DLC_*` keys defined by dlcspecs and `PSBT_*_TAP_ASSET_*` keys
 defined by BIP-tap, harmonized so the two ranges do not collide.
 
+*Implementation note — tapd's own vPSBT anchor fields* (observed on
+v0.7.2; future implementers will need these to build anchor
+templates):
+
+| Where | Type | Content |
+|---|---|---|
+| input | 112 | PrevID: outpoint(36) ‖ asset_id(32) ‖ script_key — **vout is big-endian** here (tlv convention), unlike `DeriveBurnKey`'s little-endian wire format |
+| input | 113 / 114 / 116 / 117 | anchor value (u64 BE) / anchor pkScript / anchor internal key (33B) / anchor merkle root |
+| output | 114 / 115 / 116 / 117 | anchor output index (u64 BE) / anchor internal key (33B) / BIP32 derivation / taproot BIP32 derivation |
+
+A template's anchor outputs must mirror the internal key **and both
+derivation forms**; the daemon's publish-time validation checks all
+three. The standard BIP-371 `tap_internal_key` on a *virtual*
+output is the asset-level key — not the anchor key.
+
 ## 5. Verifier-side recognition
 
 Today's `tapd` recognizes a TA-committed output by checking that the
@@ -204,7 +257,12 @@ ecosystem disruption:
 3. **Standardize via BIP-tap revision**: explicitly bless the "TA leaf
    alongside non-asset leaves, possibly key-path spent" case in the spec.
 
-We will proceed with (1) for the SatUSD PoC and propose (2) in parallel.
+Strategy (1) is exercised and sufficient today: receiving into the
+construction works through the ordinary address flow, the daemon's
+transfer records expose everything Q-reconstruction needs, and the
+spend side reuses the standard fund/sign/commit external-anchor
+flow with the funding outpoint pinned. We still intend (2) as
+upstream ergonomics, no longer as a blocker.
 
 ## 6. Open questions for the community
 
@@ -226,6 +284,12 @@ N-CET DLC with N in the low thousands, each adaptor signature consumes one
 nonce per signer. Are existing deterministic-nonce constructions
 (BIP-327 Annex) sufficient, or does this use case warrant a dedicated
 nonce-derivation extension to prevent reuse across CET re-signings?
+*Implementation experience*: our v0 pre-signs under a single funding
+key with per-CET deterministic nonces (an even-Y search counter over
+a tagged-hash family — the adaptor's combined nonce `R + T` must be
+even-Y while `R`'s own parity must be preserved for verification, a
+subtlety our tests caught as a real bug). The MuSig2 form of the
+question stands.
 
 ## 7. Reference and prior art
 
@@ -242,17 +306,27 @@ nonce-derivation extension to prevent reuse across CET re-signings?
 - DLC Markets has publicly stated intent to settle in USD via Taproot
   Assets; no technical document published as of the date of this draft.
 
-## 8. Next steps
+## 8. Implementation status & evidence
 
-The SatUSD project intends to:
+Implemented in Rust in the SatUSD repository; each claim below is
+licensed by a machine check against live tapd v0.7.2 on regtest:
 
-1. Build a PoC implementation of Section 3 against signet, single-oracle.
-2. Publish reference vectors for the funding tx, a representative CET, and
-   the refund tx.
-3. Submit `tapd` PR for strategy (2) of Section 5.
-4. Open a dlcspecs issue (or PR if scope warrants) proposing the
-   Taproot+MuSig2 funding output as a peer to the existing P2WSH version,
-   with an optional TA-aware variant.
+| Claim | Validation | Artifact |
+|---|---|---|
+| TA lands inside a DLC-shaped output (foreign internal key + sibling leaf) | live regtest | `satusd-rail1/tests/devnet_funding.rs` |
+| On-chain key ≡ reconstructed `Q = P + TapTweak(P ‖ branch(TA leaf, refund leaf))·G` | byte-exact vs `gettxout`; cross-checked against rust-bitcoin's independent TaprootBuilder | same + `funding.rs` unit tests |
+| Sibling preimage encoding | accepted by tapd first-run | `funding::sibling_preimage` |
+| tapd-native burn key derivation | byte-exact vs a live `BurnAsset` | `satusd-rail0/tests/devnet_burn_key.rs` |
+| Full oracle-gated settlement: CETs presigned before the outcome, only the winning bucket decrypts, key-path spend broadcasts | live regtest E2E | `satusd-rail1/tests/devnet_settle.rs` |
+
+Reproduce: `make devnet-up`, mint a grouped asset, then
+`cargo test -p satusd-rail1 --test devnet_settle -- --ignored`.
+
+Remaining intentions: a `tapd` PR for §5 strategy (2) ergonomics; a
+dlcspecs issue proposing the Taproot funding output as a peer to
+the P2WSH form, with the TA-aware variant; cross-language encoding
+vectors (Rust side pinned, TypeScript mirror pending); MuSig2
+funding keys when library support lands.
 
 Comments, corrections, and alternative constructions are very welcome.
 The SatUSD repository will track this proposal at
@@ -272,8 +346,11 @@ output。构造的关键洞察是：新版 Taproot+MuSig2 DLC funding output 的
 script tree 之所以为空，是**设计上的选择**而非协议要求；而 BIP-tap 的资产
 承诺位于 tap leaf 中，其作用是**包含性证明**而非花费路径。因此两者天然可以
 共存于同一个 Taproot tweak 之下。本文给出 funding tx 结构、CET 结构、PSBT
-字段需求、以及验证者侧的识别问题，并在最后提出三个需要社区共同决断的开放
-问题。
+字段需求、以及验证者侧的识别问题。自第 1 稿以来，该构造已实现并在
+regtest 上对 tapd v0.7.2 完成验证：真实的 Taproot Assets 落入 DLC 形态
+的输出，链上输出键与独立重建逐字节一致；一次完整的预言机门控 DLC 结
+算——预签 CET、选择性桶解密、key-path 花费——已端到端执行（§8）。最
+后提出三个需要社区共同决断的开放问题。
 
 ## 1. 动机
 
@@ -356,6 +433,14 @@ Funding tx 接受两个输入：
 
 产出一笔 funding output：BTC 值 `Y`，TA 层承载 $X SatUSD。
 
+*实现注记*：tapd 原生支持本构造——`NewAddr` 接受外来 `internal_key`、
+显式资产 `script_key` 和 `tapscript_sibling` 原像（`0x00 LeafPreimage
+‖ 0xc0 叶版本 ‖ compact_size ‖ script`）；资产经普通地址流程落入构
+造。接收守护进程同时报告 `taproot_asset_root` 与完整 `merkle_root`，
+任何验证者可据此逐字节重建 Q。我们的 v0 使用单一 funding key（rust
+secp256k1 库尚未提供 musig 模块）；MuSig2 聚合是已声明的升级项，而非
+前置条件。
+
 ### 3.2 CET 集合
 
 对 N 个离散化预言机 outcome（即指定 attestation 事件上的价格 bucket
@@ -367,8 +452,19 @@ Funding tx 接受两个输入：
 | `o_sink` | NUMS 销毁地址 | TA-committed：asset_id = SatUSD，amount = $X |
 | `o_lp` | LP | BTC 余额 = `Y − ⌊$X / p_i⌋ − dust − fee` |
 
-`o_sink` 是一个 P2TR，internal key 固定为 BIP-tap 约定的 NUMS 点，这构成
-TA 层面的可验证销毁。
+`o_sink` 使用 TA 原生销毁：资产 script key 为 tapd 的
+`DeriveBurnKey(首输入 PrevID)`——逐次唯一、可证不可花，且任何 tapd 兼
+容验证者都能识别（我们以 Rust 复刻该派生，并对照真实 `BurnAsset` 调
+用逐字节验证）。值得注意的变体：TA 腿也可改付对手方自己的 script
+key（纯互换），将销毁推迟到后续的储备交互步骤——在我们的协议中，储
+备只凭销毁工件报销，由此在不强制把销毁塞进结算交易的前提下保持供给
+守恒。
+
+CET 在签名之前即被完全确定：通过 tapd 的 `CommitVirtualPsbts` 配合
+`skip_funding`——同一份已签虚拟交易按 outcome 桶各提交一次，每次产
+出一笔固定的锚定交易，其 BIP-341 key-spend sighash 即 adaptor 消息。
+配合 base-2 按位分解，2^m 个对齐价格桶各需一个 adaptor 签名（位前缀
+通配），而非每个 outcome 一个。
 
 ### 3.3 结算
 
@@ -380,8 +476,10 @@ TA 层面的可验证销毁。
 3. 广播 `CET_{p_actual}`。
 
 `CET_{p_actual}` 一旦入块即为最终结算。TA lineage 由接收钱包（或独立 TA
-验证器）在带外验证：读取 `in₀` 的 asset transfer proof，并核对 `o_sink`
-保留了同一个 `asset_id` 和 `amount`。
+验证器）在带外验证：读取 `in₀` 的 asset transfer proof，并核对 TA 腿
+保留了同一个 `asset_id` 和 `amount`。*已验证*：adaptor 解密得到的签名
+以 `PSBT_IN_TAP_KEY_SIG` 写入后，任何标准 finalizer 都能组装见证；结
+算交易像任何普通交易一样广播确认。
 
 ### 3.4 退款
 
@@ -417,6 +515,19 @@ PSBT_OUT_PROPRIETARY  key 前缀 = "SatUSD/v1/"
 `PSBT_*_DLC_*` keys + BIP-tap 定义的 `PSBT_*_TAP_ASSET_*` keys，两者范围
 协调避免冲突。
 
+*实现注记——tapd 自身的 vPSBT 锚定字段*（基于 v0.7.2 实测；后续实现
+者构造锚定模板必需）：
+
+| 位置 | 类型 | 内容 |
+|---|---|---|
+| 输入 | 112 | PrevID：outpoint(36) ‖ asset_id(32) ‖ script_key——此处 **vout 为大端**（tlv 惯例），与 `DeriveBurnKey` 的小端 wire 格式相反 |
+| 输入 | 113 / 114 / 116 / 117 | 锚定金额（u64 BE）/ 锚定脚本 / 锚定 internal key（33B）/ 锚定 merkle root |
+| 输出 | 114 / 115 / 116 / 117 | 锚定输出索引（u64 BE）/ 锚定 internal key（33B）/ BIP32 派生 / taproot BIP32 派生 |
+
+模板的锚定输出必须镜像 internal key **与两种派生形式**——守护进程在
+publish 时三者皆校验。虚拟输出上的标准 BIP-371 `tap_internal_key` 是
+资产层密钥，**不是**锚定密钥。
+
 ## 5. 验证者侧的识别问题
 
 当前 `tapd` 识别 TA-committed 输出的方式是：当输出通过 script-path 花费时，
@@ -433,7 +544,10 @@ output 通过 key-path 花费，资产承诺叶子永远不在见证中显式揭
 3. **修订 BIP-tap 规范**：显式认可「TA leaf 与非资产 leaf 并存、可能
    key-path 花费」这种用法。
 
-SatUSD PoC 阶段先走 (1)，同时并行推进 (2)。
+策略 (1) 已被实际行使且今天即足够：经普通地址流程即可接收进本构造，
+守护进程的转移记录暴露了重建 Q 所需的一切，花费侧复用标准
+fund/sign/commit 外部锚定流程并钉住 funding outpoint。策略 (2) 仍计划
+作为上游工效改进推进，但不再是阻塞项。
 
 ## 6. 留给社区的开放问题
 
@@ -450,7 +564,11 @@ DLC PSBT 和本文这种混合 PSBT，proprietary 方案无法组合。
 **Q3.** MuSig2 nonce 在长生命周期预签场景下的安全性——一个 N-CET 的 DLC，
 N 在千数量级，每个 adaptor signature 消耗每方一个 nonce。现有的确定性
 nonce 构造（BIP-327 附录）是否充分，还是这个用例需要一份专门的 nonce 派生
-扩展，防止跨 CET 重签时的 nonce 重用？
+扩展，防止跨 CET 重签时的 nonce 重用？*实现经验*：我们的 v0 在单一
+funding key 下预签，逐 CET 确定性 nonce（在 tagged-hash 族上做偶 Y 搜
+索计数——adaptor 的组合 nonce `R + T` 必须偶 Y，而 `R` 自身的奇偶性
+必须保留供验证使用；这个细节曾被我们的测试抓出一个真实 bug）。
+MuSig2 形态的问题仍然成立。
 
 ## 7. 引用与相关工作
 
@@ -464,15 +582,26 @@ nonce 构造（BIP-327 附录）是否充分，还是这个用例需要一份专
 - **DLC Markets** 公开表态计划用 Taproot Assets 做 USD 端结算；截至本草案
   日期尚无任何公开技术文档
 
-## 8. 下一步
+## 8. 实现状态与证据
 
-SatUSD 项目计划：
+已在 SatUSD 仓库以 Rust 实现；下表每条主张均由针对 regtest 上真实
+tapd v0.7.2 的机器检查背书：
 
-1. 基于 signet + 单点 oracle 完成第 3 节构造的 PoC 实现
-2. 发布 funding tx、代表性 CET、refund tx 的参考向量
-3. 为第 5 节策略 (2) 向 `tapd` 提 PR
-4. 在 dlcspecs 开 issue（视范围决定是否 PR），提议 Taproot+MuSig2 funding
-   output 作为现有 P2WSH 版本的平行规范，并附 TA-aware 可选变种
+| 主张 | 验证方式 | 工件 |
+|---|---|---|
+| TA 落入 DLC 形态输出（外来 internal key + sibling 叶）| regtest 实链 | `satusd-rail1/tests/devnet_funding.rs` |
+| 链上输出键 ≡ 重建的 `Q = P + TapTweak(P ‖ branch(TA叶, refund叶))·G` | 对 `gettxout` 逐字节；并与 rust-bitcoin 的独立 TaprootBuilder 交叉验证 | 同上 + `funding.rs` 单元测试 |
+| sibling 原像编码 | tapd 首次运行即接受 | `funding::sibling_preimage` |
+| tapd 原生 burn key 派生 | 对真实 `BurnAsset` 逐字节 | `satusd-rail0/tests/devnet_burn_key.rs` |
+| 完整预言机门控结算：outcome 之前预签 CET、仅中奖桶可解密、key-path 花费广播 | regtest 实链 E2E | `satusd-rail1/tests/devnet_settle.rs` |
+
+复现：`make devnet-up`，铸一个 grouped asset，然后
+`cargo test -p satusd-rail1 --test devnet_settle -- --ignored`。
+
+后续计划：为第 5 节策略 (2) 的工效向 `tapd` 提 PR；在 dlcspecs 开
+issue，提议 Taproot funding output 作为 P2WSH 形式的平行规范并附
+TA-aware 变体；跨语言编码向量（Rust 侧已钉死，TypeScript 镜像待
+做）；待库支持落地后启用 MuSig2 funding key。
 
 欢迎评论、修正、和替代构造。SatUSD 代码仓库将持续追踪本提案于
 `docs/proposals/0001-ta-in-dlc-funding-output.md`；邮件列表 / Delving
@@ -480,9 +609,10 @@ Bitcoin 上的回复将在此处反向链接。
 
 ---
 
-*This document is a draft for community feedback, not a final specification.
-The construction has been validated on paper; PoC implementation is
-underway.*
+*This document is a draft for community feedback, not a final
+specification. The construction is implemented and devnet-validated
+(§8); the wire details remain open to revision by exactly the
+discussion this draft is asking for.*
 
-*本文是公开征求意见草案，非最终规范。构造在纸面上已验证；PoC 实现正在
-推进中。*
+*本文是公开征求意见草案，非最终规范。构造已实现并经 devnet 验证
+（§8）；wire 层细节仍开放修订——这正是本稿征求讨论的目的。*

@@ -5,7 +5,7 @@ Title: PSBT Fields for TA-Aware Taproot DLC Construction
 Author: Jeffery Lee <jeffery@example.invalid>
 Comments-Summary: No comments yet
 Comments-URI: (to be assigned)
-Status: Draft
+Status: Draft v2 — the anchor-template construction these fields support is now implemented and devnet-validated (see the main proposal §8); field assignments unchanged, still proprietary pending upstream namespaces
 Type: Standards Track
 Created: 2026-06-08
 License: BSD-2-Clause
