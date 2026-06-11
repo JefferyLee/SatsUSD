@@ -93,6 +93,15 @@
   .ev{display:grid;grid-template-columns:1.3fr 1fr;gap:1rem;padding:.95rem 0;border-bottom:1px solid var(--line);font-size:.92rem}
   .ev .k{color:var(--fg);font-weight:600;line-height:1.5}
   .ev .v{color:var(--faint);font-family:var(--mono);font-size:.78rem;word-break:break-all;align-self:center}
+  .twocol{display:grid;grid-template-columns:1fr 1fr;gap:2rem;margin-top:3rem}
+  .twocol .col{border:1px solid var(--line);border-radius:18px;background:var(--bg2);padding:1.6rem}
+  .twocol h3{font-size:1.02rem;margin-bottom:1rem;font-weight:700}
+  .twocol .col:first-child h3{color:var(--green)}
+  .twocol .col:last-child h3{color:var(--orange)}
+  .twocol ul{list-style:none}
+  .twocol li{color:var(--dim);padding:.5rem 0;font-size:.95rem;border-bottom:1px solid var(--line);line-height:1.5}
+  .twocol li:last-child{border-bottom:none}
+  @media(max-width:760px){.twocol{grid-template-columns:1fr}}
 
   .miles{margin-top:2.8rem}
   .mile{display:grid;grid-template-columns:84px 1fr;gap:1.3rem;padding:1.15rem 0;border-bottom:1px solid var(--line);align-items:baseline}
@@ -184,8 +193,8 @@
   <div class="kicker reveal" data-zh="构造 1 · 分层定理" data-en="Step 1 · the tranche theorem">构造 1 · 分层定理</div>
   <h2 class="reveal" data-zh="稳定不需要稳定的资产。<br>只需要一份切分波动的合约。" data-en="Stability doesn’t require a stable asset.<br>Only a contract that splits volatility.">稳定不需要稳定的资产。<br>只需要一份切分波动的合约。</h2>
   <p class="lead reveal"
-     data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」，只有数学上的优先权。亲手压一压它："
-     data-en="One of the oldest theorems in finance: split a volatile asset’s payoff into senior and junior, and the senior tranche is flat. SatUSD is the <b>senior claim</b> on a BTC reserve: holders take the one-dollar line; all volatility is absorbed by the junior side — the overcollateralization cushion and LP spread. Stability is <b>refined from volatility itself</b>, imported from no bank. There is no promise to redeem — only mathematical seniority. Stress it yourself:">这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」，只有数学上的优先权。亲手压一压它：</p>
+     data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可按可验证净值退出</b>。CR 闸门在 140% / 120% / 100% 三道线分级介入（暂停铸造 → 加速回血 → 净值赎回）。亲手压一压它——包括压穿它："
+     data-en="One of the oldest theorems in finance: split a volatile asset’s payoff into senior and junior, and the senior tranche is flat. SatUSD is the <b>senior claim</b> on a BTC reserve: holders take the one-dollar line; all volatility is absorbed by the junior side — the overcollateralization cushion and LP spread. Stability is <b>refined from volatility itself</b>, imported from no bank. There is no promise of par — what is promised is seniority and an <b>always-open exit at verifiable NAV</b>. CR gates engage at 140% / 120% / 100% (pause minting → accelerated recapitalization → NAV redemption). Stress it yourself — including past the breaking point:">这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可按可验证净值退出</b>。CR 闸门在 140% / 120% / 100% 三道线分级介入（暂停铸造 → 加速回血 → 净值赎回）。亲手压一压它——包括压穿它：</p>
   <div class="lab reveal">
     <div class="row">
       <label data-zh="模拟 BTC 暴跌" data-en="Simulate a BTC crash">模拟 BTC 暴跌</label>
@@ -198,7 +207,7 @@
       <div class="g"><div class="gv" id="claim-val">$1.00</div><div class="gt" data-zh="持有者的优先索取权" data-en="The holder’s senior claim">持有者的优先索取权</div></div>
       <div class="g"><div class="gv accent" id="cushion-val">50%</div><div class="gt" data-zh="次级缓冲（吸收全部波动）" data-en="Junior cushion (absorbs all volatility)">次级缓冲（吸收全部波动）</div></div>
     </div>
-    <div class="caption" data-zh="拖到 −33% 之后缓冲耗尽——这正是协议带抵押率分级与保守上限的原因：缓冲的厚度是公开参数，不是营销词。" data-en="Past −33% the cushion exhausts — exactly why the protocol ships CR tiers and conservative caps: the cushion’s depth is a public parameter, not a marketing word.">拖到 −33% 之后缓冲耗尽——这正是协议带抵押率分级与保守上限的原因：缓冲的厚度是公开参数，不是营销词。</div>
+    <div class="caption" data-zh="拖过 −33% 进入 NAV 地板（spec 04 §5）：每个持有者按同一净值赎回，没有挤兑里的「先跑补贴」。140/120/100 的闸门与缓冲厚度都是公开参数，任何客户端可实时复算。" data-en="Past −33% you hit the NAV floor (spec 04 §5): every holder redeems at the same net asset value — no first-mover subsidy, no run race. The 140/120/100 gates and the cushion’s depth are public parameters any client recomputes live.">拖过 −33% 进入 NAV 地板（spec 04 §5）：每个持有者按同一净值赎回，没有挤兑里的「先跑补贴」。140/120/100 的闸门与缓冲厚度都是公开参数，任何客户端可实时复算。</div>
   </div>
 </section>
 
@@ -236,8 +245,8 @@
   <div class="kicker reveal" data-zh="构造 4 · 说谎等于自首" data-en="Step 4 · lying is a confession">构造 4 · 说谎等于自首</div>
   <h2 class="reveal" data-zh="我们没有要求 oracle 诚实。<br>我们让说谎在数学上等于交出私钥。" data-en="We never asked the oracle to be honest.<br>We made lying mathematically equal to surrendering its key.">我们没有要求 oracle 诚实。<br>我们让说谎在数学上等于交出私钥。</h2>
   <p class="lead reveal"
-     data-zh="预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b>"
-     data-en="Predetermined nonces have a side effect usually footnoted; we made it the design: signing two prices for one second = one nonce on two messages = two equations, two unknowns — <b>any passerby solves for the secret key</b>. The evidence of misbehavior is the two signatures the misbehavior itself produced: no court, no committee, no us. The extracted key can then spend everything the oracle staked. Honesty stops being a virtue and becomes the oracle’s only solvent strategy. The extraction path runs for real in our tests: <b>the recovered key forges signatures that verify as the oracle.</b>">预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b></p>
+     data-zh="预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b>边界同样要说清楚：这把剑只斩<b>双签</b>。单边签一个错误价格，密码学不惩罚——约束它的是经济边界：报销价必须落在公开的偏差界内、爆炸半径被容量公式界定、k-of-n 组合稀释单个签名者。彻底消除（而不只是界定）这层信任，要等第三幕的终局：市场自己成为 oracle。"
+     data-en="Predetermined nonces have a side effect usually footnoted; we made it the design: signing two prices for one second = one nonce on two messages = two equations, two unknowns — <b>any passerby solves for the secret key</b>. The evidence of misbehavior is the two signatures the misbehavior itself produced: no court, no committee, no us. The extracted key can then spend everything the oracle staked. Honesty stops being a virtue and becomes the oracle’s only solvent strategy. The extraction path runs for real in our tests: <b>the recovered key forges signatures that verify as the oracle.</b> The boundary, stated plainly: this sword cuts <b>equivocation only</b>. Signing one false price carries no cryptographic penalty — it is bounded economically: reimbursement must land within the published deviation bound, capacity bounds the blast radius, k-of-n composition dilutes a single signer. Eliminating — rather than bounding — this trust is Act III’s endgame: the market becoming its own oracle.">预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b>边界同样要说清楚：这把剑只斩<b>双签</b>。单边签一个错误价格，密码学不惩罚——约束它的是经济边界：报销价必须落在公开的偏差界内、爆炸半径被容量公式界定、k-of-n 组合稀释单个签名者。彻底消除（而不只是界定）这层信任，要等第三幕的终局：市场自己成为 oracle。</p>
   <div class="fig reveal">
     <canvas id="eots-canvas" width="1400" height="500"></canvas>
     <div class="caption" data-zh="滚动观看：两份对同一事件的签名滑到一起，k 相消，d 被解出、变红——掉进任何一个旁观者手里。实现：satusd-oracle::equivocation（EOTS）。"
@@ -291,8 +300,8 @@
      data-en="One trust point remains: where does the price come from? The answer is in the system’s own metabolism. Every on-chain settlement publicly carries “how much, at what price” — any observer computes the <b>same</b> trimmed volume-weighted median over the same history, with no signer anywhere. With enough volume, external oracles demote from trust root to sanity anchor. This is self-reference — categorically unlike UST: <b>UST circulated its collateral</b> (backing itself with its own token); <b>we circulate information</b> (pricing ourselves with our own trades), while the collateral stays exogenous BTC. Information self-reference converges; collateral self-reference diverges — one is a flywheel, the other a whirlpool.">整个系统还剩最后一个信任点：价格从哪来？答案在系统自己的代谢物里。每笔链上结算都公开携带「在什么价格、成交了多少」——任何观察者对同一段历史算出<b>同一个</b>修剪后成交量加权中位数，没有签名者。交易量足够大时，外部 oracle 从信任根降级为合理性锚。这是自指——但与 UST 有范畴之别：<b>UST 循环的是抵押</b>（拿自己印的币背书自己），<b>我们循环的是信息</b>（拿自己的成交给自己定价），抵押品永远是外生的 BTC。信息自指收敛，抵押自指发散——一个是飞轮，一个是漩涡。</p>
   <div class="fig reveal">
     <canvas id="loops-canvas" width="1400" height="540"></canvas>
-    <div class="caption" data-zh="左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。"
-         data-en="Left: UST — the collateral loop. Every revolution consumes its own foundation; the radius shrinks to collapse. Right: SatUSD — the information loop. The BTC collateral block never enters the cycle; the settlements→signal→volume ring thickens with every turn. Inset: a manipulation attempt — a +40% whale (red) bounces off the ±5% trim band; the marker doesn’t move (spec 03 §5.2, drawn as implemented).">左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。</div>
+    <div class="caption" data-zh="左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。另一个边界：internal_twap 的激活是<b>交易量门控</b>的——在内部历史挣得权威之前，外部参照锚保持在位（§5.3）。自指是挣来的状态，不是初始假设；收敛是押注，由指标验证，不由修辞担保。"
+         data-en="Left: UST — the collateral loop. Every revolution consumes its own foundation; the radius shrinks to collapse. Right: SatUSD — the information loop. The BTC collateral block never enters the cycle; the settlements→signal→volume ring thickens with every turn. Inset: a manipulation attempt — a +40% whale (red) bounces off the ±5% trim band; the marker doesn’t move (spec 03 §5.2, drawn as implemented). One more boundary: internal_twap activates only past a <b>volume gate</b> — the external anchor stays until internal history earns authority (§5.3). Self-reference is an earned state, not a starting assumption; convergence is a bet verified by metrics, not guaranteed by rhetoric.">左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。另一个边界：internal_twap 的激活是<b>交易量门控</b>的——在内部历史挣得权威之前，外部参照锚保持在位（§5.3）。自指是挣来的状态，不是初始假设；收敛是押注，由指标验证，不由修辞担保。</div>
   </div>
 </section>
 
@@ -340,6 +349,29 @@
     <div class="ev"><div class="k" data-zh="tapd 烧毁键派生 vs 真实 BurnAsset 调用" data-en="tapd burn-key derivation vs a live BurnAsset call">tapd 烧毁键派生 vs 真实 BurnAsset 调用</div><div class="v">2ceb9ffd… byte-exact</div></div>
     <div class="ev"><div class="k" data-zh="等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器" data-en="Equivocation → key extraction → forged signature passes an independent verifier">等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器</div><div class="v">satusd-oracle::equivocation (EOTS)</div></div>
   </div>
+  <div class="twocol reveal">
+    <div class="col">
+      <h3 data-zh="✓ 机器已验证 —— 今天就可检查" data-en="✓ Machine-verified — checkable today">✓ 机器已验证 —— 今天就可检查</h3>
+      <ul>
+        <li data-zh="密码学构造可实现（5 项 devnet 证据，真实节点）" data-en="The cryptographic construction is implementable (5 devnet claims, live nodes)">密码学构造可实现（5 项 devnet 证据，真实节点）</li>
+        <li data-zh="全部协议编码两种语言逐字节互证（4,753 断言）" data-en="Every protocol encoding byte-matched across two languages (4,753 assertions)">全部协议编码两种语言逐字节互证（4,753 断言）</li>
+        <li data-zh="oracle 双签 → 私钥可被任何人提取（已测试）" data-en="Oracle equivocation → key extractable by anyone (tested)">oracle 双签 → 私钥可被任何人提取（已测试）</li>
+        <li data-zh="最坏情况下的单边退出路径（CSV，只依赖比特币）" data-en="Worst-case unilateral exit (CSV, needs only Bitcoin)">最坏情况下的单边退出路径（CSV，只依赖比特币）</li>
+      </ul>
+    </div>
+    <div class="col">
+      <h3 data-zh="◌ 只能由真实运行证明 —— 按里程碑指标逐级解锁" data-en="◌ Provable only by live operation — unlocked milestone by milestone">◌ 只能由真实运行证明 —— 按里程碑指标逐级解锁</h3>
+      <ul>
+        <li data-zh="$1 锚定在真实市场压力下的稳健性" data-en="The $1 peg’s robustness under real market stress">$1 锚定在真实市场压力下的稳健性</li>
+        <li data-zh="缓冲与闸门在极端行情中的充足性" data-en="Cushion and gate sufficiency in extreme moves">缓冲与闸门在极端行情中的充足性</li>
+        <li data-zh="internal_twap 的收敛（押注，非定理）" data-en="internal_twap convergence (a bet, not a theorem)">internal_twap 的收敛（押注，非定理）</li>
+        <li data-zh="LP、流量与第三方 rail 的真实出现" data-en="The real arrival of LPs, volume, third-party rails">LP、流量与第三方 rail 的真实出现</li>
+      </ul>
+    </div>
+  </div>
+  <div class="caption reveal"
+       data-zh="我们拒绝把这两栏混为一谈：左栏是已成立的工程事实，右栏是 M-B→M-D 各里程碑要逐级证明的命题——这正是路线图用指标、不用日历的原因。代码跑通从来不等于经济稳健；任何把二者混着卖的稳定币都值得你警惕，包括我们。"
+       data-en="We refuse to blur these columns: the left is established engineering fact; the right is what milestones M-B→M-D must prove, level by level — exactly why the roadmap runs on metrics, not calendars. Running code never equals economic soundness; distrust any stablecoin that sells the two as one — including us.">我们拒绝把这两栏混为一谈：左栏是已成立的工程事实，右栏是 M-B→M-D 各里程碑要逐级证明的命题——这正是路线图用指标、不用日历的原因。代码跑通从来不等于经济稳健；任何把二者混着卖的稳定币都值得你警惕，包括我们。</div>
 </section>
 
 <section class="scene" id="prospect" data-actzone="a4">

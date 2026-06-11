@@ -216,7 +216,7 @@ function drawTranche() {
   ctx.beginPath(); ctx.moveTo(0, claimY); ctx.lineTo(W, claimY); ctx.stroke(); ctx.setLineDash([]);
   ctx.font = F(22, 600); ctx.textAlign = "left";
   ctx.fillStyle = broken ? RED : GREEN;
-  ctx.fillText(broken ? T("$1.00 优先索取权 —— 缓冲耗尽（超出设计余量）", "$1.00 senior claim — cushion exhausted (beyond design margin)")
+  ctx.fillText(broken ? T("NAV 地板：赎回价 = CR × 面值，人人同价（spec 04 §5）", "NAV floor: redemption = CR × face, same for everyone (spec 04 §5)")
                       : T("$1.00 优先索取权 —— 纹丝不动", "$1.00 senior claim — does not move"), 16, claimY + 34);
   ctx.fillStyle = ORANGE; ctx.fillText(T("BTC 储备价值（次级层吸收全部波动）", "BTC reserve value (junior side absorbs all volatility)"), 16, vy(pts[20].val) - 18);
   // gauges
@@ -224,7 +224,7 @@ function drawTranche() {
   $("crash-val").textContent = "−" + Math.round(crash * 100) + "%";
   $("cr-val").textContent = Math.round(cr) + "%";
   $("cr-val").className = "gv " + (cr >= 130 ? "good" : cr >= 100 ? "accent" : "bad");
-  $("claim-val").textContent = cr >= 100 ? "$1.00" : T("进入结算保护", "settlement mode");
+  $("claim-val").textContent = cr >= 100 ? "$1.00" : "$" + (cr / 100).toFixed(2) + " NAV";
   $("cushion-val").textContent = Math.max(0, Math.round(cr - 100)) + "%";
 }
 

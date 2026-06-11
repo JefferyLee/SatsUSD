@@ -100,6 +100,23 @@ system and allow anyone to extract the oracle's secret key.
 The pair of conflicting attestations is itself the equivocation
 evidence artifact (05); no further proof is needed.
 
+**Scope of the punishment (normative honesty).** Nonce-reuse
+extraction punishes *equivocation only*. An oracle that signs a
+single false price faces no cryptographic penalty — this is the
+known limitation of all DLC oracles. The protocol bounds that
+behavior economically rather than cryptographically:
+
+- reimbursement requires the settled price within
+  `price_dev_bound_bps` of the reference marker (spec 04 §4) — a
+  lie's extractable value is bounded per settlement;
+- capacity bounds the lying rail's blast radius (ADR-0002);
+- k-of-n composition (§3.4) dilutes a single signer;
+- rail marketization prices oracle quality in fees and volume.
+
+*Eliminating* — rather than bounding — this residual trust is
+exactly the `internal_twap` end state (§5): no signer, nothing to
+lie with.
+
 ### 3.4 k-of-n composition
 
 `(k, n)` with `n > 1` composes per dlcspecs MultiOracle.md
