@@ -3,137 +3,111 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>SatUSD — Dollars on Bitcoin. Nothing else.</title>
-<meta name="description" content="A bitcoin-collateralized, dollar-denominated asset on Bitcoin L1 — redeemable anytime, verifiable by anyone, freezable by no one.">
+<title>SatUSD — 文明用价格思考 · Civilization thinks in prices</title>
+<meta name="description" content="A bitcoin-collateralized, dollar-denominated asset on Bitcoin L1 — stability refined from volatility itself, verifiable by anyone, freezable by no one.">
 <style>
   :root {
-    --bg: #0a0a0c;
-    --bg2: #111114;
-    --fg: #f2f2f4;
-    --dim: #9a9aa3;
-    --faint: #55555e;
-    --orange: #f7931a;
-    --green: #2dd4a0;
-    --red: #ff5d5d;
-    --line: #232329;
-    --mono: "SF Mono", ui-monospace, Menlo, Consolas, monospace;
+    --bg:#08080b; --bg2:#0f0f14; --fg:#f2f2f4; --dim:#9a9aa3; --faint:#5b5b66;
+    --orange:#f7931a; --green:#2dd4a0; --red:#ff5d5d; --blue:#6aa9ff;
+    --line:#222229; --mono:"SF Mono",ui-monospace,Menlo,Consolas,monospace;
   }
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  html { scroll-behavior: smooth; }
-  body {
-    background: var(--bg); color: var(--fg);
-    font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Helvetica Neue", "Microsoft YaHei", sans-serif;
-    -webkit-font-smoothing: antialiased;
-    overflow-x: hidden;
-  }
-  section { position: relative; padding: 18vh 6vw; max-width: 1080px; margin: 0 auto; }
-  .scene { min-height: 92vh; display: flex; flex-direction: column; justify-content: center; }
-  h1 { font-size: clamp(2.6rem, 7vw, 5.2rem); line-height: 1.06; letter-spacing: -0.02em; font-weight: 700; }
-  h2 { font-size: clamp(1.9rem, 4.6vw, 3.4rem); line-height: 1.12; letter-spacing: -0.015em; font-weight: 700; margin-bottom: 1.2rem; }
-  .kicker { color: var(--orange); font-size: 0.95rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.14em; margin-bottom: 1.1rem; }
-  p.lead { font-size: clamp(1.05rem, 1.9vw, 1.35rem); color: var(--dim); line-height: 1.65; max-width: 46em; margin-top: 0.4rem; }
-  p.lead strong, p.lead b { color: var(--fg); font-weight: 600; }
-  .accent { color: var(--orange); }
-  .good { color: var(--green); }
-  .bad { color: var(--red); }
-  .mono { font-family: var(--mono); }
-  .hash { font-family: var(--mono); font-size: 0.78em; color: var(--faint); word-break: break-all; }
-  .reveal { opacity: 0; transform: translateY(34px); }
+  *{margin:0;padding:0;box-sizing:border-box}
+  html{scroll-behavior:smooth}
+  body{background:var(--bg);color:var(--fg);overflow-x:hidden;-webkit-font-smoothing:antialiased;
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Helvetica Neue","Microsoft YaHei",sans-serif}
+  section{position:relative;padding:16vh 6vw;max-width:1120px;margin:0 auto}
+  .scene{min-height:94vh;display:flex;flex-direction:column;justify-content:center}
+  h1{font-size:clamp(2.6rem,7vw,5.4rem);line-height:1.06;letter-spacing:-.02em;font-weight:700}
+  h2{font-size:clamp(1.9rem,4.6vw,3.5rem);line-height:1.1;letter-spacing:-.015em;font-weight:700;margin-bottom:1.2rem}
+  .kicker{color:var(--orange);font-size:.92rem;font-weight:600;text-transform:uppercase;letter-spacing:.16em;margin-bottom:1.2rem}
+  p.lead{font-size:clamp(1.02rem,1.8vw,1.3rem);color:var(--dim);line-height:1.75;max-width:48em;margin-top:.5rem}
+  p.lead b{color:var(--fg);font-weight:600}
+  .accent{color:var(--orange)} .good{color:var(--green)} .bad{color:var(--red)}
+  .mono{font-family:var(--mono)}
+  .reveal{opacity:0;transform:translateY(36px)}
+  .fig{margin-top:3rem} canvas{width:100%;height:auto;display:block}
+  .caption{color:var(--faint);font-size:.85rem;margin-top:1rem;line-height:1.6;max-width:54em}
+  .epigraph{margin-top:4.5rem;border-left:2px solid var(--orange);padding-left:1.4rem;max-width:40em}
+  .epigraph .q{font-size:1.12rem;line-height:1.7;color:var(--fg);font-style:italic}
+  .epigraph .who{color:var(--faint);font-size:.88rem;margin-top:.7rem}
 
-  /* top bar */
-  nav {
-    position: fixed; top: 0; left: 0; right: 0; z-index: 50;
-    display: flex; justify-content: space-between; align-items: center;
-    padding: 14px 22px; backdrop-filter: blur(14px);
-    background: rgba(10,10,12,0.55); border-bottom: 1px solid rgba(255,255,255,0.05);
-  }
-  nav .brand { font-weight: 700; letter-spacing: 0.02em; }
-  nav .brand span { color: var(--orange); }
-  .langs button {
-    background: none; border: 1px solid var(--line); color: var(--dim);
-    padding: 5px 13px; border-radius: 99px; cursor: pointer; font-size: 0.85rem;
-  }
-  .langs button.on { color: var(--bg); background: var(--fg); border-color: var(--fg); font-weight: 600; }
-  .langs button + button { margin-left: 6px; }
+  nav{position:fixed;top:0;left:0;right:0;z-index:50;display:flex;justify-content:space-between;align-items:center;
+    padding:14px 22px;backdrop-filter:blur(14px);background:rgba(8,8,11,.55);border-bottom:1px solid rgba(255,255,255,.05)}
+  nav .brand{font-weight:700} nav .brand span{color:var(--orange)}
+  .langs button{background:none;border:1px solid var(--line);color:var(--dim);padding:5px 13px;border-radius:99px;cursor:pointer;font-size:.85rem}
+  .langs button.on{color:var(--bg);background:var(--fg);border-color:var(--fg);font-weight:600}
+  .langs button+button{margin-left:6px}
 
-  /* canvases & figures */
-  .fig { margin-top: 3rem; }
-  canvas { width: 100%; height: auto; display: block; }
-  .caption { color: var(--faint); font-size: 0.85rem; margin-top: 0.9rem; }
+  /* act rail */
+  #rail{position:fixed;left:18px;top:50%;transform:translateY(-50%);z-index:40;display:flex;flex-direction:column;gap:18px}
+  #rail .act{display:flex;align-items:center;gap:10px;color:var(--faint);font-size:.72rem;letter-spacing:.1em;transition:color .3s}
+  #rail .act .pip{width:7px;height:7px;border-radius:50%;background:var(--faint);transition:all .3s}
+  #rail .act.on{color:var(--orange)} #rail .act.on .pip{background:var(--orange);box-shadow:0 0 10px rgba(247,147,26,.7)}
+  #rail .act .lbl{opacity:0;transition:opacity .3s} #rail .act.on .lbl{opacity:1}
+  @media(max-width:900px){#rail{display:none}}
 
-  /* scene 2: two paths */
-  .paths { display: grid; grid-template-columns: 1fr 1fr; gap: 2rem; margin-top: 3rem; }
-  .path { border: 1px solid var(--line); border-radius: 18px; padding: 1.6rem; background: var(--bg2); }
-  .path h3 { font-size: 1.05rem; margin-bottom: 1.1rem; color: var(--dim); font-weight: 600; }
-  .hop { display: flex; align-items: center; gap: 0.6rem; padding: 0.55rem 0; color: var(--dim); font-size: 0.98rem; opacity: 0.25; }
-  .hop .dot { width: 9px; height: 9px; border-radius: 50%; background: var(--faint); flex: none; }
-  .hop.lit { opacity: 1; }
-  .hop.lit .dot { background: var(--orange); }
-  .hop.frozen { color: var(--red); }
-  .hop.frozen .dot { background: var(--red); }
-  .stamp { margin-top: 1.1rem; font-weight: 700; font-size: 1.05rem; opacity: 0; transform: scale(1.4); }
+  .actdiv{padding:22vh 6vw 6vh;max-width:1120px;margin:0 auto}
+  .actdiv .n{font-family:var(--mono);color:var(--orange);font-size:1rem;letter-spacing:.3em}
+  .actdiv h3{font-size:clamp(1.5rem,3.4vw,2.4rem);margin-top:.8rem;font-weight:700}
+  .actdiv p{color:var(--faint);margin-top:.8rem;max-width:44em;line-height:1.7}
 
-  /* scene 4: buckets */
-  .buckets { display: grid; grid-template-columns: repeat(8, 1fr); gap: 10px; margin-top: 2.6rem; }
-  .bucket {
-    aspect-ratio: 1; border: 1px solid var(--line); border-radius: 12px;
-    display: flex; flex-direction: column; align-items: center; justify-content: center;
-    font-family: var(--mono); font-size: 0.72rem; color: var(--faint); background: var(--bg2);
-    transition: all 0.45s ease;
-  }
-  .bucket .lock { font-size: 1.05rem; margin-bottom: 4px; }
-  .bucket.win { border-color: var(--orange); color: var(--fg); background: rgba(247,147,26,0.12); box-shadow: 0 0 36px rgba(247,147,26,0.25); transform: scale(1.07); }
-  .tick-banner { margin-top: 2rem; font-family: var(--mono); color: var(--dim); font-size: 0.95rem; opacity: 0; }
-  .tick-banner b { color: var(--orange); }
+  /* interactive labs */
+  .lab{border:1px solid var(--line);border-radius:18px;background:var(--bg2);padding:1.8rem;margin-top:2.6rem}
+  .lab .row{display:flex;align-items:center;gap:1.2rem;flex-wrap:wrap;margin-bottom:1rem}
+  .lab label{color:var(--dim);font-size:.92rem;min-width:12em}
+  .lab input[type=range]{flex:1;accent-color:var(--orange);min-width:160px}
+  .lab .val{font-family:var(--mono);min-width:8em;text-align:right}
+  .gauge{display:flex;gap:2.2rem;flex-wrap:wrap;margin-top:.6rem}
+  .gauge .g{min-width:10em}
+  .gauge .gv{font-family:var(--mono);font-size:1.7rem;font-weight:700}
+  .gauge .gt{color:var(--faint);font-size:.8rem;margin-top:.2rem}
+  button.act-btn{background:var(--red);border:none;color:#fff;font-weight:700;font-size:1rem;
+    padding:.85rem 1.8rem;border-radius:12px;cursor:pointer;transition:transform .15s}
+  button.act-btn:active{transform:scale(.96)}
+  button.ghost{background:none;border:1px solid var(--line);color:var(--dim);padding:.85rem 1.4rem;border-radius:12px;cursor:pointer}
+  .rug-verdict{font-family:var(--mono);margin-top:1.2rem;font-size:1.02rem;line-height:1.8;min-height:3.6em}
 
-  /* scene 5: slider */
-  .lab { border: 1px solid var(--line); border-radius: 18px; background: var(--bg2); padding: 2rem; margin-top: 2.6rem; }
-  .lab .row { display: flex; align-items: center; gap: 1.2rem; flex-wrap: wrap; margin-bottom: 1.4rem; }
-  .lab label { color: var(--dim); font-size: 0.92rem; min-width: 13em; }
-  .lab input[type=range] { flex: 1; accent-color: var(--orange); min-width: 180px; }
-  .lab .val { font-family: var(--mono); min-width: 9em; text-align: right; }
-  .bars { margin-top: 0.6rem; }
-  .bar { height: 14px; border-radius: 7px; margin: 8px 0; transition: width 0.25s ease; }
-  .bar.cap { background: var(--orange); width: 30%; }
-  .bar.sunk { background: var(--faint); width: 60%; }
-  .barlabel { font-size: 0.8rem; color: var(--dim); display: flex; justify-content: space-between; }
-  .verdict { margin-top: 1.2rem; font-weight: 700; }
+  /* buckets */
+  .buckets{display:grid;grid-template-columns:repeat(8,1fr);gap:10px;margin-top:2.4rem}
+  .bucket{aspect-ratio:1;border:1px solid var(--line);border-radius:12px;display:flex;flex-direction:column;
+    align-items:center;justify-content:center;font-family:var(--mono);font-size:.7rem;color:var(--faint);
+    background:var(--bg2);transition:all .45s ease}
+  .bucket .lock{font-size:1rem;margin-bottom:4px}
+  .bucket.win{border-color:var(--orange);color:var(--fg);background:rgba(247,147,26,.12);
+    box-shadow:0 0 36px rgba(247,147,26,.28);transform:scale(1.07)}
+  .tick-banner{margin-top:1.8rem;font-family:var(--mono);color:var(--dim);font-size:.95rem;opacity:0}
+  .tick-banner b{color:var(--orange)}
 
-  /* scene 7: counters & evidence */
-  .counters { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 1.4rem; margin-top: 2.8rem; }
-  .counter { border: 1px solid var(--line); border-radius: 16px; padding: 1.4rem; background: var(--bg2); }
-  .counter .n { font-size: 2.4rem; font-weight: 700; font-family: var(--mono); color: var(--orange); }
-  .counter .t { color: var(--dim); font-size: 0.9rem; margin-top: 0.4rem; line-height: 1.4; }
-  .evidence { margin-top: 2.6rem; border-top: 1px solid var(--line); }
-  .ev { display: grid; grid-template-columns: 1.3fr 2fr; gap: 1rem; padding: 0.95rem 0; border-bottom: 1px solid var(--line); font-size: 0.92rem; }
-  .ev .k { color: var(--fg); font-weight: 600; }
-  .ev .v { color: var(--faint); font-family: var(--mono); font-size: 0.8rem; word-break: break-all; }
+  /* kill switch */
+  .switchrow{display:flex;align-items:center;gap:1.1rem;margin-top:2.4rem}
+  .switch{width:74px;height:40px;border-radius:99px;background:#3a1313;border:1px solid var(--red);cursor:pointer;position:relative;flex:none}
+  .switch .knob{position:absolute;top:3px;left:3px;width:32px;height:32px;border-radius:50%;background:var(--red);transition:left .25s}
+  .switch.on .knob{left:37px;background:#7a2020}
+  .switchlbl{color:var(--dim);font-size:.95rem}
 
-  /* scene 8: roadmap */
-  .miles { margin-top: 2.8rem; }
-  .mile { display: grid; grid-template-columns: 84px 1fr; gap: 1.3rem; padding: 1.15rem 0; border-bottom: 1px solid var(--line); align-items: baseline; }
-  .mile .id { font-family: var(--mono); font-weight: 700; font-size: 1.15rem; }
-  .mile.done .id { color: var(--green); }
-  .mile .what { color: var(--dim); line-height: 1.55; }
-  .mile .what b { color: var(--fg); }
-  .notes { margin-top: 2rem; color: var(--faint); font-size: 0.9rem; line-height: 1.7; }
+  .counters{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:1.4rem;margin-top:2.8rem}
+  .counter{border:1px solid var(--line);border-radius:16px;padding:1.4rem;background:var(--bg2)}
+  .counter .n{font-size:2.3rem;font-weight:700;font-family:var(--mono);color:var(--orange)}
+  .counter .t{color:var(--dim);font-size:.88rem;margin-top:.4rem;line-height:1.45}
+  .evidence{margin-top:2.6rem;border-top:1px solid var(--line)}
+  .ev{display:grid;grid-template-columns:1.3fr 1fr;gap:1rem;padding:.95rem 0;border-bottom:1px solid var(--line);font-size:.92rem}
+  .ev .k{color:var(--fg);font-weight:600;line-height:1.5}
+  .ev .v{color:var(--faint);font-family:var(--mono);font-size:.78rem;word-break:break-all;align-self:center}
 
-  /* closing */
-  .closing { text-align: center; padding-bottom: 24vh; }
-  .closing h2 { font-size: clamp(2rem, 5.5vw, 4rem); }
-  .links { margin-top: 2.4rem; display: flex; gap: 1rem; justify-content: center; flex-wrap: wrap; }
-  .links a {
-    color: var(--fg); text-decoration: none; border: 1px solid var(--line);
-    padding: 0.8rem 1.6rem; border-radius: 99px; font-size: 0.95rem;
-  }
-  .links a.primary { background: var(--orange); border-color: var(--orange); color: #14100a; font-weight: 700; }
+  .miles{margin-top:2.8rem}
+  .mile{display:grid;grid-template-columns:84px 1fr;gap:1.3rem;padding:1.15rem 0;border-bottom:1px solid var(--line);align-items:baseline}
+  .mile .id{font-family:var(--mono);font-weight:700;font-size:1.15rem}
+  .mile.done .id{color:var(--green)}
+  .mile .what{color:var(--dim);line-height:1.6} .mile .what b{color:var(--fg)}
+  .notes{margin-top:2rem;color:var(--faint);font-size:.9rem;line-height:1.75}
 
-  footer { text-align: center; color: var(--faint); font-size: 0.8rem; padding: 3rem 1rem 4rem; line-height: 1.8; }
-  @media (max-width: 760px) {
-    .paths { grid-template-columns: 1fr; }
-    .buckets { grid-template-columns: repeat(4, 1fr); }
-    .ev { grid-template-columns: 1fr; }
-  }
+  .closing{text-align:center;padding-bottom:22vh}
+  .closing h2{font-size:clamp(2rem,5.5vw,4rem)}
+  .links{margin-top:2.6rem;display:flex;gap:1rem;justify-content:center;flex-wrap:wrap}
+  .links a{color:var(--fg);text-decoration:none;border:1px solid var(--line);padding:.8rem 1.6rem;border-radius:99px;font-size:.95rem}
+  .links a.primary{background:var(--orange);border-color:var(--orange);color:#14100a;font-weight:700}
+  footer{text-align:center;color:var(--faint);font-size:.8rem;padding:3rem 1rem 4rem;line-height:1.8}
+  @media(max-width:760px){.buckets{grid-template-columns:repeat(4,1fr)}.ev{grid-template-columns:1fr}}
 </style>
 </head>
 <body>
@@ -146,216 +120,272 @@
   </div>
 </nav>
 
-<!-- 1 · HOOK -->
-<section class="scene" id="hook">
-  <div class="kicker reveal" data-zh="问题" data-en="The problem">问题</div>
-  <h1 class="reveal"
-      data-zh="最硬的钱，<br>定不了一杯咖啡的价。"
-      data-en="The hardest money<br>can’t price a cup of coffee.">最硬的钱，<br>定不了一杯咖啡的价。</h1>
+<div id="rail">
+  <div class="act" data-act="a1"><div class="pip"></div><div class="lbl" data-zh="Ⅰ 尺子" data-en="Ⅰ The Ruler">Ⅰ 尺子</div></div>
+  <div class="act" data-act="a2"><div class="pip"></div><div class="lbl" data-zh="Ⅱ 构造" data-en="Ⅱ The Construction">Ⅱ 构造</div></div>
+  <div class="act" data-act="a3"><div class="pip"></div><div class="lbl" data-zh="Ⅲ 市场" data-en="Ⅲ The Market">Ⅲ 市场</div></div>
+  <div class="act" data-act="a4"><div class="pip"></div><div class="lbl" data-zh="Ⅳ 底线与前景" data-en="Ⅳ Floor &amp; Horizon">Ⅳ 底线与前景</div></div>
+</div>
+
+<!-- ════ ACT I ════ -->
+<section class="scene" id="hero" data-actzone="a1">
+  <div class="kicker reveal">SatUSD</div>
+  <h1 class="reveal" data-zh="文明用价格思考。<br>而价格需要一把尺子。"
+      data-en="Civilization thinks in prices.<br>And prices need a ruler.">文明用价格思考。<br>而价格需要一把尺子。</h1>
   <p class="lead reveal"
-     data-zh="比特币是人类发明过的最难被稀释的资产——但它的<b>购买力波动</b>挡在「记账单位」之前。没人愿意用一种明天可能贵 10% 的钱给商品标价。"
-     data-en="Bitcoin is the hardest asset ever invented — but its <b>purchasing-power volatility</b> blocks the unit-of-account role. Nobody prices goods in a money that might cost 10% more tomorrow.">
-     比特币是人类发明过的最难被稀释的资产——但它的<b>购买力波动</b>挡在「记账单位」之前。没人愿意用一种明天可能贵 10% 的钱给商品标价。</p>
+     data-zh="价格是人类最大的分布式计算：亿万个体的局部知识，被压缩进一个个数字。这台计算机的精度取决于它的计量单位——钱，这把尺子。今天它坏了两次：<b>法币的尺子会被发行者悄悄拉长</b>，<b>比特币的尺子还在剧烈震颤</b>。SatUSD 的工作，是在不改动比特币一行代码的前提下，给一个正在比特币化的世界，一把现在就能用的尺子。"
+     data-en="Prices are humanity’s largest distributed computation: the local knowledge of billions, compressed into numbers. Its precision depends on the measuring unit — money, the ruler. Today that ruler is broken twice: <b>fiat’s ruler is quietly stretched by its issuer</b>; <b>Bitcoin’s ruler still vibrates violently</b>. SatUSD’s job: without changing a line of Bitcoin, hand a bitcoinizing world a ruler it can use today.">价格是人类最大的分布式计算：亿万个体的局部知识，被压缩进一个个数字。这台计算机的精度取决于它的计量单位——钱，这把尺子。今天它坏了两次：<b>法币的尺子会被发行者悄悄拉长</b>，<b>比特币的尺子还在剧烈震颤</b>。SatUSD 的工作，是在不改动比特币一行代码的前提下，给一个正在比特币化的世界，一把现在就能用的尺子。</p>
   <div class="fig reveal">
-    <canvas id="vol-canvas" width="1200" height="420"></canvas>
-    <div class="caption"
-         data-zh="同一段时间里：BTC 的美元购买力（橙）vs 一美元（直线）。波动不是缺陷，是早期。但记账需要现在就稳。"
-         data-en="Same window: BTC’s dollar purchasing power (orange) vs one dollar (flat). Volatility isn’t a flaw — it’s earliness. But accounting needs stability now.">
-         同一段时间里：BTC 的美元购买力（橙）vs 一美元（直线）。波动不是缺陷，是早期。但记账需要现在就稳。</div>
+    <canvas id="ruler-canvas" width="1400" height="380"></canvas>
+    <div class="caption" data-zh="同一根金条，三把尺子。左：法币——刻度在被拉开，读数年年缩水。中：BTC——刻度在震颤，读数时刻在变。右：SatUSD——刻度即美元，锚定在比特币的石头上。"
+         data-en="One gold bar, three rulers. Left: fiat — the gradations stretch apart; readings shrink every year. Middle: BTC — the gradations vibrate; readings change by the second. Right: SatUSD — dollar gradations, anchored to Bitcoin’s bedrock.">同一根金条，三把尺子。左：法币——刻度在被拉开，读数年年缩水。中：BTC——刻度在震颤，读数时刻在变。右：SatUSD——刻度即美元，锚定在比特币的石头上。</div>
+  </div>
+  <div class="epigraph reveal">
+    <div class="q" data-zh="「我们不可能从政府手里夺回货币。我们能做的，只是用某种迂回而巧妙的方式，引入一种他们无法阻止的东西。」"
+         data-en="“We can’t take money violently out of the hands of government. All we can do is, by some sly roundabout way, introduce something they can’t stop.”">「我们不可能从政府手里夺回货币。我们能做的，只是用某种迂回而巧妙的方式，引入一种他们无法阻止的东西。」</div>
+    <div class="who">— F. A. Hayek, 1984</div>
   </div>
 </section>
 
-<!-- 2 · SURVEILLANCE RAILS -->
-<section class="scene" id="freeze">
-  <div class="kicker reveal" data-zh="现状" data-en="The status quo">现状</div>
-  <h2 class="reveal"
-      data-zh="今天的「数字美元」，<br>每一笔都路过一个冻结按钮。"
-      data-en="Today’s “digital dollars”<br>route every payment past a freeze button.">今天的「数字美元」，<br>每一笔都路过一个冻结按钮。</h2>
+<section class="scene" id="valve" data-actzone="a1">
+  <div class="kicker reveal" data-zh="第一种坏法 · 被控制的尺子" data-en="Breakage one · the controlled ruler">第一种坏法 · 被控制的尺子</div>
+  <h2 class="reveal" data-zh="当钱变成权力的传感器。" data-en="When money becomes a sensor for power.">当钱变成权力的传感器。</h2>
   <p class="lead reveal"
-     data-zh="法币稳定币把美元搬上了链，也把<b>银行的控制点</b>原样搬了上来：发行方可以拉黑地址、冻结余额、配合任何要求。这不是漏洞，是它们的产品设计。"
-     data-en="Fiat stablecoins put the dollar on-chain — and brought the <b>bank’s control points</b> with it: issuers blacklist addresses, freeze balances, comply with anything. That’s not a bug; it’s their design.">
-     法币稳定币把美元搬上了链，也把<b>银行的控制点</b>原样搬了上来：发行方可以拉黑地址、冻结余额、配合任何要求。这不是漏洞，是它们的产品设计。</p>
-  <div class="paths reveal">
-    <div class="path" id="path-fiat">
-      <h3 data-zh="法币稳定币的一笔转账" data-en="A fiat-stablecoin payment">法币稳定币的一笔转账</h3>
-      <div class="hop"><div class="dot"></div><span data-zh="你的钱包" data-en="Your wallet">你的钱包</span></div>
-      <div class="hop"><div class="dot"></div><span data-zh="发行方合约（可升级、可拉黑）" data-en="Issuer contract (upgradable, blacklists)">发行方合约（可升级、可拉黑）</span></div>
-      <div class="hop"><div class="dot"></div><span data-zh="发行方的银行" data-en="Issuer’s bank">发行方的银行</span></div>
-      <div class="hop frozen"><div class="dot"></div><span data-zh="冻结 / 没收 / 上报" data-en="Freeze / seize / report">冻结 / 没收 / 上报</span></div>
-      <div class="stamp bad" id="stamp-frozen" data-zh="✕ 余额已冻结" data-en="✕ Balance frozen">✕ 余额已冻结</div>
-    </div>
-    <div class="path" id="path-sat">
-      <h3 data-zh="一笔 SatUSD" data-en="A SatUSD payment">一笔 SatUSD</h3>
-      <div class="hop"><div class="dot"></div><span data-zh="你的密钥" data-en="Your keys">你的密钥</span></div>
-      <div class="hop"><div class="dot"></div><span data-zh="比特币 L1" data-en="Bitcoin L1">比特币 L1</span></div>
-      <div class="hop"><div class="dot"></div><span data-zh="对方的密钥" data-en="Their keys">对方的密钥</span></div>
-      <div class="hop"><div class="dot"></div><span data-zh="（没有第四步）" data-en="(there is no fourth hop)">（没有第四步）</span></div>
-      <div class="stamp good" id="stamp-final" data-zh="✓ 不可冻结" data-en="✓ Nothing to freeze">✓ 不可冻结</div>
-    </div>
-  </div>
-</section>
-
-<!-- 3 · WHAT IT IS -->
-<section class="scene" id="what">
-  <div class="kicker reveal" data-zh="它是什么" data-en="What it is">它是什么</div>
-  <h2 class="reveal"
-      data-zh="SatUSD：美元的稳定，<br>比特币的规则。"
-      data-en="SatUSD: the dollar’s stability,<br>under Bitcoin’s rules.">SatUSD：美元的稳定，<br>比特币的规则。</h2>
-  <p class="lead reveal"
-     data-zh="一种<b>BTC 超额抵押、美元计价</b>的 Taproot Asset，活在比特币 L1 上。持有不需要许可，赎回不需要中介，验证只需要一个比特币节点。抵押品是外生的 BTC——和挂着自家代币循环抵押的 UST 是<b>两种范畴</b>的东西。"
-     data-en="A <b>BTC-overcollateralized, dollar-denominated</b> Taproot Asset living on Bitcoin L1. Holding needs no permission, redeeming needs no intermediary, verifying needs only a Bitcoin node. The collateral is exogenous BTC — <b>categorically different</b> from UST’s own-token circular backing.">
-     一种<b>BTC 超额抵押、美元计价</b>的 Taproot Asset，活在比特币 L1 上。持有不需要许可，赎回不需要中介，验证只需要一个比特币节点。抵押品是外生的 BTC——和挂着自家代币循环抵押的 UST 是<b>两种范畴</b>的东西。</p>
+     data-zh="法币的问题不止贬值。它的每一次流动都要经过一个可以说「不」的节点：账户可冻结、交易可撤销、黑名单可追加；而增发在所有人无法投票的地方稀释所有人。这不是哪家坏银行的丑闻，是<b>架构属性</b>：只要那个节点存在，它终将被使用。法币稳定币把美元搬上了链——也把整个节点原封不动搬了上来。"
+     data-en="Fiat’s problem isn’t only debasement. Every flow passes a node that can say no: accounts freeze, transactions reverse, blacklists grow; issuance dilutes everyone where nobody votes. This is not one bank’s scandal — it is an <b>architectural property</b>: if the node exists, it will eventually be used. Fiat stablecoins moved the dollar on-chain — and moved the node with it, intact.">法币的问题不止贬值。它的每一次流动都要经过一个可以说「不」的节点：账户可冻结、交易可撤销、黑名单可追加；而增发在所有人无法投票的地方稀释所有人。这不是哪家坏银行的丑闻，是<b>架构属性</b>：只要那个节点存在，它终将被使用。法币稳定币把美元搬上了链——也把整个节点原封不动搬了上来。</p>
   <div class="fig reveal">
-    <canvas id="tree-canvas" width="1200" height="560"></canvas>
-    <div class="caption"
-         data-zh="一个 UTXO，两种承诺：同一个 Taproot 输出既承载资产承诺（TA leaf），又是 DLC 资金输出（密钥路径结算 + 超时退款叶）。Q = P + TapTweak(P ‖ branch(TA, refund))·G——已在真实 tapd v0.7.2 上逐字节验证。"
-         data-en="One UTXO, two commitments: a single Taproot output carries the asset commitment (TA leaf) AND serves as a DLC funding output (key-path settlement + timeout refund leaf). Q = P + TapTweak(P ‖ branch(TA, refund))·G — verified byte-for-byte against live tapd v0.7.2.">
-         一个 UTXO，两种承诺：同一个 Taproot 输出既承载资产承诺（TA leaf），又是 DLC 资金输出（密钥路径结算 + 超时退款叶）。Q = P + TapTweak(P ‖ branch(TA, refund))·G——已在真实 tapd v0.7.2 上逐字节验证。</div>
+    <canvas id="valve-canvas" width="1400" height="460"></canvas>
+    <div class="caption" data-zh="上方：所有资金流穿过同一道阀门——它随时会对任何一束流关闭（红）。下方：点对点的流，没有阀门可以安装的位置。"
+         data-en="Top: every flow passes one valve — which closes on any stream, any time (red). Bottom: peer-to-peer flows, with no place to install a valve.">上方：所有资金流穿过同一道阀门——它随时会对任何一束流关闭（红）。下方：点对点的流，没有阀门可以安装的位置。</div>
   </div>
 </section>
 
-<!-- 4 · HOW REDEMPTION RUNS -->
-<section class="scene" id="dlc">
-  <div class="kicker reveal" data-zh="赎回怎么跑" data-en="How redemption runs">赎回怎么跑</div>
-  <h2 class="reveal"
-      data-zh="价格一到，合约自己结算。<br>没有人批准任何事。"
-      data-en="The price arrives. The contract settles itself.<br>Nobody approves anything.">价格一到，合约自己结算。<br>没有人批准任何事。</h2>
+<section class="scene" id="curve" data-actzone="a1">
+  <div class="kicker reveal" data-zh="第二种坏法 · 还在震颤的尺子" data-en="Breakage two · the vibrating ruler">第二种坏法 · 还在震颤的尺子</div>
+  <h2 class="reveal" data-zh="波动不是缺陷。<br>波动是「早」的签名。" data-en="Volatility isn’t a flaw.<br>It’s the signature of being early.">波动不是缺陷。<br>波动是「早」的签名。</h2>
   <p class="lead reveal"
-     data-zh="结算前，价格区间被切成桶，每个桶预签一笔<b>加密的</b>结算交易——密钥是 oracle 对那个价格的签名本身。Oracle 按秒见证价格；见证一到，<b>只有命中的桶能解密</b>，其余永远打不开。广播可以是任何人。"
-     data-en="Before settlement, the price range is cut into buckets, each pre-signed as an <b>encrypted</b> settlement transaction — the decryption key IS the oracle’s signature on that price. The oracle attests every second; when it lands, <b>only the matching bucket decrypts</b>. Anyone can broadcast.">
-     结算前，价格区间被切成桶，每个桶预签一笔<b>加密的</b>结算交易——密钥是 oracle 对那个价格的签名本身。Oracle 按秒见证价格；见证一到，<b>只有命中的桶能解密</b>，其余永远打不开。广播可以是任何人。</p>
-  <div class="buckets reveal" id="buckets"></div>
-  <div class="tick-banner" id="tick-banner"
-       data-zh="oracle 见证 · BTCUSD = <b>$60,123</b> · 桶 9 解密 → BIP-341 密钥路径花费上链"
-       data-en="oracle attests · BTCUSD = <b>$60,123</b> · bucket 9 decrypts → BIP-341 key-path spend confirms">
-       oracle 见证 · BTCUSD = <b>$60,123</b> · 桶 9 解密 → BIP-341 密钥路径花费上链</div>
-  <div class="caption reveal"
-       data-zh="这不是概念动画。完整链路已在 regtest 跑通：结算交易 c23d6889…801c326（2026-06）。预签在结果存在之前，败者桶解密失败是数学，不是规则。"
-       data-en="Not a concept animation. The full chain ran on regtest: settlement tx c23d6889…801c326 (June 2026). Pre-signed before the outcome existed; the losing buckets fail to decrypt by mathematics, not policy.">
-       这不是概念动画。完整链路已在 regtest 跑通：结算交易 c23d6889…801c326（2026-06）。预签在结果存在之前，败者桶解密失败是数学，不是规则。</div>
+     data-zh="一个小市场在为一个巨大的未来定价，价格必然剧烈摆动——这是货币化进程的心电图，不是病。比特币已经修好了第一种坏法：2,100 万，写死，无人能拉长这把尺子。但它还没修好第二种：没人愿意用一个明天可能贵 10% 的单位，签一份 30 天后付款的合同。<b>从「价值存储」到「记账单位」之间的这段时间差，就是 SatUSD 存在的全部理由——也是它终将退役的原因。</b>"
+     data-en="A small market pricing an enormous future must swing violently — that’s the EKG of monetization, not a disease. Bitcoin already fixed the first breakage: 21 million, hard-coded; nobody stretches this ruler. It hasn’t yet fixed the second: nobody signs a net-30 contract in a unit that may cost 10% more tomorrow. <b>The gap between store-of-value and unit-of-account is SatUSD’s entire reason to exist — and the reason it will eventually retire.</b>">一个小市场在为一个巨大的未来定价，价格必然剧烈摆动——这是货币化进程的心电图，不是病。比特币已经修好了第一种坏法：2,100 万，写死，无人能拉长这把尺子。但它还没修好第二种：没人愿意用一个明天可能贵 10% 的单位，签一份 30 天后付款的合同。<b>从「价值存储」到「记账单位」之间的这段时间差，就是 SatUSD 存在的全部理由——也是它终将退役的原因。</b></p>
+  <div class="fig reveal">
+    <canvas id="curve-canvas" width="1400" height="520"></canvas>
+    <div class="caption" data-zh="货币化 S 曲线：采用率上升，波动包络收窄。灰色阶梯：供应量逼近 2,100 万的渐近线（已解决的问题）。橙色标记：我们在这里——早期、陡峭、嘈杂。SatUSD 桥接的正是从这里到右端的那段路。"
+         data-en="The monetization S-curve: adoption rises, the volatility envelope narrows. Grey staircase: supply approaching the 21M asymptote (the solved problem). Orange marker: we are here — early, steep, loud. SatUSD bridges exactly the road from here to the right edge.">货币化 S 曲线：采用率上升，波动包络收窄。灰色阶梯：供应量逼近 2,100 万的渐近线（已解决的问题）。橙色标记：我们在这里——早期、陡峭、嘈杂。SatUSD 桥接的正是从这里到右端的那段路。</div>
+  </div>
 </section>
 
-<!-- 5 · RAIL MARKET -->
-<section class="scene" id="rails">
-  <div class="kicker reveal" data-zh="开放市场" data-en="An open market">开放市场</div>
-  <h2 class="reveal"
-      data-zh="兑换通道不是基础设施，<br>是一个任何人都能进的市场。"
-      data-en="Conversion isn’t infrastructure.<br>It’s a market anyone can enter.">兑换通道不是基础设施，<br>是一个任何人都能进的市场。</h2>
+<!-- ════ ACT II ════ -->
+<div class="actdiv" data-actzone="a2">
+  <div class="n">ACT Ⅱ</div>
+  <h3 data-zh="构造：四步，把信任逐出执行路径" data-en="The construction: four steps that walk trust out of the execution path">构造：四步，把信任逐出执行路径</h3>
+  <p data-zh="从一条金融学定理出发，经过三层密码学，每一步消去一个「需要相信的人」。" data-en="Starting from one theorem of finance, through three layers of cryptography — each step eliminates one party you’d otherwise have to trust.">从一条金融学定理出发，经过三层密码学，每一步消去一个「需要相信的人」。</p>
+</div>
+
+<section class="scene" id="tranche" data-actzone="a2">
+  <div class="kicker reveal" data-zh="构造 1 · 分层定理" data-en="Step 1 · the tranche theorem">构造 1 · 分层定理</div>
+  <h2 class="reveal" data-zh="稳定不需要稳定的资产。<br>只需要一份切分波动的合约。" data-en="Stability doesn’t require a stable asset.<br>Only a contract that splits volatility.">稳定不需要稳定的资产。<br>只需要一份切分波动的合约。</h2>
   <p class="lead reveal"
-     data-zh="任何人都可以运营一条「rail」：自带 oracle 方案、费率、速度，符合一套公开标准即可，<b>无需许可</b>。Rail 能从储备金提取的额度不靠身份背书，只靠一个公式：<span class='mono accent'>capacity = ½ × (累计留存费 + 质押)</span>。后果：<b>跑路在任何时刻都是亏本生意</b>。"
-     data-en="Anyone can run a “rail”: bring your own oracle class, fees, speed — conform to one open standard, <b>no permission asked</b>. What a rail can draw from the reserve depends on no identity, only a formula: <span class='mono accent'>capacity = ½ × (retained fees + stake)</span>. Consequence: <b>rugging is a money-losing trade at every moment</b>.">
-     任何人都可以运营一条「rail」：自带 oracle 方案、费率、速度，符合一套公开标准即可，<b>无需许可</b>。Rail 能从储备金提取的额度不靠身份背书，只靠一个公式：<span class='mono accent'>capacity = ½ × (累计留存费 + 质押)</span>。后果：<b>跑路在任何时刻都是亏本生意</b>。</p>
+     data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」，只有数学上的优先权。亲手压一压它："
+     data-en="One of the oldest theorems in finance: split a volatile asset’s payoff into senior and junior, and the senior tranche is flat. SatUSD is the <b>senior claim</b> on a BTC reserve: holders take the one-dollar line; all volatility is absorbed by the junior side — the overcollateralization cushion and LP spread. Stability is <b>refined from volatility itself</b>, imported from no bank. There is no promise to redeem — only mathematical seniority. Stress it yourself:">这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」，只有数学上的优先权。亲手压一压它：</p>
   <div class="lab reveal">
     <div class="row">
-      <label data-zh="质押（BTC）" data-en="Stake (BTC)">质押（BTC）</label>
-      <input type="range" id="stake" min="0" max="100" value="10">
-      <div class="val mono" id="stake-val">0.10 BTC</div>
+      <label data-zh="模拟 BTC 暴跌" data-en="Simulate a BTC crash">模拟 BTC 暴跌</label>
+      <input type="range" id="crash" min="0" max="60" value="0">
+      <div class="val mono" id="crash-val">−0%</div>
     </div>
-    <div class="row">
-      <label data-zh="已服务的兑换量（BTC）" data-en="Volume served (BTC)">已服务的兑换量（BTC）</label>
-      <input type="range" id="vol" min="0" max="100" value="20">
-      <div class="val mono" id="vol-val">20 BTC</div>
+    <canvas id="tranche-canvas" width="1400" height="430"></canvas>
+    <div class="gauge">
+      <div class="g"><div class="gv good" id="cr-val">150%</div><div class="gt" data-zh="抵押率（示意，初始 150%）" data-en="Collateral ratio (illustrative, starts 150%)">抵押率（示意，初始 150%）</div></div>
+      <div class="g"><div class="gv" id="claim-val">$1.00</div><div class="gt" data-zh="持有者的优先索取权" data-en="The holder’s senior claim">持有者的优先索取权</div></div>
+      <div class="g"><div class="gv accent" id="cushion-val">50%</div><div class="gt" data-zh="次级缓冲（吸收全部波动）" data-en="Junior cushion (absorbs all volatility)">次级缓冲（吸收全部波动）</div></div>
     </div>
-    <div class="bars">
-      <div class="barlabel"><span data-zh="可提取上限（capacity）" data-en="Extractable cap (capacity)">可提取上限（capacity）</span><span class="mono" id="cap-val"></span></div>
-      <div class="bar cap" id="bar-cap"></div>
-      <div class="barlabel"><span data-zh="已沉没成本（质押 + 留存费）" data-en="Sunk cost (stake + retained fees)">已沉没成本（质押 + 留存费）</span><span class="mono" id="sunk-val"></span></div>
-      <div class="bar sunk" id="bar-sunk"></div>
-    </div>
-    <div class="verdict good" id="verdict"
-         data-zh="✓ 任何头寸下：可提取 < 沉没成本。无利可图的跑路。"
-         data-en="✓ At every position: extractable < sunk. No profitable rug.">
-         ✓ 任何头寸下：可提取 < 沉没成本。无利可图的跑路。</div>
+    <div class="caption" data-zh="拖到 −33% 之后缓冲耗尽——这正是协议带抵押率分级与保守上限的原因：缓冲的厚度是公开参数，不是营销词。" data-en="Past −33% the cushion exhausts — exactly why the protocol ships CR tiers and conservative caps: the cushion’s depth is a public parameter, not a marketing word.">拖到 −33% 之后缓冲耗尽——这正是协议带抵押率分级与保守上限的原因：缓冲的厚度是公开参数，不是营销词。</div>
   </div>
 </section>
 
-<!-- 6 · SELF-REFERENCING -->
-<section class="scene" id="twap">
-  <div class="kicker reveal" data-zh="终局" data-en="The endgame">终局</div>
-  <h2 class="reveal"
-      data-zh="每一笔结算，<br>本身就是一次价格见证。"
-      data-en="Every settlement<br>is itself a price attestation.">每一笔结算，<br>本身就是一次价格见证。</h2>
+<section class="scene" id="utxo" data-actzone="a2">
+  <div class="kicker reveal" data-zh="构造 2 · 一个点，三份合约" data-en="Step 2 · one point, three contracts">构造 2 · 一个点，三份合约</div>
+  <h2 class="reveal" data-zh="链上只有 32 个字节。<br>里面叠着三种协议。" data-en="The chain sees 32 bytes.<br>Three protocols live inside.">链上只有 32 个字节。<br>里面叠着三种协议。</h2>
   <p class="lead reveal"
-     data-zh="当兑换量足够大，这些链上结算点就汇聚成一个<b>无签名者的价格源</b>：任何观察者算出同一个数。外部 oracle 从「信任根」降级为「合理性锚」——价格信号由市场自己生产。这是自指（self-referencing），但抵押品始终是外生的 BTC：<b>自指的是信息，不是抵押</b>。"
-     data-en="With enough volume, on-chain settlement points condense into a <b>price source with no signer</b>: every observer computes the same number. External oracles demote from trust root to sanity anchor — the market produces its own price signal. This is self-referencing, but the collateral stays exogenous BTC: <b>information self-reference, never collateral circularity</b>.">
-     当兑换量足够大，这些链上结算点就汇聚成一个<b>无签名者的价格源</b>：任何观察者算出同一个数。外部 oracle 从「信任根」降级为「合理性锚」——价格信号由市场自己生产。这是自指（self-referencing），但抵押品始终是外生的 BTC：<b>自指的是信息，不是抵押</b>。</p>
+     data-zh="比特币只看见一个 Taproot 公钥 Q。但 Q 的代数构造里压着三样东西：<b>资产承诺</b>（这枚 UTXO 上「站着」多少 SatUSD）、<b>退款叶</b>（CSV 超时后的单边逃生门，不需要任何人配合）、以及<b>密钥路径本身</b>——DLC 结算的通道。能同居的原因是一个被忽视的缝隙：密钥路径花费的 DLC，其脚本树「按惯例为空，而非按协议必须为空」；而资产承诺恰好是一片不可花费的叶子。两个从未打算见面的协议，被同一棵默克尔树收留。我们在真实 tapd v0.7.2 上逐字节验证了 Q 的每一步代数。"
+     data-en="Bitcoin sees one Taproot key, Q. Compressed into its algebra: the <b>asset commitment</b> (how much SatUSD stands on this UTXO), the <b>refund leaf</b> (a unilateral CSV escape needing nobody’s cooperation), and the <b>key path itself</b> — the DLC settlement channel. They can cohabit because of an overlooked seam: a key-path-spent DLC’s script tree is “empty by convention, not by protocol” — and an asset commitment is exactly an unspendable leaf. Two protocols that never planned to meet, housed by one Merkle tree. Every step of Q’s algebra verified byte-for-byte against live tapd v0.7.2.">比特币只看见一个 Taproot 公钥 Q。但 Q 的代数构造里压着三样东西：<b>资产承诺</b>（这枚 UTXO 上「站着」多少 SatUSD）、<b>退款叶</b>（CSV 超时后的单边逃生门，不需要任何人配合）、以及<b>密钥路径本身</b>——DLC 结算的通道。能同居的原因是一个被忽视的缝隙：密钥路径花费的 DLC，其脚本树「按惯例为空，而非按协议必须为空」；而资产承诺恰好是一片不可花费的叶子。两个从未打算见面的协议，被同一棵默克尔树收留。我们在真实 tapd v0.7.2 上逐字节验证了 Q 的每一步代数。</p>
   <div class="fig reveal">
-    <canvas id="twap-canvas" width="1200" height="430"></canvas>
-    <div class="caption"
-         data-zh="演示：成交量加权中位数 + 5% 修剪带。一头试图操纵价格的鲸鱼（红点，偏离 40%）被修剪带直接弹掉——标记纹丝不动。算法与实现一致（spec 03 §5.2）。"
-         data-en="Demo: volume-weighted median + 5% trim band. A whale printing 40% off-market (red dot) bounces off the trim band — the marker doesn’t move. Algorithm as implemented (spec 03 §5.2).">
-         演示：成交量加权中位数 + 5% 修剪带。一头试图操纵价格的鲸鱼（红点，偏离 40%）被修剪带直接弹掉——标记纹丝不动。算法与实现一致（spec 03 §5.2）。</div>
+    <canvas id="tree2-canvas" width="1400" height="640"></canvas>
+    <div class="caption mono">Q = P + TapTweak(P ‖ branch(TA_leaf, refund_leaf))·G &nbsp;·&nbsp; funding bcabed6d…:1 · tapd v0.7.2 · regtest</div>
   </div>
 </section>
 
-<!-- 7 · VERIFIABILITY -->
-<section class="scene" id="proof">
-  <div class="kicker reveal" data-zh="为什么可信" data-en="Why trust it">为什么可信</div>
-  <h2 class="reveal"
-      data-zh="杀掉我们所有的服务器，<br>你的钱照样能退出。"
-      data-en="Kill every server we run.<br>Your money still exits.">杀掉我们所有的服务器，<br>你的钱照样能退出。</h2>
+<section class="scene" id="antic" data-actzone="a2">
+  <div class="kicker reveal" data-zh="构造 3 · 钥匙是一个未来的事实" data-en="Step 3 · the key is a future fact">构造 3 · 钥匙是一个未来的事实</div>
+  <h2 class="reveal" data-zh="一把锁，<br>它的钥匙明天才出生。" data-en="A lock<br>whose key isn’t born yet.">一把锁，<br>它的钥匙明天才出生。</h2>
   <p class="lead reveal"
-     data-zh="没有任何协议保证依赖我们运营的基础设施。每一条共识相关的编码都被<b>两种语言独立实现并逐字节互证</b>；每一个关键构造都在真实节点上验证过；连 oracle 作恶的后果都是数学：对同一事件签两个价格，<b>私钥当场被任何人提取</b>。"
-     data-en="No protocol claim depends on infrastructure we run. Every consensus-relevant encoding is <b>independently implemented in two languages and byte-matched</b>; every key construction validated against live nodes; even oracle misbehavior has a mathematical consequence: sign one event twice, and <b>anyone extracts your secret key on the spot</b>.">
-     没有任何协议保证依赖我们运营的基础设施。每一条共识相关的编码都被<b>两种语言独立实现并逐字节互证</b>；每一个关键构造都在真实节点上验证过；连 oracle 作恶的后果都是数学：对同一事件签两个价格，<b>私钥当场被任何人提取</b>。</p>
+     data-zh="S = R + e·P。用 oracle 的公开 nonce 承诺 R 和公钥 P，任何人今天就能算出「oracle 明天对某个价格的签名」的<b>公钥</b>——而对应的私钥，要等那个签名真的发生时才存在。把每个价格区间的结算交易预先加密到各自的 S：合约在结果出现之前已经签好、封死；价格一出，正确的那把钥匙凭空出现，其余的锁被数学证明无钥可开。<b>没有仲裁者按按钮——事实本身就是执行者。</b>再加一层组合压缩：2²⁰ = 1,048,576 个价格结果，按二进制前缀折叠成 16 把锁。"
+     data-en="S = R + e·P. From the oracle’s public nonce commitment R and pubkey P, anyone can compute — today — the <b>public key</b> of tomorrow’s signature on a given price; the private key comes into existence only at the moment that signature is made. Pre-encrypt each price bucket’s settlement transaction to its own S: the contract is signed and sealed before the outcome exists; when the price lands, exactly one key materializes, and every other lock is provably keyless. <b>No arbiter presses a button — the fact itself is the executor.</b> Then combinatorial compression: 2²⁰ = 1,048,576 outcomes fold by binary prefix into 16 locks.">S = R + e·P。用 oracle 的公开 nonce 承诺 R 和公钥 P，任何人今天就能算出「oracle 明天对某个价格的签名」的<b>公钥</b>——而对应的私钥，要等那个签名真的发生时才存在。把每个价格区间的结算交易预先加密到各自的 S：合约在结果出现之前已经签好、封死；价格一出，正确的那把钥匙凭空出现，其余的锁被数学证明无钥可开。<b>没有仲裁者按按钮——事实本身就是执行者。</b>再加一层组合压缩：2²⁰ = 1,048,576 个价格结果，按二进制前缀折叠成 16 把锁。</p>
+  <div class="fig reveal">
+    <canvas id="antic-canvas" width="1400" height="520"></canvas>
+  </div>
+  <div class="buckets reveal" id="buckets"></div>
+  <div class="tick-banner" id="tick-banner"
+       data-zh="oracle 见证 · BTCUSD = <b>$60,123</b> · 桶 9 的钥匙出生 → BIP-341 密钥路径花费上链确认"
+       data-en="oracle attests · BTCUSD = <b>$60,123</b> · bucket 9’s key is born → BIP-341 key-path spend confirms">oracle 见证 · BTCUSD = <b>$60,123</b> · 桶 9 的钥匙出生 → BIP-341 密钥路径花费上链确认</div>
+  <div class="caption reveal"
+       data-zh="不是概念动画：这条链路整体在 regtest 上跑通——预签发生在结果存在之前，结算交易 c23d6889…801c326（2026-06）。败者桶解密失败是数学，不是规则。"
+       data-en="Not a concept animation: this exact chain ran on regtest — pre-signing before the outcome existed, settlement tx c23d6889…801c326 (June 2026). Losing buckets fail to decrypt by mathematics, not policy.">不是概念动画：这条链路整体在 regtest 上跑通——预签发生在结果存在之前，结算交易 c23d6889…801c326（2026-06）。败者桶解密失败是数学，不是规则。</div>
+</section>
+
+<section class="scene" id="eots" data-actzone="a2">
+  <div class="kicker reveal" data-zh="构造 4 · 说谎等于自首" data-en="Step 4 · lying is a confession">构造 4 · 说谎等于自首</div>
+  <h2 class="reveal" data-zh="我们没有要求 oracle 诚实。<br>我们让说谎在数学上等于交出私钥。" data-en="We never asked the oracle to be honest.<br>We made lying mathematically equal to surrendering its key.">我们没有要求 oracle 诚实。<br>我们让说谎在数学上等于交出私钥。</h2>
+  <p class="lead reveal"
+     data-zh="预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b>"
+     data-en="Predetermined nonces have a side effect usually footnoted; we made it the design: signing two prices for one second = one nonce on two messages = two equations, two unknowns — <b>any passerby solves for the secret key</b>. The evidence of misbehavior is the two signatures the misbehavior itself produced: no court, no committee, no us. The extracted key can then spend everything the oracle staked. Honesty stops being a virtue and becomes the oracle’s only solvent strategy. The extraction path runs for real in our tests: <b>the recovered key forges signatures that verify as the oracle.</b>">预承诺 nonce 有一个常被当作脚注的副作用，我们把它当作主设计：对同一秒签两个价格 = 用同一个 nonce 签两条消息 = 两个方程、两个未知数——<b>任何路人都解得出私钥</b>。作恶的证据就是作恶自己产生的那两份签名：不需要法庭、不需要委员会、不需要我们在场。提取出的钥可以反手花掉 oracle 质押的一切。诚实于是不再是品德要求，而是 oracle 唯一不破产的策略。这条提取路径在我们的测试里真实跑通：<b>提出来的钥，能以 oracle 的身份伪造通过验证的签名。</b></p>
+  <div class="fig reveal">
+    <canvas id="eots-canvas" width="1400" height="500"></canvas>
+    <div class="caption" data-zh="滚动观看：两份对同一事件的签名滑到一起，k 相消，d 被解出、变红——掉进任何一个旁观者手里。实现：satusd-oracle::equivocation（EOTS）。"
+         data-en="Scroll: two signatures over one event slide together, k cancels, d falls out — red, into any bystander’s hands. Implementation: satusd-oracle::equivocation (EOTS).">滚动观看：两份对同一事件的签名滑到一起，k 相消，d 被解出、变红——掉进任何一个旁观者手里。实现：satusd-oracle::equivocation（EOTS）。</div>
+  </div>
+</section>
+
+<!-- ════ ACT III ════ -->
+<div class="actdiv" data-actzone="a3">
+  <div class="n">ACT Ⅲ</div>
+  <h3 data-zh="市场：用机制设计取代治理" data-en="The market: mechanism design instead of governance">市场：用机制设计取代治理</h3>
+  <p data-zh="没有代币、没有投票、没有许可。选择由真金白银的揭示偏好完成——竞争是发现程序。" data-en="No token, no vote, no permission. Selection happens by revealed preference in real money — competition as a discovery procedure.">没有代币、没有投票、没有许可。选择由真金白银的揭示偏好完成——竞争是发现程序。</p>
+</div>
+
+<section class="scene" id="rug" data-actzone="a3">
+  <div class="kicker reveal" data-zh="机制 1 · 容量即身份" data-en="Mechanism 1 · capacity is identity">机制 1 · 容量即身份</div>
+  <h2 class="reveal" data-zh="在这里，声誉是一个<br>可以计算的数。" data-en="Here, reputation is<br>a number you can compute.">在这里，声誉是一个<br>可以计算的数。</h2>
+  <p class="lead reveal"
+     data-zh="任何人都可以匿名开一条兑换通道（rail）。协议不发牌照、不投票、不认人，只执行一个公式：<span class='mono accent'>capacity = ½ × (累计留存费 + 质押)</span>。每服务一笔兑换，留存费永久沉入公共储备——这是用真金白银写的履历，偷不走、转不了、伪造不出。可提取上限永远只有履历的一半。下面是一条 rail 的一生：它在赚钱、在积累容量——<b>请随时按下抢劫按钮，看看能不能赚到。</b>"
+     data-en="Anyone can open a conversion rail, anonymously. The protocol licenses nobody, votes never, recognizes no names — it executes one formula: <span class='mono accent'>capacity = ½ × (retained fees + stake)</span>. Every conversion served sinks its retained fee permanently into the common reserve — a résumé written in money, unstealable, untransferable, unforgeable. The extractable cap is forever half the résumé. Below, a rail lives its life, earning and compounding capacity — <b>press the robbery button any time you like, and see if it ever pays.</b>">任何人都可以匿名开一条兑换通道（rail）。协议不发牌照、不投票、不认人，只执行一个公式：<span class='mono accent'>capacity = ½ × (累计留存费 + 质押)</span>。每服务一笔兑换，留存费永久沉入公共储备——这是用真金白银写的履历，偷不走、转不了、伪造不出。可提取上限永远只有履历的一半。下面是一条 rail 的一生：它在赚钱、在积累容量——<b>请随时按下抢劫按钮，看看能不能赚到。</b></p>
+  <div class="lab reveal">
+    <canvas id="rug-canvas" width="1400" height="360"></canvas>
+    <div class="row" style="margin-top:1.4rem">
+      <button class="act-btn" id="rug-btn" data-zh="现在跑路 💰" data-en="Rug now 💰">现在跑路 💰</button>
+      <button class="ghost" id="rug-reset" data-zh="重开一条 rail" data-en="Start a new rail">重开一条 rail</button>
+    </div>
+    <div class="rug-verdict" id="rug-out"></div>
+    <div class="caption" data-zh="每个 epoch（2016 块）储备金被切成各 rail 的物理 tranche UTXO——超出容量的支取不是被禁止，是从未被签名。未用完的份额超时自动回流。"
+         data-en="Each epoch (2016 blocks) the reserve is cut into per-rail tranche UTXOs — an over-cap draw isn’t forbidden, it was simply never signed. Unused tranches timelock back automatically.">每个 epoch（2016 块）储备金被切成各 rail 的物理 tranche UTXO——超出容量的支取不是被禁止，是从未被签名。未用完的份额超时自动回流。</div>
+  </div>
+</section>
+
+<section class="scene" id="market" data-actzone="a3">
+  <div class="kicker reveal" data-zh="机制 2 · 信任的市场" data-en="Mechanism 2 · a market for trust">机制 2 · 信任的市场</div>
+  <h2 class="reveal" data-zh="我们不挑选正确的 oracle。<br>我们让所有信任模型同台竞价。" data-en="We don’t pick the right oracle.<br>We make every trust model bid in one arena.">我们不挑选正确的 oracle。<br>我们让所有信任模型同台竞价。</h2>
+  <p class="lead reveal"
+     data-zh="不同的 rail 自带不同的信任模型：单签 oracle 一秒结算但要信一个签名者；optimistic 慢一些但几乎不信任何人；未来的 internal_twap 不信任何人、只需要历史。每种组合是一张「速度 × 费率 × 信任」的报价单，用户用真金白银投票，容量公式限定每条 rail 的爆炸半径。<b>正确的信任模型不是被设计出来的，是被交易量发现的</b>——哈耶克在这里第二次出场：竞争是一个发现程序。"
+     data-en="Rails ship their own trust models: a single-signer oracle settles in one second but you trust one signer; optimistic rails are slower but trust almost nobody; the future internal_twap trusts nobody and needs only history. Each combination is a quote on the speed × fee × trust surface; users vote in real money, and the capacity formula bounds each rail’s blast radius. <b>The right trust model isn’t designed — it’s discovered by volume.</b> Hayek’s second entrance: competition as a discovery procedure.">不同的 rail 自带不同的信任模型：单签 oracle 一秒结算但要信一个签名者；optimistic 慢一些但几乎不信任何人；未来的 internal_twap 不信任何人、只需要历史。每种组合是一张「速度 × 费率 × 信任」的报价单，用户用真金白银投票，容量公式限定每条 rail 的爆炸半径。<b>正确的信任模型不是被设计出来的，是被交易量发现的</b>——哈耶克在这里第二次出场：竞争是一个发现程序。</p>
+  <div class="fig reveal">
+    <canvas id="market-canvas" width="1400" height="560"></canvas>
+    <div class="caption" data-zh="横轴：赎回速度。纵轴：信任假设的多少。粒子是用户流量；服务得好的 rail 容量环增大，差的衰减褪色。其中一条爆炸——损害被它自己的 tranche 半径困住，波及不到别处。"
+         data-en="X: redemption speed. Y: how much trust is assumed. Particles are user flow; well-serving rails grow capacity rings, poor ones decay and fade. One of them explodes — the damage stays inside its own tranche radius, reaching nothing else.">横轴：赎回速度。纵轴：信任假设的多少。粒子是用户流量；服务得好的 rail 容量环增大，差的衰减褪色。其中一条爆炸——损害被它自己的 tranche 半径困住，波及不到别处。</div>
+  </div>
+</section>
+
+<section class="scene" id="loops" data-actzone="a3">
+  <div class="kicker reveal" data-zh="终局 · 价格信号的自给自足" data-en="The endgame · a self-sufficient price signal">终局 · 价格信号的自给自足</div>
+  <h2 class="reveal" data-zh="每一笔结算都是一次报价。<br>市场最终成为自己的 oracle。" data-en="Every settlement is a quote.<br>The market becomes its own oracle.">每一笔结算都是一次报价。<br>市场最终成为自己的 oracle。</h2>
+  <p class="lead reveal"
+     data-zh="整个系统还剩最后一个信任点：价格从哪来？答案在系统自己的代谢物里。每笔链上结算都公开携带「在什么价格、成交了多少」——任何观察者对同一段历史算出<b>同一个</b>修剪后成交量加权中位数，没有签名者。交易量足够大时，外部 oracle 从信任根降级为合理性锚。这是自指——但与 UST 有范畴之别：<b>UST 循环的是抵押</b>（拿自己印的币背书自己），<b>我们循环的是信息</b>（拿自己的成交给自己定价），抵押品永远是外生的 BTC。信息自指收敛，抵押自指发散——一个是飞轮，一个是漩涡。"
+     data-en="One trust point remains: where does the price come from? The answer is in the system’s own metabolism. Every on-chain settlement publicly carries “how much, at what price” — any observer computes the <b>same</b> trimmed volume-weighted median over the same history, with no signer anywhere. With enough volume, external oracles demote from trust root to sanity anchor. This is self-reference — categorically unlike UST: <b>UST circulated its collateral</b> (backing itself with its own token); <b>we circulate information</b> (pricing ourselves with our own trades), while the collateral stays exogenous BTC. Information self-reference converges; collateral self-reference diverges — one is a flywheel, the other a whirlpool.">整个系统还剩最后一个信任点：价格从哪来？答案在系统自己的代谢物里。每笔链上结算都公开携带「在什么价格、成交了多少」——任何观察者对同一段历史算出<b>同一个</b>修剪后成交量加权中位数，没有签名者。交易量足够大时，外部 oracle 从信任根降级为合理性锚。这是自指——但与 UST 有范畴之别：<b>UST 循环的是抵押</b>（拿自己印的币背书自己），<b>我们循环的是信息</b>（拿自己的成交给自己定价），抵押品永远是外生的 BTC。信息自指收敛，抵押自指发散——一个是飞轮，一个是漩涡。</p>
+  <div class="fig reveal">
+    <canvas id="loops-canvas" width="1400" height="540"></canvas>
+    <div class="caption" data-zh="左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。"
+         data-en="Left: UST — the collateral loop. Every revolution consumes its own foundation; the radius shrinks to collapse. Right: SatUSD — the information loop. The BTC collateral block never enters the cycle; the settlements→signal→volume ring thickens with every turn. Inset: a manipulation attempt — a +40% whale (red) bounces off the ±5% trim band; the marker doesn’t move (spec 03 §5.2, drawn as implemented).">左：UST——抵押环。每一圈都在消耗自己的地基，半径递减，直至坍缩。右：SatUSD——信息环。BTC 抵押块从不进入循环；结算→信号→交易量的环每转一圈更厚。下方小图：操纵尝试——一头 +40% 的鲸鱼（红点）撞上 ±5% 修剪带被弹掉，标记纹丝不动（spec 03 §5.2，按实现绘制）。</div>
+  </div>
+</section>
+
+<section class="scene" id="window" data-actzone="a3">
+  <div class="kicker reveal" data-zh="机制 3 · 把人移出执行路径" data-en="Mechanism 3 · removing humans from execution">机制 3 · 把人移出执行路径</div>
+  <h2 class="reveal" data-zh="同一个公式，三任执行者：<br>先是人，然后是仪式，最后是数学。" data-en="One formula, three executors:<br>first a human, then a ceremony, then mathematics.">同一个公式，三任执行者：<br>先是人，然后是仪式，最后是数学。</h2>
+  <p class="lead reveal"
+     data-zh="Stage 1：创始人手动运行公开脚本，任何人逐字节复算，偏离即公开证据——信任窗口是一整个 epoch。Stage 2：epoch 边界一次性预签下个周期的全部配额树，超额支取<b>根本未被签名</b>——窗口缩成边界上的一瞬。Stage 3：covenant / BitVM 把公式写进花费条件——窗口关闭。三个阶段跑的是同一个公式、同一个节奏，换掉的只是「谁保证执行」。每一项过渡性妥协都登记在脚手架清单上，印着自己的拆除条件，随每个版本发布。"
+     data-en="Stage 1: the founder runs the open-source script; anyone recomputes byte-for-byte; deviation is public evidence — the trust window is a whole epoch. Stage 2: at each boundary, the next epoch’s entire tranche tree is pre-signed; an over-cap draw <b>was simply never signed</b> — the window shrinks to an instant. Stage 3: covenants / BitVM write the formula into the spend conditions — the window closes. All three stages run the same formula on the same cadence; only the guarantor changes. Every transitional compromise sits in the scaffolding ledger with its own demolition criterion, shipped with every release.">Stage 1：创始人手动运行公开脚本，任何人逐字节复算，偏离即公开证据——信任窗口是一整个 epoch。Stage 2：epoch 边界一次性预签下个周期的全部配额树，超额支取<b>根本未被签名</b>——窗口缩成边界上的一瞬。Stage 3：covenant / BitVM 把公式写进花费条件——窗口关闭。三个阶段跑的是同一个公式、同一个节奏，换掉的只是「谁保证执行」。每一项过渡性妥协都登记在脚手架清单上，印着自己的拆除条件，随每个版本发布。</p>
+  <div class="fig reveal">
+    <canvas id="window-canvas" width="1400" height="430"></canvas>
+  </div>
+</section>
+
+<!-- ════ ACT IV ════ -->
+<div class="actdiv" data-actzone="a4">
+  <div class="n">ACT Ⅳ</div>
+  <h3 data-zh="底线与前景" data-en="The floor, and the horizon">底线与前景</h3>
+  <p data-zh="最坏情况下你失去什么？最好情况下世界得到什么？" data-en="What do you lose in the worst case — and what does the world gain in the best?">最坏情况下你失去什么？最好情况下世界得到什么？</p>
+</div>
+
+<section class="scene" id="kill" data-actzone="a4">
+  <div class="kicker reveal" data-zh="底线 · 别信我们，杀了我们试试" data-en="The floor · don’t trust us, try killing us">底线 · 别信我们，杀了我们试试</div>
+  <h2 class="reveal" data-zh="把我们的服务器全部关掉。<br>你的钱照样回家。" data-en="Shut down every server we run.<br>Your money still walks home.">把我们的服务器全部关掉。<br>你的钱照样回家。</h2>
+  <p class="lead reveal"
+     data-zh="没有任何一条协议保证依赖我们运营的基础设施。每条共识相关编码由两种语言独立实现、逐字节互证；每个关键构造对着真实节点验证；最坏情况下——oracle 失联、所有镜像下线、创始人消失——<b>CSV 超时退款路径只需要比特币还在出块</b>。亲手试试："
+     data-en="No protocol guarantee depends on infrastructure we operate. Every consensus-relevant encoding is independently implemented in two languages and byte-matched; every key construction verified against live nodes; in the worst case — oracle gone, every mirror dark, founder vanished — <b>the CSV timeout refund needs only that Bitcoin keeps producing blocks</b>. Try it yourself:">没有任何一条协议保证依赖我们运营的基础设施。每条共识相关编码由两种语言独立实现、逐字节互证；每个关键构造对着真实节点验证；最坏情况下——oracle 失联、所有镜像下线、创始人消失——<b>CSV 超时退款路径只需要比特币还在出块</b>。亲手试试：</p>
+  <div class="switchrow reveal">
+    <div class="switch" id="kill-toggle"><div class="knob"></div></div>
+    <div class="switchlbl" data-zh="关闭创始人运营的一切基础设施" data-en="Kill all founder-operated infrastructure">关闭创始人运营的一切基础设施</div>
+  </div>
+  <div class="fig reveal">
+    <canvas id="kill-canvas" width="1400" height="430"></canvas>
+  </div>
   <div class="counters reveal">
     <div class="counter"><div class="n" data-count="4753">0</div><div class="t" data-zh="跨语言断言（Rust = TypeScript 逐字节相等），每次合并强制全绿" data-en="cross-language assertions (Rust = TypeScript byte-equality), enforced green on every merge">跨语言断言（Rust = TypeScript 逐字节相等），每次合并强制全绿</div></div>
     <div class="counter"><div class="n" data-count="2319">0</div><div class="t" data-zh="钉死的测试向量，覆盖全部协议编码面" data-en="pinned test vectors across the entire protocol encoding surface">钉死的测试向量，覆盖全部协议编码面</div></div>
-    <div class="counter"><div class="n" data-count="5">0</div><div class="t" data-zh="核心论文级命题，每一条都有针对真实 tapd/lnd/bitcoind 的机器验证" data-en="paper-grade claims, each machine-verified against live tapd / lnd / bitcoind">核心论文级命题，每一条都有针对真实 tapd/lnd/bitcoind 的机器验证</div></div>
-    <div class="counter"><div class="n" data-count="1">0</div><div class="t" data-zh="信任假设清单：8 项创始人脚手架，每项写明退出条件，随每个版本发布" data-en="trust-assumption ledger: 8 founder scaffolds, each with a written removal criterion, shipped with every release">信任假设清单：8 项创始人脚手架，每项写明退出条件，随每个版本发布</div></div>
+    <div class="counter"><div class="n" data-count="5">0</div><div class="t" data-zh="核心命题，逐条对真实 tapd / lnd / bitcoind 机器验证" data-en="core claims, each machine-verified against live tapd / lnd / bitcoind">核心命题，逐条对真实 tapd / lnd / bitcoind 机器验证</div></div>
+    <div class="counter"><div class="n" data-count="8">0</div><div class="t" data-zh="脚手架信任假设，每项印着书面拆除条件，随版本发布" data-en="scaffolding trust assumptions, each with a written demolition criterion, shipped per release">脚手架信任假设，每项印着书面拆除条件，随版本发布</div></div>
   </div>
   <div class="evidence reveal">
-    <div class="ev"><div class="k" data-zh="TA 资产进入 DLC 资金输出（链上键逐字节复现）" data-en="TA asset inside a DLC funding output (on-chain key reproduced byte-for-byte)">TA 资产进入 DLC 资金输出（链上键逐字节复现）</div><div class="v">funding output bcabed6d…:1 · tapd v0.7.2</div></div>
-    <div class="ev"><div class="k" data-zh="Oracle 门控 DLC 结算端到端（预签早于结果存在）" data-en="Oracle-gated DLC settlement end-to-end (pre-signed before the outcome existed)">Oracle 门控 DLC 结算端到端（预签早于结果存在）</div><div class="v">settle tx c23d6889…801c326 · regtest</div></div>
-    <div class="ev"><div class="k" data-zh="原子换（SatUSD 烧毁 ↔ BTC 到账，一笔交易）" data-en="Atomic swap (SatUSD burn ↔ BTC payout, one transaction)">原子换（SatUSD 烧毁 ↔ BTC 到账，一笔交易）</div><div class="v">swap tx 90d13a12… · regtest</div></div>
-    <div class="ev"><div class="k" data-zh="tapd 烧毁键派生，对照真实 BurnAsset 调用" data-en="tapd burn-key derivation vs a live BurnAsset call">tapd 烧毁键派生，对照真实 BurnAsset 调用</div><div class="v">2ceb9ffd… byte-exact</div></div>
-    <div class="ev"><div class="k" data-zh="Oracle 等价见证 → 私钥提取 → 用提取的钥伪造签名成功" data-en="Oracle equivocation → key extraction → forged signature verifies">Oracle 等价见证 → 私钥提取 → 用提取的钥伪造签名成功</div><div class="v">satusd-oracle::equivocation (EOTS)</div></div>
+    <div class="ev"><div class="k" data-zh="TA 资产进入 DLC 资金输出（链上输出键逐字节复现）" data-en="TA asset inside a DLC funding output (on-chain key reproduced byte-for-byte)">TA 资产进入 DLC 资金输出（链上输出键逐字节复现）</div><div class="v">bcabed6d…:1 · tapd v0.7.2</div></div>
+    <div class="ev"><div class="k" data-zh="Oracle 门控 DLC 结算端到端（预签早于结果存在）" data-en="Oracle-gated DLC settlement end-to-end (pre-signed before the outcome existed)">Oracle 门控 DLC 结算端到端（预签早于结果存在）</div><div class="v">c23d6889…801c326 · regtest</div></div>
+    <div class="ev"><div class="k" data-zh="原子换：SatUSD 烧毁 ↔ BTC 到账，同一笔交易" data-en="Atomic swap: SatUSD burn ↔ BTC payout, one transaction">原子换：SatUSD 烧毁 ↔ BTC 到账，同一笔交易</div><div class="v">90d13a12… · regtest</div></div>
+    <div class="ev"><div class="k" data-zh="tapd 烧毁键派生 vs 真实 BurnAsset 调用" data-en="tapd burn-key derivation vs a live BurnAsset call">tapd 烧毁键派生 vs 真实 BurnAsset 调用</div><div class="v">2ceb9ffd… byte-exact</div></div>
+    <div class="ev"><div class="k" data-zh="等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器" data-en="Equivocation → key extraction → forged signature passes an independent verifier">等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器</div><div class="v">satusd-oracle::equivocation (EOTS)</div></div>
   </div>
 </section>
 
-<!-- 8 · ROADMAP -->
-<section class="scene" id="roadmap">
-  <div class="kicker reveal" data-zh="路线" data-en="The road">路线</div>
-  <h2 class="reveal"
-      data-zh="里程碑用指标解锁，<br>不用日历。"
-      data-en="Milestones unlock on metrics,<br>not calendars.">里程碑用指标解锁，<br>不用日历。</h2>
+<section class="scene" id="prospect" data-actzone="a4">
+  <div class="kicker reveal" data-zh="前景 · 谁在等这把尺子" data-en="The horizon · who is waiting for this ruler">前景 · 谁在等这把尺子</div>
+  <h2 class="reveal" data-zh="美元最快的增长极，<br>百分之百跑在带冻结按钮的轨道上。" data-en="The dollar’s fastest-growing form runs<br>one hundred percent on freezable rails.">美元最快的增长极，<br>百分之百跑在带冻结按钮的轨道上。</h2>
   <p class="lead reveal"
-     data-zh="对未来日期的承诺只会制造失望。每个阶段由<b>可检验的清单</b>定义：清单全勾，阶段完成。"
-     data-en="Date promises only manufacture disappointment. Each phase is defined by a <b>checkable list</b>: all boxes ticked, phase done.">
-     对未来日期的承诺只会制造失望。每个阶段由<b>可检验的清单</b>定义：清单全勾，阶段完成。</p>
+     data-zh="稳定币供应量以数千亿美元计、仍在加速——而其中每一美元都路过那道阀门。被排除在外的需求是<b>结构性</b>的：资本管制下的家庭、被「去风险」清退的行业与个人，以及第一批<b>天生没有银行账户的经济主体——AI 智能体</b>。它们开不了户、过不了 KYC，但它们读得懂证明。对机器来说，「可验证」不是卖点，是<b>唯一能用的接口</b>。SatUSD 是第一种为机器可验证而生的美元——而机器的数量没有上限。"
+     data-en="Stablecoin supply is counted in hundreds of billions and accelerating — and every one of those dollars passes the valve. The excluded demand is <b>structural</b>: families under capital controls, the de-risked and debanked, and the first economic actors <b>born without bank accounts — AI agents</b>. They can’t open accounts or pass KYC, but they can read proofs. For machines, “verifiable” isn’t a feature — it’s the <b>only usable interface</b>. SatUSD is the first dollar built machine-verifiable-first — and the number of machines has no ceiling.">稳定币供应量以数千亿美元计、仍在加速——而其中每一美元都路过那道阀门。被排除在外的需求是<b>结构性</b>的：资本管制下的家庭、被「去风险」清退的行业与个人，以及第一批<b>天生没有银行账户的经济主体——AI 智能体</b>。它们开不了户、过不了 KYC，但它们读得懂证明。对机器来说，「可验证」不是卖点，是<b>唯一能用的接口</b>。SatUSD 是第一种为机器可验证而生的美元——而机器的数量没有上限。</p>
+  <div class="fig reveal">
+    <canvas id="prospect-canvas" width="1400" height="480"></canvas>
+    <div class="caption" data-zh="红色区域：现有稳定币——全部带阀门。三条增长带：管制与去银行化人口、比特币经济圈、AI 智能体（虚线起步——它们昨天还不存在，而它们只能用可验证的钱）。"
+         data-en="Red area: today’s stablecoins — all valved. Three growth bands: the capital-controlled and debanked, the Bitcoin economy, and AI agents (dashed start — they didn’t exist yesterday, and verifiable money is the only kind they can use).">红色区域：现有稳定币——全部带阀门。三条增长带：管制与去银行化人口、比特币经济圈、AI 智能体（虚线起步——它们昨天还不存在，而它们只能用可验证的钱）。</div>
+  </div>
+</section>
+
+<section class="scene" id="roadmap" data-actzone="a4">
+  <div class="kicker reveal" data-zh="路线 · 用指标解锁，不用日历" data-en="The road · unlocked by metrics, not calendars">路线 · 用指标解锁，不用日历</div>
+  <h2 class="reveal" data-zh="对日期的承诺只会制造失望。<br>每个阶段是一张可检验的清单。" data-en="Date promises manufacture disappointment.<br>Each phase is a checkable list.">对日期的承诺只会制造失望。<br>每个阶段是一张可检验的清单。</h2>
   <div class="miles reveal">
     <div class="mile done"><div class="id">M-A ✓</div><div class="what"
-      data-zh="<b>它能跑（regtest）。</b>双轨赎回端到端、全部核心需求实现、跨语言向量全绿——已完成，tag <span class='mono'>M-A-regtest</span>。"
-      data-en="<b>It runs (regtest).</b> Both redemption rails end-to-end, all core requirements implemented, cross-language vectors green — done, tag <span class='mono'>M-A-regtest</span>."><b>它能跑（regtest）。</b>双轨赎回端到端、全部核心需求实现、跨语言向量全绿——已完成，tag <span class="mono">M-A-regtest</span>。</div></div>
+      data-zh="<b>它能跑（regtest）。</b>双轨赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class='mono'>M-A-regtest</span>。"
+      data-en="<b>It runs (regtest).</b> Both redemption rails end-to-end, all core requirements implemented, cross-language vectors green — done, tag <span class='mono'>M-A-regtest</span>."><b>它能跑（regtest）。</b>双轨赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class="mono">M-A-regtest</span>。</div></div>
     <div class="mile"><div class="id">M-B</div><div class="what"
-      data-zh="<b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口。"
-      data-en="<b>It’s public (signet).</b> External testers redeem, oracle publicly consumable, an external LP quoting, slash drill executed. Infrastructure ready: signet node set synced, oracle daemon ships its public surface."><b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口。</div></div>
+      data-zh="<b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口，等价见证的检测与提取已实现并测试。"
+      data-en="<b>It’s public (signet).</b> External testers redeem, oracle publicly consumable, an external LP quoting, the slash drill executed. Infrastructure ready: signet node set synced, oracle daemon ships its public surface, equivocation detection &amp; extraction implemented and tested."><b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口，等价见证的检测与提取已实现并测试。</div></div>
     <div class="mile"><div class="id">M-C</div><div class="what"
       data-zh="<b>真实价值（mainnet）。</b>创始人自有资金注入储备；容量公式带保守上限上线；信任清单随资产一起发布。"
       data-en="<b>Real value (mainnet).</b> Founder-funded reserve; capacity formula live with conservative caps; the trust ledger ships with the asset."><b>真实价值（mainnet）。</b>创始人自有资金注入储备；容量公式带保守上限上线；信任清单随资产一起发布。</div></div>
     <div class="mile"><div class="id">M-D</div><div class="what"
-      data-zh="<b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立推荐列表发布者、≥1 条第三方自行上线的 rail、服务费覆盖运行成本。"
-      data-en="<b>Not just us.</b> ≥5 independent LPs, ≥2 independent list publishers, ≥1 third-party rail launched permissionlessly, fees ≥ steady-state costs."><b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立推荐列表发布者、≥1 条第三方自行上线的 rail、服务费覆盖运行成本。</div></div>
+      data-zh="<b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立列表发布者、≥1 条第三方未经许可上线的 rail、服务费覆盖运行成本。"
+      data-en="<b>Not just us.</b> ≥5 independent LPs, ≥2 independent list publishers, ≥1 third-party rail launched permissionlessly, fees ≥ steady-state costs."><b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立列表发布者、≥1 条第三方未经许可上线的 rail、服务费覆盖运行成本。</div></div>
     <div class="mile"><div class="id">M-E</div><div class="what"
-      data-zh="<b>执行去人化。</b>预签仪式取代手动配额——创始人从执行路径上被移除。最终阶段：协议完成历史使命后<b>有序退役</b>，这写在使命文件里。"
-      data-en="<b>Enforcement, dehumanized.</b> Pre-signed ceremonies replace manual allotment — the founder is removed from the execution path. Final phase: the protocol <b>retires in an orderly way</b> once its mission completes. That’s written in the mission."><b>执行去人化。</b>预签仪式取代手动配额——创始人从执行路径上被移除。最终阶段：协议完成历史使命后<b>有序退役</b>，这写在使命文件里。</div></div>
+      data-zh="<b>执行去人化。</b>预签仪式取代手动配额，创始人从执行路径上被移除。最终阶段：世界直接以 sats 计价之日，协议<b>有序退役</b>——这写在使命文件的正文里。"
+      data-en="<b>Enforcement, dehumanized.</b> Pre-signed ceremonies replace manual allotment; the founder leaves the execution path. Final phase: the day the world prices directly in sats, the protocol <b>retires in order</b> — written in the body of the mission."><b>执行去人化。</b>预签仪式取代手动配额，创始人从执行路径上被移除。最终阶段：世界直接以 sats 计价之日，协议<b>有序退役</b>——这写在使命文件的正文里。</div></div>
   </div>
   <div class="notes reveal"
-       data-zh="永久非目标：治理代币（没有）、法律实体（没有）、收益产品（不做）、KYC（不存在挂的地方）。一人 + AI 工程；机器可验证性是对单人审查带宽的补偿性控制。"
-       data-en="Permanent non-goals: a governance token (none), a legal entity (none), yield products (never), KYC (nowhere to attach it). One human + AI engineering; machine-verifiable correctness is the compensating control for single-maintainer review bandwidth.">
-       永久非目标：治理代币（没有）、法律实体（没有）、收益产品（不做）、KYC（不存在挂的地方）。一人 + AI 工程；机器可验证性是对单人审查带宽的补偿性控制。</div>
+       data-zh="永久非目标：治理代币（没有）、法律实体（没有）、收益产品（不做）、KYC（没有可以安装它的位置）。一个人 + AI 工程；机器可验证性是对单人审查带宽的补偿性控制——这本身就是一次范式实验。"
+       data-en="Permanent non-goals: a governance token (none), a legal entity (none), yield products (never), KYC (no place to install it). One human + AI engineering; machine-verifiable correctness as the compensating control for single-maintainer bandwidth — itself a paradigm experiment.">永久非目标：治理代币（没有）、法律实体（没有）、收益产品（不做）、KYC（没有可以安装它的位置）。一个人 + AI 工程；机器可验证性是对单人审查带宽的补偿性控制——这本身就是一次范式实验。</div>
 </section>
 
-<!-- 9 · CLOSING -->
-<section class="scene closing" id="close">
+<section class="scene closing" id="close" data-actzone="a4">
   <div class="kicker reveal" data-zh="使命" data-en="The mission">使命</div>
-  <h2 class="reveal"
-      data-zh="给正在比特币化的世界，<br>一座可以走过去的桥。"
-      data-en="A bridge you can actually walk,<br>to a bitcoinizing world.">给正在比特币化的世界，<br>一座可以走过去的桥。</h2>
-  <p class="lead reveal" style="margin-left:auto;margin-right:auto;"
+  <h2 class="reveal" data-zh="给正在比特币化的世界，<br>一座可以走过去的桥。" data-en="A bridge you can actually walk,<br>to a bitcoinizing world.">给正在比特币化的世界，<br>一座可以走过去的桥。</h2>
+  <p class="lead reveal" style="margin-left:auto;margin-right:auto"
      data-zh="SatUSD 不和比特币竞争——它是比特币赢下「记账单位」之前的过渡层。等到世界直接用 sats 标价的那天，它的使命就完成了。<b>一个以自己的退役为成功标准的协议。</b>"
-     data-en="SatUSD doesn’t compete with Bitcoin — it’s the interim layer until Bitcoin wins the unit-of-account. The day the world prices in sats, its mission is complete. <b>A protocol whose success criterion is its own retirement.</b>">
-     SatUSD 不和比特币竞争——它是比特币赢下「记账单位」之前的过渡层。等到世界直接用 sats 标价的那天，它的使命就完成了。<b>一个以自己的退役为成功标准的协议。</b></p>
+     data-en="SatUSD doesn’t compete with Bitcoin — it is the interim layer until Bitcoin wins the unit-of-account. The day the world prices in sats, its mission is complete. <b>A protocol whose success criterion is its own retirement.</b>">SatUSD 不和比特币竞争——它是比特币赢下「记账单位」之前的过渡层。等到世界直接用 sats 标价的那天，它的使命就完成了。<b>一个以自己的退役为成功标准的协议。</b></p>
   <div class="links reveal">
     <a class="primary" href="#" onclick="return false" style="cursor:default"
        data-zh="代码与全部证据 · 仓库即将公开" data-en="Code &amp; full evidence · repo opening soon">代码与全部证据 · 仓库即将公开</a>
@@ -366,234 +396,11 @@
   <span data-zh="SatUSD · 比特币原生 · 无实体 · 无代币 · 所有声明可机器验证"
         data-en="SatUSD · Bitcoin-native · no entity · no token · every claim machine-verifiable">SatUSD · 比特币原生 · 无实体 · 无代币 · 所有声明可机器验证</span><br>
   <span data-zh="本页数据与哈希均来自项目仓库（公开在即）；动画为示意，算法与实现一致。"
-        data-en="All figures and hashes on this page come from the project repo (opening soon); animations are illustrative, algorithms as implemented.">本页数据与哈希均来自项目仓库（公开在即）；动画为示意，算法与实现一致。</span>
+        data-en="All figures and hashes come from the project repo (opening soon); animations are illustrative, algorithms as implemented.">本页数据与哈希均来自项目仓库（公开在即）；动画为示意，算法与实现一致。</span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/ScrollTrigger.min.js"></script>
-<script>
-// ---------- i18n ----------
-function setLang(lang) {
-  document.documentElement.lang = lang === 'zh' ? 'zh' : 'en';
-  document.querySelectorAll('[data-zh]').forEach(el => {
-    el.innerHTML = el.dataset[lang];
-  });
-  document.getElementById('btn-zh').classList.toggle('on', lang === 'zh');
-  document.getElementById('btn-en').classList.toggle('on', lang === 'en');
-  drawVol(volProgress); drawTree(treeProgress); drawTwap(twapProgress);
-}
-
-// ---------- deterministic pseudo-random (stable visuals) ----------
-function mulberry(seed) {
-  return function() {
-    seed |= 0; seed = seed + 0x6D2B79F5 | 0;
-    let t = Math.imul(seed ^ seed >>> 15, 1 | seed);
-    t = t + Math.imul(t ^ t >>> 7, 61 | t) ^ t;
-    return ((t ^ t >>> 14) >>> 0) / 4294967296;
-  };
-}
-
-// ---------- scene 1: volatility ----------
-const volC = document.getElementById('vol-canvas');
-let volProgress = 0;
-const volSeries = (() => {
-  const r = mulberry(42); let v = 0.55; const out = [];
-  for (let i = 0; i < 400; i++) { v += (r() - 0.493) * 0.045; v = Math.max(0.18, Math.min(0.95, v)); out.push(v); }
-  return out;
-})();
-function drawVol(p) {
-  const ctx = volC.getContext('2d'); const W = volC.width, H = volC.height;
-  ctx.clearRect(0, 0, W, H);
-  const n = Math.max(2, Math.floor(volSeries.length * p));
-  // flat $1 line
-  ctx.strokeStyle = '#9a9aa3'; ctx.lineWidth = 2; ctx.setLineDash([1, 7]);
-  ctx.beginPath(); ctx.moveTo(0, H * 0.5); ctx.lineTo(W * p, H * 0.5); ctx.stroke(); ctx.setLineDash([]);
-  // btc line
-  ctx.strokeStyle = '#f7931a'; ctx.lineWidth = 3; ctx.beginPath();
-  for (let i = 0; i < n; i++) {
-    const x = (i / (volSeries.length - 1)) * W;
-    const y = H * (1 - volSeries[i]);
-    i ? ctx.lineTo(x, y) : ctx.moveTo(x, y);
-  }
-  ctx.stroke();
-  ctx.font = '24px ' + getComputedStyle(document.body).fontFamily;
-  ctx.fillStyle = '#9a9aa3';
-  if (p > 0.15) ctx.fillText('$1.00', 12, H * 0.5 - 12);
-  if (p > 0.3) { ctx.fillStyle = '#f7931a'; ctx.fillText('BTC', 12, H * (1 - volSeries[Math.min(n - 1, 30)]) - 14); }
-}
-
-// ---------- scene 3: taproot tree ----------
-const treeC = document.getElementById('tree-canvas');
-let treeProgress = 0;
-function node(ctx, x, y, w, label, sub, color, alpha) {
-  ctx.globalAlpha = alpha;
-  ctx.strokeStyle = color; ctx.lineWidth = 2;
-  ctx.fillStyle = '#111114';
-  const h = 76, r = 14;
-  ctx.beginPath(); ctx.roundRect(x - w / 2, y - h / 2, w, h, r); ctx.fill(); ctx.stroke();
-  ctx.fillStyle = '#f2f2f4'; ctx.font = '600 26px ' + getComputedStyle(document.body).fontFamily;
-  ctx.textAlign = 'center';
-  ctx.fillText(label, x, y - 4);
-  ctx.fillStyle = '#9a9aa3'; ctx.font = '20px ' + getComputedStyle(document.body).fontFamily;
-  ctx.fillText(sub, x, y + 26);
-  ctx.globalAlpha = 1;
-}
-function edge(ctx, x1, y1, x2, y2, alpha) {
-  ctx.globalAlpha = alpha; ctx.strokeStyle = '#55555e'; ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.stroke(); ctx.globalAlpha = 1;
-}
-function drawTree(p) {
-  const ctx = treeC.getContext('2d'); const W = treeC.width, H = treeC.height;
-  const zh = document.documentElement.lang === 'zh';
-  ctx.clearRect(0, 0, W, H);
-  const a1 = Math.min(1, p * 3);            // leaves
-  const a2 = Math.min(1, Math.max(0, (p - 0.33) * 3)); // branch + P
-  const a3 = Math.min(1, Math.max(0, (p - 0.66) * 3)); // Q + formula
-  if (a2 > 0) { edge(ctx, W*0.32, H*0.72-38, W*0.5, H*0.45+38, a2); edge(ctx, W*0.68, H*0.72-38, W*0.5, H*0.45+38, a2); edge(ctx, W*0.5, H*0.45-38, W*0.5, H*0.16+38, a3); }
-  node(ctx, W*0.32, H*0.72, 330, zh ? 'TA 资产承诺叶' : 'TA commitment leaf', zh ? '由 tapd 构建 · 永不可花费' : 'built by tapd · never spendable', '#f7931a', a1);
-  node(ctx, W*0.68, H*0.72, 330, zh ? '退款叶（CSV 超时）' : 'Refund leaf (CSV timeout)', zh ? '单边退出 · 无需任何人' : 'unilateral exit · needs nobody', '#2dd4a0', a1);
-  node(ctx, W*0.5, H*0.45, 300, 'branch(TA, refund)', zh ? 'BIP-341 默克尔根' : 'BIP-341 merkle root', '#9a9aa3', a2);
-  node(ctx, W*0.5, H*0.16, 460, zh ? '输出键 Q（链上所见）' : 'Output key Q (what the chain sees)', 'Q = P + TapTweak(P ‖ root)·G', '#f7931a', a3);
-  if (a2 > 0.5) {
-    ctx.globalAlpha = a2; ctx.fillStyle = '#9a9aa3'; ctx.font = '22px ' + getComputedStyle(document.body).fontFamily;
-    ctx.textAlign = 'center';
-    ctx.fillText(zh ? '内部键 P = DLC 资金键（密钥路径 = 结算路径）' : 'Internal key P = DLC funding key (key path = settlement path)', W*0.5, H*0.95);
-    ctx.globalAlpha = 1;
-  }
-}
-
-// ---------- scene 4: buckets ----------
-const bucketsEl = document.getElementById('buckets');
-const WIN = 9;
-const lo = (i) => (i * 65536).toLocaleString('en-US');
-for (let i = 0; i < 16; i++) {
-  const b = document.createElement('div');
-  b.className = 'bucket'; b.id = 'bk' + i;
-  b.innerHTML = `<div class="lock">🔒</div><div>#${i}</div><div>$${lo(i)}+</div>`;
-  bucketsEl.appendChild(b);
-}
-function fireBuckets() {
-  const win = document.getElementById('bk' + WIN);
-  win.classList.add('win');
-  win.querySelector('.lock').textContent = '🔓';
-  gsap.to('#tick-banner', { opacity: 1, duration: 0.6 });
-}
-function resetBuckets() {
-  const win = document.getElementById('bk' + WIN);
-  win.classList.remove('win');
-  win.querySelector('.lock').textContent = '🔒';
-  gsap.to('#tick-banner', { opacity: 0, duration: 0.3 });
-}
-
-// ---------- scene 5: capacity lab ----------
-const stakeEl = document.getElementById('stake'), volEl = document.getElementById('vol');
-function lab() {
-  const stake = stakeEl.value / 100;            // BTC
-  const volume = Number(volEl.value);           // BTC served
-  const fees = volume * 0.001;                  // 10 bps retained
-  const sunk = stake + fees;
-  const cap = sunk / 2;
-  document.getElementById('stake-val').textContent = stake.toFixed(2) + ' BTC';
-  document.getElementById('vol-val').textContent = volume + ' BTC';
-  document.getElementById('cap-val').textContent = cap.toFixed(4) + ' BTC';
-  document.getElementById('sunk-val').textContent = sunk.toFixed(4) + ' BTC';
-  const scale = Math.max(sunk, 0.0001);
-  document.getElementById('bar-cap').style.width = (cap / scale * 92) + '%';
-  document.getElementById('bar-sunk').style.width = '92%';
-}
-stakeEl.addEventListener('input', lab); volEl.addEventListener('input', lab); lab();
-
-// ---------- scene 6: twap ----------
-const twapC = document.getElementById('twap-canvas');
-let twapProgress = 0;
-const twapPts = (() => {
-  const r = mulberry(7); const out = [];
-  for (let i = 0; i < 26; i++) out.push({ x: 0.06 + r() * 0.88, price: 0.985 + r() * 0.03, vol: 4 + r() * 10 });
-  return out;
-})();
-function drawTwap(p) {
-  const ctx = twapC.getContext('2d'); const W = twapC.width, H = twapC.height;
-  const zh = document.documentElement.lang === 'zh';
-  ctx.clearRect(0, 0, W, H);
-  const py = (price) => H * (1 - (price - 0.9) / 0.6);
-  // trim band
-  const bandA = Math.min(1, Math.max(0, (p - 0.35) * 3));
-  if (bandA > 0) {
-    ctx.globalAlpha = 0.12 * bandA; ctx.fillStyle = '#f7931a';
-    ctx.fillRect(0, py(1.05), W, py(0.95) - py(1.05));
-    ctx.globalAlpha = bandA; ctx.fillStyle = '#9a9aa3'; ctx.font = '20px ' + getComputedStyle(document.body).fontFamily;
-    ctx.textAlign = 'left';
-    ctx.fillText(zh ? '±5% 修剪带' : '±5% trim band', 12, py(1.05) - 10);
-    ctx.globalAlpha = 1;
-  }
-  // settlement dots
-  const n = Math.max(1, Math.floor(twapPts.length * Math.min(1, p * 2)));
-  for (let i = 0; i < n; i++) {
-    const d = twapPts[i];
-    ctx.globalAlpha = 0.85; ctx.fillStyle = '#f2f2f4';
-    ctx.beginPath(); ctx.arc(d.x * W, py(d.price), d.vol * 0.55, 0, 7); ctx.fill(); ctx.globalAlpha = 1;
-  }
-  // marker line
-  if (p > 0.45) {
-    ctx.strokeStyle = '#f7931a'; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(0, py(1.0)); ctx.lineTo(W, py(1.0)); ctx.stroke();
-    ctx.fillStyle = '#f7931a'; ctx.font = '600 22px ' + getComputedStyle(document.body).fontFamily;
-    ctx.textAlign = 'right';
-    ctx.fillText('internal_twap', W - 12, py(1.0) - 10);
-  }
-  // whale attack
-  const whaleA = Math.min(1, Math.max(0, (p - 0.7) * 4));
-  if (whaleA > 0) {
-    ctx.globalAlpha = whaleA; ctx.fillStyle = '#ff5d5d';
-    ctx.beginPath(); ctx.arc(W * 0.78, py(1.4), 26, 0, 7); ctx.fill();
-    ctx.font = '600 20px ' + getComputedStyle(document.body).fontFamily; ctx.textAlign = 'center';
-    ctx.fillText(zh ? '鲸鱼 +40% · 被修剪' : 'whale +40% · trimmed', W * 0.78, py(1.4) - 36);
-    ctx.strokeStyle = '#ff5d5d'; ctx.lineWidth = 2;
-    ctx.beginPath(); ctx.moveTo(W*0.78-18, py(1.4)-18); ctx.lineTo(W*0.78+18, py(1.4)+18); ctx.moveTo(W*0.78+18, py(1.4)-18); ctx.lineTo(W*0.78-18, py(1.4)+18); ctx.stroke();
-    ctx.globalAlpha = 1;
-  }
-}
-
-// ---------- counters ----------
-function runCounters() {
-  document.querySelectorAll('.counter .n').forEach(el => {
-    const target = Number(el.dataset.count);
-    gsap.fromTo(el, { textContent: 0 }, {
-      textContent: target, duration: 1.6, ease: 'power2.out', snap: { textContent: 1 },
-      onUpdate() { el.textContent = Number(el.textContent).toLocaleString('en-US'); }
-    });
-  });
-}
-
-// ---------- scroll wiring ----------
-gsap.registerPlugin(ScrollTrigger);
-document.querySelectorAll('.reveal').forEach(el => {
-  gsap.to(el, {
-    opacity: 1, y: 0, duration: 0.9, ease: 'power3.out',
-    scrollTrigger: { trigger: el, start: 'top 82%' }
-  });
-});
-ScrollTrigger.create({ trigger: '#vol-canvas', start: 'top 75%', end: 'bottom 35%', scrub: 0.4,
-  onUpdate(self) { volProgress = self.progress; drawVol(volProgress); } });
-ScrollTrigger.create({ trigger: '#tree-canvas', start: 'top 80%', end: 'bottom 40%', scrub: 0.4,
-  onUpdate(self) { treeProgress = self.progress; drawTree(treeProgress); } });
-ScrollTrigger.create({ trigger: '#twap-canvas', start: 'top 80%', end: 'bottom 35%', scrub: 0.4,
-  onUpdate(self) { twapProgress = self.progress; drawTwap(twapProgress); } });
-ScrollTrigger.create({ trigger: '#buckets', start: 'top 55%', onEnter: fireBuckets, onLeaveBack: resetBuckets });
-ScrollTrigger.create({ trigger: '.counters', start: 'top 75%', once: true, onEnter: runCounters });
-
-// freeze-path step animation
-ScrollTrigger.create({ trigger: '.paths', start: 'top 65%', once: true, onEnter() {
-  const fiat = document.querySelectorAll('#path-fiat .hop');
-  const sat = document.querySelectorAll('#path-sat .hop');
-  const tl = gsap.timeline();
-  fiat.forEach((h, i) => tl.call(() => h.classList.add('lit'), null, i * 0.5));
-  tl.to('#stamp-frozen', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2)' }, fiat.length * 0.5);
-  sat.forEach((h, i) => tl.call(() => h.classList.add('lit'), null, 0.4 + i * 0.5));
-  tl.to('#stamp-final', { opacity: 1, scale: 1, duration: 0.45, ease: 'back.out(2)' }, '>-0.2');
-}});
-
-drawVol(0); drawTree(0); drawTwap(0);
-</script>
+<script src="pitch.js"></script>
 </body>
 </html>
