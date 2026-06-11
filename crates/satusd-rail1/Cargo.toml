@@ -6,6 +6,8 @@ license.workspace = true
 rust-version.workspace = true
 
 [dependencies]
+bitcoin = "0.32.9"
+satusd-crypto = { path = "../satusd-crypto" }
 satusd-oracle = { path = "../satusd-oracle" }
 satusd-rail = { path = "../satusd-rail" }
 secp256k1 = "0.31.1"

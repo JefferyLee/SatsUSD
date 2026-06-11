@@ -1655,7 +1655,9 @@ dependencies = [
 name = "satusd-rail1"
 version = "0.1.0"
 dependencies = [
+ "bitcoin",
  "hex",
+ "satusd-crypto",
  "satusd-oracle",
  "satusd-rail",
  "secp256k1 0.31.1",
