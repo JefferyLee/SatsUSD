@@ -1,11 +1,13 @@
 # SatUSD Rail Standard
 
 - **Spec**: 02
-- **Version**: 0.1-draft
+- **Version**: 0.2-draft (settle semantics per ADR-0003)
 - **Status**: under construction — normative language is aspirational
-  until pinned by test vectors
+  until pinned by test vectors; §3/§7 are exercised by the Rail-0
+  devnet E2E
 - **Authority**: derives from `docs/MISSION.md` (v2) via
-  `docs/decisions/ADR-0001-restart-from-mission-v2.md`
+  `docs/decisions/ADR-0001-restart-from-mission-v2.md`;
+  settle/burn split per ADR-0003
 - **Mission criterion**: every design choice below is answerable to
   one question — *does it move us closer to, or further from, the
   state where the external dependency can be removed?*
@@ -136,6 +138,13 @@ template so the user can verify, before committing anything, that
 every downstream path (settle, refund, dispute) is exactly as the
 manifest declares.
 
+For collapsed rails (§3.5) the lock template IS the settle's
+economic plan: `lock_template_commitment` commits to the full
+output economics — conversion amount, user sats, fees (Rail-0:
+tag `SatUSD/rail0-lock-template/v1`) — and the user MUST recompute
+it and refuse to co-sign a transaction that deviates from the
+committed plan.
+
 ### 3.2 LOCK
 
 Both legs commit on-chain: the user's SatUSD (a TA-committed input)
@@ -155,10 +164,23 @@ The rail's settlement condition fires:
 - **optimistic_claim**: a challenge window elapses unchallenged.
 
 A conforming SETTLE transaction MUST, atomically:
-1. burn the quoted SatUSD amount to the NUMS sink
-   (TA-committed output, per spec 01), and
+1. move the quoted SatUSD amount out of the user's control, and
 2. pay the user the quoted BTC amount, and
 3. return any residual to the LP.
+
+The TA leg's destination is the LP's choice (ADR-0003):
+
+- **settle-to-LP** — the LP's own script key. A pure P2P trade;
+  the LP may recirculate the SatUSD (market making). No reserve
+  interaction occurs and no capacity is consumed.
+- **settle-to-burn** — the tapd-native burn key (spec 01 §4) in
+  the settle transaction itself; the LP claims reimbursement
+  afterwards.
+
+**The burn obligation attaches to reimbursement, not to settle**:
+the reserve reimburses only against a burn artifact (spec 04 §1).
+The user's guarantee is identical in both modes — quoted BTC
+against surrendered SatUSD, atomically.
 
 ### 3.4 REFUND
 
@@ -194,11 +216,14 @@ themselves *or by any third party*, within a bound fixed by
 `settle_window + refund_delta`. No reachable state may require a
 specific counterparty's cooperation to avoid loss.
 
-**S2 — Conservation.** Across every terminal state: SatUSD burned
-to the sink equals the quoted conversion amount; no path increases
-SatUSD supply; BTC paid equals the quoted amount at the settled
-price. (Mint direction: SatUSD issued equals the quoted amount
-against BTC received by the reserve, within spec-04 constraints.)
+**S2 — Conservation.** Across every terminal state: the SatUSD
+moved out of the user's control equals the quoted conversion
+amount; no path increases SatUSD supply; supply decreases exactly
+by burns, and every reserve reimbursement is backed one-for-one by
+a burn artifact (ADR-0003, spec 04); BTC paid to the user equals
+the quoted amount at the settled price. (Mint direction: SatUSD
+issued equals the quoted amount against BTC received by the
+reserve, within spec-04 constraints.)
 
 **S3 — Observer verifiability.** Every terminal state yields an
 artifact chain — txids, TA transfer proofs, oracle attestations —
@@ -329,12 +354,24 @@ their suffix and asset_id.
 ### Rail-0 — RFQ atomic swap (`oracle_spec = none`)
 
 The degenerate base case: price truth is the two signatures.
+Reference implementation: `crates/satusd-rail0` (J3 devnet E2E:
+`tests/devnet_swap.rs`).
 
 - QUOTE: RFQ board (transport unspecified); LPs respond with signed
-  quotes; user picks.
-- LOCK+SETTLE (collapsed): one transaction — inputs: user TA UTXO +
-  LP BTC UTXO; outputs: TA burn to NUMS sink + BTC to user +
-  residual to LP. Co-signed via PSBT; atomic by construction.
+  quotes; user picks. `lock_template_commitment` commits to the
+  SwapPlan (§3.1).
+- LOCK+SETTLE (collapsed): one anchor transaction — inputs: the
+  user's TA commitment UTXO + the LP's BTC UTXO; outputs: the TA
+  outputs (destination per §3.3 + asset change) + BTC to user +
+  LP residual. Built via tapd's external-anchor flow
+  (`FundVirtualPsbt → SignVirtualPsbt → CommitVirtualPsbts` with
+  the rail's anchor template → `PublishAndLogTransfer`); every
+  fact the template needs is parsed from the funded vPSBT itself.
+  Co-signed; atomic by construction.
+- Non-anchor P2TR outputs (payouts, change) MUST carry their
+  taproot internal key in the PSBT — TA exclusion proofs require
+  it for every P2TR output of the anchor transaction. Non-P2TR
+  payouts avoid the requirement.
 - REFUND: unreachable (nothing locks without settling).
 - DISPUTE: none needed for the swap itself; LP quote manipulation
   is policed by competition and by S3 history (systematic deviation

@@ -51,8 +51,9 @@ One sentence per audience:
   supply, and settlement history against Bitcoin chain data alone.
   No API of ours needs to exist for J2 to work.
 - **J3 — Redeem via Rail-0 (RFQ)**: request quote → LPs respond →
-  user picks → one co-signed atomic transaction: SatUSD burns to
-  NUMS sink, BTC arrives. No oracle anywhere.
+  user picks → one co-signed atomic transaction: the SatUSD leaves
+  the user's keys (to the LP, or straight to the burn key —
+  ADR-0003), BTC arrives. No oracle anywhere.
 - **J4 — Redeem via Rail-1 (DLC)**: quote (CET schedule) → lock →
   oracle attests at tick → anyone broadcasts the matching CET →
   outcome locked at attestation, confirmation on Bitcoin's clock.

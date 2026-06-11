@@ -27,9 +27,13 @@ pub mod taprpc {
 pub mod assetwalletrpc {
     tonic::include_proto!("assetwalletrpc");
 }
+pub mod walletrpc {
+    tonic::include_proto!("walletrpc");
+}
 
 pub use assetwalletrpc::asset_wallet_client::AssetWalletClient;
 pub use taprpc::taproot_assets_client::TaprootAssetsClient;
+pub use walletrpc::wallet_kit_client::WalletKitClient;
 
 pub mod proof_assembly;
 

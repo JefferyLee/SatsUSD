@@ -1,0 +1,29 @@
+// Minimal subset of lnd's walletrpc.WalletKit — just SignPsbt, which
+// tapd's own anchor-tx flow uses and lncli does not expose. The gRPC
+// method path must match lnd's: /walletrpc.WalletKit/SignPsbt.
+syntax = "proto3";
+
+package walletrpc;
+
+service WalletKit {
+    /*
+    Signs every input of the funded PSBT that the lnd wallet holds
+    keys for, including taproot keyspends with a tap_merkle_root
+    tweak. Does not finalize.
+    */
+    rpc SignPsbt (SignPsbtRequest) returns (SignPsbtResponse);
+}
+
+message SignPsbtRequest {
+    // The PSBT that should be signed, serialized in the raw binary
+    // format.
+    bytes funded_psbt = 1;
+}
+
+message SignPsbtResponse {
+    // The signed PSBT, serialized in the raw binary format.
+    bytes signed_psbt = 1;
+
+    // The indices of signed inputs.
+    repeated uint32 signed_inputs = 2;
+}

@@ -6,6 +6,7 @@ fn main() {
                 "proto/tapcommon.proto",
                 "proto/taprootassets.proto",
                 "proto/assetwallet.proto",
+                "proto/walletkit.proto",
             ],
             &["proto"],
         )

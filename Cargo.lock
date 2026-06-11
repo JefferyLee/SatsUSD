@@ -1631,10 +1631,13 @@ dependencies = [
 name = "satusd-rail0"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
+ "bitcoin",
  "hex",
  "satusd-crypto",
  "satusd-rail",
  "satusd-tapd-client",
+ "serde_json",
  "tokio",
 ]
 
