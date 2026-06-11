@@ -1,11 +1,11 @@
 # SatUSD Reserve & Epoch Allotment
 
 - **Spec**: 04
-- **Version**: 0.0-skeleton — structure and commitments only;
-  normative content to be filled as Rail-0/Rail-1 implementations
-  inform it
+- **Version**: 0.1 — reimbursement pricing decided (§4); CR tiers,
+  supply gates, and the NAV floor normative (§5); CDP-aware per
+  ADR-0004
 - **Authority**: `docs/MISSION.md` v2 via ADR-0001; capacity
-  mechanism per ADR-0002
+  mechanism per ADR-0002; vault direction per ADR-0004
 
 ## 1. Role of the reserve
 
@@ -65,28 +65,63 @@ same data reproduces the plan byte-for-byte (PRD FR-6 acceptance).
 All three stages run the same formula on the same cadence; the
 transition swaps only what guarantees execution.
 
-## 4. Reimbursement pricing (open — binding)
+## 4. Reimbursement pricing (decided)
 
-The price at which a burned $X face value converts to sats at
-reimbursement is **the** remaining oracle-dependence of the
-reserve. Design space recorded:
-
-- (a) the rail's settled price, REQUIRED within `price_dev_bound`
-  of the epoch reference marker; or
-- (b) the reference marker itself at the settlement block, with
-  the LP's spread being the difference vs. what they paid the
-  user.
-
-(b) concentrates all price trust in the marker; (a) distributes it
-but complicates the harm model. Decision deferred until Rail-0/1
-implementations exercise both. The reference marker's source set
-and cadence are owned by spec 03; its end state is the
+Reimbursement converts a burned $X face value to sats at **(a) the
+rail's settled price**, which MUST lie within the manifest's
+`price_dev_bound_bps` of the epoch reference marker. Rationale: the
+deviation is bounded per settlement, the blast radius is bounded
+per rail by capacity (ADR-0002), and trust stays distributed across
+competing rails. The alternative — pricing every reimbursement at
+the reference marker — would concentrate all price trust in one
+input, against the oracle-marketization direction (spec 03). The
+marker remains the *bound*, not the *price*; its end state is the
 `internal_twap` class (mission criterion applies).
 
-## 5. To be specified
+A settlement outside the bound is reimbursable at most at the
+bound's edge; the difference is the LP's loss, not the reserve's
+(rounding and bounds always favor the reserve, spec 00 §3.7).
 
-- CR rules and mint-side constraints
+## 5. Collateral ratio: tiers, gates, and the NAV floor
+
+System CR is defined CDP-aware (ADR-0004):
+
+```
+CR = (reserve_sats + Σ vault_collateral_sats) × P / face_supply
+```
+
+where `P` is the epoch reference marker (spec 03) and
+`face_supply` is the committed circulating supply (spec 01 §5).
+Until vaults exist the vault term is zero. Vault collateral counts
+because crash-bucket checkpoint CETs deliver face value to the
+reserve (ADR-0004); the residual gap risk is what the tier
+parameters bound.
+
+| Tier | System CR | Gates (normative) |
+|---|---|---|
+| Healthy | ≥ 140% | none |
+| PauseMint | 120–140% | mint-direction rails MUST refuse; new vaults MUST NOT open. Redemption is UNRESTRICTED at every tier — burning supply raises CR; redemption is the healing mechanism, never the threat |
+| Recovery | 100–120% | PauseMint gates, plus: minimum vault opening CR rises and `retain_bps` floors rise for new manifests (accelerated recapitalization) |
+| NAV floor | < 100% | redemption price = CR × face. Every holder redeems at the same published net asset value — no first-mover subsidy, no run race. The protocol never promises par; it promises seniority and an always-open exit at verifiable NAV |
+
+Parameter discipline: all tier boundaries, the vault opening CR,
+and checkpoint spacing are **conservative starting values, tuned by
+data**. Changes apply forward only — new manifests, new vault
+terms — never to standing positions (a parameter change is a new
+rail_id / new vault contract, not a retroactive edit).
+
+Recapitalization honesty: retained fees raise CR slowly (bps on
+volume); the heavy lifting under stress is done by the gates
+(supply stops growing) and by redemption burns (supply shrinks).
+The cushion's depth is a public, verifiable number at all times —
+FR-7 clients MUST be able to compute the tier from chain data and
+disclosures alone.
+
+## 6. To be specified
+
 - Reserve key structure for Stage 1/2 (and its scaffolding entry)
 - Tranche UTXO script templates per settle_primitive
 - Challenge economics for Stage-2 optimistic reimbursement
 - Reference marker interface (with spec 03)
+- Vault construction precision (checkpoint CET schedules, bounty
+  sizing, roll mechanics) — future spec 06 per ADR-0004

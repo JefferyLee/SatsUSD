@@ -158,7 +158,7 @@ it ships with every release.
 
 | Scaffold | Why it exists | Removal criterion |
 |---|---|---|
-| Founder-funded reserve | bootstrap without VC or entity | external LP/holder base large enough that founder share < 50% of reserve |
+| Founder-funded reserve | bootstrap without VC or entity | vault-minted supply ≥ 50% of circulating SatUSD (ADR-0004 names the mechanism) |
 | Founder-run epoch allotment (Stage 1) | enforcement before ceremony tooling exists | M-E: Stage-2 ceremony operational |
 | Founder-run single oracle (Rail-1) | dlcspecs oracle market is empty today | ≥ 1 independent oracle class live with market share |
 | TA group key custody (issuance authority) | grouped-asset issuance requires a signature; threshold/covenant issuance not yet built (spec 01 §3) | FROST k-of-n group key among independent parties, or covenant-gated issuance |
@@ -175,8 +175,10 @@ it ships with every release.
 2. **Thin-market manipulation of early S3 history** poisons the
    future internal price source. Mitigation: external reference
    marker as sanity anchor until volume earns authority (MISSION).
-3. **Reimbursement-pricing model unresolved** (spec 04 §4) — the
-   binding design item; blocks Rail-1 mainnet, not Rail-0 regtest.
+3. ~~Reimbursement-pricing model unresolved~~ — resolved 2026-06-11:
+   rail settled price within `price_dev_bound` (spec 04 §4); CR
+   tiers + NAV floor normative (spec 04 §5). Residual risk: tier
+   parameters are conservative guesses until data tunes them.
 4. **tapd dependency** — TA-in-keypath-output recognition needs our
    own verifier path (proposal 0001 strategy 1) until upstreamed.
 5. **Founder concentration** — bus factor and legal exposure
