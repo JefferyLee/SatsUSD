@@ -71,10 +71,16 @@ without matching evidence has found a violation (§6.4).
 
 ## 4. Burning
 
-Redemption destroys SatUSD via the **TA-native burn**: a transfer
+Burning destroys SatUSD via the **TA-native burn**: a transfer
 whose output asset script key is the protocol-defined provably
-unspendable key (tapd `BurnAsset` semantics). This is REQUIRED —
-no custom sink constructions — so that:
+unspendable key (tapd `BurnAsset` semantics; the derivation is
+replicated in `satusd-rail0::burn_key` and devnet-validated against
+a live `BurnAsset` call). Per ADR-0003, the burn obligation
+attaches to **reimbursement**, not to settle: a settle may transfer
+the SatUSD to the LP instead, and the burn happens when the LP
+draws on the reserve (spec 02 §3.3, spec 04 §1). Wherever a burn
+occurs, the TA-native mechanism is REQUIRED — no custom sink
+constructions — so that:
 
 1. burns appear in the supply commitment's burn subtree (§5)
    automatically, and

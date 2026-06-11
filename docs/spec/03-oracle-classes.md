@@ -69,18 +69,23 @@ BIP-340 with the dlcspecs tags (`announcement/v0`,
 `attestation/v0`). SatUSD adds no custom envelope — any existing
 DLC client can consume a conforming SatUSD oracle.
 
+The announcement signature is a regular BIP-340 signature over
+`tagged_hash("DLC/oracle/announcement/v0", oracle_event_tlv)`.
 Announcements MUST be published at least `2 × cadence_s × 60`
 ahead of maturity, in batches (RECOMMENDED: one batch per minute
-covering the next two minutes of events at 1 s cadence).
+covering the next two minutes of events at 1 s cadence). Wire
+vectors for both message types are pinned in `satusd-oracle`.
 
 ### 3.3 Nonce discipline
 
-Per-event nonces MUST be derived deterministically from a secret
-seed: `k_i = int(tagged_hash("SatUSD/oracle/nonce/v1",
-seed ‖ event_id))` (reduce mod n; reject-and-increment on zero).
-One nonce per digit per event; **no nonce may ever sign two
-different messages**. Seeds MUST NOT be reused across oracle
-public keys.
+Per-event, per-digit nonces MUST be derived deterministically from
+a secret seed: `k_i = int(tagged_hash("SatUSD/oracle/nonce/v1",
+seed ‖ event_id ‖ u16_be(digit_index)))` — the digit index is part
+of the derivation, one nonce per digit per event; **no nonce may
+ever sign two different messages**. Seeds MUST NOT be reused across
+oracle public keys. Reference implementation:
+`satusd-oracle::event::nonce` (the library verifier round-trips
+every attestation signature in tests).
 
 This gives EOTS-style accountability for free: two attestations for
 the same event with different outcomes expose the nonce equation
@@ -164,11 +169,17 @@ The marker the mission requires. Computation, normative now so
 inputs:  all S3 settlement artifacts for the asset within
          window_blocks (default 144) ending at height h
 filter:  drop settlements whose price deviates > 5 % from the raw
-         median of the window
-output:  volume-weighted median price of the survivors
+         median (the lower-middle element for even counts)
+output:  volume-weighted median price of the survivors — the first
+         price, ascending, whose cumulative volume reaches
+         ceil(total/2); ties resolve to the earlier price
 valid:   only if surviving volume ≥ min_volume_usd; otherwise the
          marker falls back to §5.1 for that window
 ```
+
+Reference implementation: `satusd-verify::marker::internal_twap`,
+including the anti-manipulation test (an off-market whale with
+100× the honest volume is trimmed and cannot move the marker).
 
 Every input is chain-derived (S3): **any observer computes the same
 number**. There is no internal-marker signer — it is a pure

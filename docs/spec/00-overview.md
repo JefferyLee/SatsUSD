@@ -101,8 +101,9 @@ Defined in 02 §4 and binding on every component:
 
 - **S1 unilateral exit** — no reachable state requires a specific
   counterparty's cooperation to avoid loss.
-- **S2 conservation** — burns equal quoted amounts; nothing mints
-  outside spec-04 constraints.
+- **S2 conservation** — the user's surrendered amount equals the
+  quote; supply decreases exactly by burns; every reimbursement is
+  burn-backed (ADR-0003); nothing mints outside spec-04 constraints.
 - **S3 observer verifiability** — every terminal state reproducible
   from chain data + published artifacts alone.
 - **L1 bought liveness** — every fund-protecting transition is
@@ -114,7 +115,7 @@ dependency can be removed?*
 
 ## 5. Component inventory (the build plan)
 
-| Component | Crate (planned) | Implements | Salvage status |
+| Component | Crate | Implements | Status |
 |---|---|---|---|
 | Canonical types + encodings | `satusd-types` | 00 §3 | kept frame, fields re-audited |
 | Crypto primitives | `satusd-crypto` | 00 §3.2/3.4 | **kept** as-is |
@@ -127,6 +128,10 @@ dependency can be removed?*
 | Client verifier library | `satusd-verify` | 01 §6, 02 §4 (S3) | new |
 | Cross-language reference | `ts/` + `satusd-vectors` | all encodings | **kept** culture |
 | Old-world crates | `satusd-state`, `-reserve`, `-operator`, `-challenger`, `-state-node`, `-dispute`, `-lock`, `-tapd-client` | archived architecture | keep building until replaced (ADR-0001) |
+
+All six new crates exist and are tested as of milestone M-A; the
+devnet E2Es (J3 swap, J4 settle, burn-key equivalence, funding
+landing) are their in-environment proofs.
 
 ## 6. Networks
 

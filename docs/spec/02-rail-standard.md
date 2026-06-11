@@ -383,20 +383,34 @@ price source: its settlement history is the data from which an
 
 ### Rail-1 — single-oracle DLC (`oracle_spec = dlcspecs(1,1,[pk])`)
 
-The first oracle-bearing rail; explicitly transitional.
+The first oracle-bearing rail; explicitly transitional. Reference
+implementation: `crates/satusd-rail1` (+ `satusd-oracle`); the J4
+settle E2E (`tests/devnet_settle.rs`) exercises the full chain on a
+live devnet, and `tests/devnet_funding.rs` live-validates the
+funding construction.
 
-- QUOTE: as Rail-0, with price expressed as CET bucket schedule.
-- LOCK: Taproot+MuSig2 DLC funding output carrying the TA
-  commitment leaf and a CSV refund leaf — construction per
-  `docs/proposals/0001-ta-in-dlc-funding-output.md`.
-- SETTLE: oracle attestation (dlcspecs format) decrypts the
-  matching adaptor; any broadcaster completes.
-- REFUND: CSV path after `settle_window + refund_delta`.
+- QUOTE: as Rail-0, with price expressed as a CET bucket schedule —
+  aligned binary digit-prefix wildcards, the 2^m special case of
+  dlcspecs NumericOutcomeCompression (one adaptor presign per
+  bucket, not per outcome).
+- LOCK: the DLC funding output carrying the TA commitment leaf and
+  a CSV refund leaf — construction per
+  `docs/proposals/0001-ta-in-dlc-funding-output.md`; tapd supports
+  it natively (NewAddr `tapscript_sibling` + internal-key override).
+  v0 uses a single funding key; MuSig2 aggregation is the declared
+  upgrade (the secp256k1 crate currently lacks a musig module).
+- SETTLE: the oracle attestation's per-digit scalars sum to the
+  winning bucket's secret, which decrypts that bucket's adaptor
+  pre-signature into a BIP-341 keyspend of the funding output; any
+  broadcaster completes. CETs are made fully deterministic at LOCK
+  time via `CommitVirtualPsbts` with `skip_funding`.
+- REFUND: CSV script path after `settle_window + refund_delta`.
 - Liveness escape (RECOMMENDED): `tlock(drand, T+δ)` on the
   oracle's nonce secret — oracle silence degrades to refund
   authorization without waiting out the full refund delta.
-- DISPUTE: oracle equivocation is self-punishing where EOTS-style
-  nonces are used (key extraction); stake slash per spec 05.
+- DISPUTE: oracle equivocation is self-punishing (per-event
+  committed nonces make double-signing key-extractable); stake
+  slash per spec 05.
 
 ## 8. Security considerations
 
@@ -421,8 +435,9 @@ The first oracle-bearing rail; explicitly transitional.
 
 ## 9. Open questions
 
-1. Exact canonical byte encoding of RailManifest — to be pinned by
-   cross-language vectors (Rust = TS) before any mainnet rail.
+1. Exact canonical byte encoding of RailManifest — Rust-side
+   vectors pinned (`satusd-rail::manifest` tests); the TS mirror
+   remains before any mainnet rail.
 2. Whether `internal_twap` oracle_spec needs its own spec section
    (likely: spec 03 §internal) covering window, volume weighting,
    and outlier rules — the S3 artifact format must anticipate it.

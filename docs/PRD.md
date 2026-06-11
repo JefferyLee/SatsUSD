@@ -125,10 +125,10 @@ Per MISSION ("What SatUSD is not") and staging decisions:
 Per MISSION: phases are recognized by metrics, not calendars. Each
 milestone is a checklist; done is done when the checks pass.
 
-**M-A — It runs (regtest).**
-☐ FR-1..FR-7 implemented · ☐ J3 + J4 E2E green on regtest ·
-☐ `make check` + cross-language vectors green ·
-☐ specs 00/01/03 drafted to implementable precision
+**M-A — It runs (regtest).** ✅ 2026-06-10, tag `M-A-regtest`
+☑ FR-1..FR-7 implemented · ☑ J3 + J4 E2E green on regtest ·
+☑ `make check` + cross-language vectors green ·
+☑ specs 00/01/03 drafted to implementable precision
 
 **M-B — It's public (signet).**
 ☐ J3/J4 completed by ≥ 10 external testers · ☐ oracle daemon

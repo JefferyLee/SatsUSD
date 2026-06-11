@@ -39,11 +39,20 @@ Each epoch boundary:
 
 1. Compute `capacity(rail, epoch)` for every rail from public data
    (spec 02 §6.1).
-2. Allocate per-rail tranche UTXOs sized by capacity.
+2. Allocate per-rail tranche UTXOs sized by capacity. If the sum of
+   capacities exceeds the reserve, every tranche scales
+   **proportionally, floored** — deterministic and
+   ordering-independent, so no rail is favored and the total never
+   exceeds the reserve.
 3. Unspent tranches timelock back to the general reserve at epoch
    end (consensus-enforced, Tier-1 automation).
 
 A rail physically cannot draw beyond its tranche.
+
+The Stage-1 plan computation is implemented (`satusd-allot`): pure
+function from sorted rail disclosures to tranches, with an input
+hash and a canonical plan hash — a third party re-running on the
+same data reproduces the plan byte-for-byte (PRD FR-6 acceptance).
 
 ## 3. Three-stage enforcement hardening
 
