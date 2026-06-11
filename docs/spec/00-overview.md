@@ -45,7 +45,7 @@ Spec index:
 | 02 | the rail standard: state machine, manifest, properties |
 | 03 | oracle classes + the reference marker |
 | 04 | reserve, reimbursement, epoch allotment |
-| 05 | dispute hooks, evidence formats, slashing (skeleton TBD) |
+| 05 | dispute hooks, evidence formats, slashing |
 
 ## 2. Terminology
 

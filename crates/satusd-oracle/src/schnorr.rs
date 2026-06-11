@@ -104,6 +104,76 @@ pub fn anticipation_point(
     r_even.combine(&ep)
 }
 
+/// Modular inverse mod n via Fermat (`a^(n−2)`), built from
+/// `SecretKey::mul_tweak` — no bigint dependency. `a` MUST be
+/// nonzero mod n.
+fn invert_mod_n(a: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
+    // exponent = n − 2, big-endian.
+    let mut exp = N;
+    exp[31] -= 2; // n ends in 0x41; no borrow.
+
+    let mut result: Option<SecretKey> = None;
+    let mut base = *a;
+    // Right-to-left square-and-multiply.
+    for byte in exp.iter().rev() {
+        let mut bits = *byte;
+        for _ in 0..8 {
+            if bits & 1 == 1 {
+                result = Some(match result {
+                    None => base,
+                    Some(r) => r.mul_tweak(&Scalar::from(base))?,
+                });
+            }
+            bits >>= 1;
+            base = base.mul_tweak(&Scalar::from(base))?;
+        }
+    }
+    result.ok_or(secp256k1::Error::InvalidSecretKey)
+}
+
+/// `a − b mod n`, both nonzero, result must be nonzero.
+fn sub_mod_n(a: &SecretKey, b: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
+    a.add_tweak(&Scalar::from(b.negate()))
+}
+
+/// EOTS extraction (spec 03 §3.3 / spec 05): two BIP-340 signatures
+/// under the same key `px` sharing the same nonce point `R` over
+/// different messages leak the secret:
+/// `d = (s1 − s2) / (e1 − e2) mod n`. Returns the even-Y-normalized
+/// secret key iff it reproduces `px`; `None` for any inconsistent
+/// input.
+pub fn extract_secret(
+    sig1: &[u8; 64],
+    sig2: &[u8; 64],
+    msg1: &[u8; 32],
+    msg2: &[u8; 32],
+    px: &XOnlyPublicKey,
+) -> Option<[u8; 32]> {
+    if sig1[..32] != sig2[..32] || msg1 == msg2 {
+        return None;
+    }
+    let secp = Secp256k1::new();
+    let rx = XOnlyPublicKey::from_byte_array(sig1[..32].try_into().unwrap()).ok()?;
+    let e1 = challenge(&rx, px, msg1);
+    let e2 = challenge(&rx, px, msg2);
+
+    let s1 = SecretKey::from_byte_array(sig1[32..].try_into().unwrap()).ok()?;
+    let s2 = SecretKey::from_byte_array(sig2[32..].try_into().unwrap()).ok()?;
+    let ds = sub_mod_n(&s1, &s2).ok()?;
+    // e1 − e2 as SecretKeys (zero e is rejected by from_byte_array).
+    let e1k = SecretKey::from_byte_array(e1.to_be_bytes()).ok()?;
+    let e2k = SecretKey::from_byte_array(e2.to_be_bytes()).ok()?;
+    let de = sub_mod_n(&e1k, &e2k).ok()?;
+
+    let d = ds.mul_tweak(&Scalar::from(invert_mod_n(&de).ok()?)).ok()?;
+    let (dx, _) = d.x_only_public_key(&secp);
+    if dx == *px {
+        Some(d.secret_bytes())
+    } else {
+        None
+    }
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
