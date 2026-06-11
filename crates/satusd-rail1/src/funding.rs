@@ -98,6 +98,35 @@ pub fn keyspend_secret(
     Ok(d.add_tweak(&t)?.secret_bytes())
 }
 
+/// The serialized tapscript sibling preimage NewAddr expects
+/// (tapd `commitment.TapscriptPreimage`, leaf type):
+///
+/// `[0x00 LeafPreimage] ‖ [0xc0 leaf version] ‖ compact_size(script) ‖ script`
+///
+/// Validated live by the devnet funding test; tapd additionally
+/// rejects leaves that look like TA commitments (ours doesn't).
+pub fn sibling_preimage(refund_script: &ScriptBuf) -> Vec<u8> {
+    let script = refund_script.as_bytes();
+    let mut out = Vec::with_capacity(2 + 9 + script.len());
+    out.push(0x00); // LeafPreimage
+    out.push(0xc0); // tapscript leaf version
+                    // Bitcoin compact size for the script length.
+    let len = script.len() as u64;
+    match len {
+        0..=0xfc => out.push(len as u8),
+        0xfd..=0xffff => {
+            out.push(0xfd);
+            out.extend_from_slice(&(len as u16).to_le_bytes());
+        }
+        _ => {
+            out.push(0xfe);
+            out.extend_from_slice(&(len as u32).to_le_bytes());
+        }
+    }
+    out.extend_from_slice(script);
+    out
+}
+
 /// Independent reconstruction via rust-bitcoin's TaprootBuilder —
 /// used by tests as the cross-check, and exported for verifiers
 /// that prefer the bitcoin-crate types (control block for the

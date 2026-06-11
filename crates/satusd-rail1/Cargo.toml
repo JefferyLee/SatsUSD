@@ -13,4 +13,8 @@ satusd-rail = { path = "../satusd-rail" }
 secp256k1 = "0.31.1"
 
 [dev-dependencies]
+base64 = "0.22"
 hex.workspace = true
+satusd-tapd-client = { path = "../satusd-tapd-client" }
+serde_json.workspace = true
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

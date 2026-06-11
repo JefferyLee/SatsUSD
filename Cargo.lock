@@ -1655,12 +1655,16 @@ dependencies = [
 name = "satusd-rail1"
 version = "0.1.0"
 dependencies = [
+ "base64 0.22.1",
  "bitcoin",
  "hex",
  "satusd-crypto",
  "satusd-oracle",
  "satusd-rail",
+ "satusd-tapd-client",
  "secp256k1 0.31.1",
+ "serde_json",
+ "tokio",
 ]
 
 [[package]]
