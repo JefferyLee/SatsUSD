@@ -12,9 +12,10 @@ clippy:
 test:
 	cargo test --workspace
 
-# Regenerate the canonical test-vector file from the Rust reference.
+# Regenerate the canonical test-vector files from the Rust reference.
 vectors:
-	cargo run -p satusd-vectors
+	cargo run -p satusd-vectors --bin satusd-vectors
+	cargo run -p satusd-vectors --bin rail-vectors
 
 # Install the TypeScript reference dependencies (Poseidon / secp256k1).
 ts-deps:
@@ -24,6 +25,7 @@ ts-deps:
 # Requires `make ts-deps` once (or npm install in ts/).
 verify:
 	node ts/src/verify.ts
+	node ts/src/verify-rail.ts
 
 # Regtest devnet (native binaries): bitcoind + lnd + tapd. See devnet/README.md.
 devnet-up:

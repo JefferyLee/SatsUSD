@@ -435,9 +435,10 @@ funding construction.
 
 ## 9. Open questions
 
-1. Exact canonical byte encoding of RailManifest — Rust-side
-   vectors pinned (`satusd-rail::manifest` tests); the TS mirror
-   remains before any mainnet rail.
+1. ~~Exact canonical byte encoding of RailManifest~~ — resolved:
+   Rust-side vectors pinned (`satusd-rail::manifest` tests) and the
+   TS mirror verifies them byte-for-byte (`ts/src/rail.ts`,
+   `integration/vectors/rail-vectors.json`, `make verify`).
 2. Whether `internal_twap` oracle_spec needs its own spec section
    (likely: spec 03 §internal) covering window, volume weighting,
    and outlier rules — the S3 artifact format must anticipate it.

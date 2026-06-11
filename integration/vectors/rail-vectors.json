@@ -1,0 +1,3470 @@
+{
+  "count": 127,
+  "schema": "satusd-rail-vectors-v1",
+  "vectors": [
+    {
+      "inputs": {
+        "msg": "",
+        "tag": "SatUSD/rail-manifest/v1"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_0",
+      "output": "df78b7a33218ae250d76d08660e3c0bb72261a1d943e32f91b363b777146d0b2"
+    },
+    {
+      "inputs": {
+        "msg": "616263",
+        "tag": "SatUSD/quote/v1"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_1",
+      "output": "e3427698423496af6349e9c1233271356fef82d7785b7cb266cce26f04f94084"
+    },
+    {
+      "inputs": {
+        "msg": "3b054cc12d6f257626f3f8f391a1572bb0ff3c688b6b862c5b75c058182dfdfa715caa00f76f0501a71fdea979cbaeb7197e1bbb4482319f7c1f355f63c75d14",
+        "tag": "SatUSD/oracle/nonce/v1"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_2",
+      "output": "ad3a4a585fb784f2bc2b09f933d8ca45a2e26ef34b191fa43b76df4926356186"
+    },
+    {
+      "inputs": {
+        "msg": "db503d762bc7b6",
+        "tag": "DLC/oracle/announcement/v0"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_3",
+      "output": "3082b91f954116199ff6ffa38a0a7a8a3107ef5802cecc52ecdba4141fbf685b"
+    },
+    {
+      "inputs": {
+        "msg": "30",
+        "tag": "DLC/oracle/attestation/v0"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_4",
+      "output": "2012241bd361f299bb727af5f402c41af84d01268e571d45753bb14fd61391f3"
+    },
+    {
+      "inputs": {
+        "msg": "1e315c2d43c63997c06dcf4a523bacf67fba6c7c03612851674a9e7d74806c1c71212fbb9ec4af38038fed64e058f2ec7563843c8a3e3ea54adb92650804abf6a879e6d0a26d24e98bbdd770fe0876eb5360dad6a7648201dc9142d6f3630c96",
+        "tag": "BIP0340/challenge"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_5",
+      "output": "3307fd224bbbfd892f150a8fbf0d2dbbd5528bbe10db71e085d4c87203ecc7c0"
+    },
+    {
+      "inputs": {
+        "msg": "92230bef6af82d08cb8bc423c07e776fff78e934117f4f77c52832f5edb227446569e99b2b9292f5af3e414dc3971c6274486d6feaf0d7716f6a1e431ee0482999916634073d24e714d84ba8409d5510a4df1a7a64a21278883a1788d9c97436df830551",
+        "tag": "TapTweak"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_6",
+      "output": "cea5d3d47c5a0ac9afab59e7dcb78e4f818e8135a22ac0dd4245d2a188003e84"
+    },
+    {
+      "inputs": {
+        "msg": "16501398a97c0e51e24258e3e4b7ff7cacc00aac232d1a3c31a5514b580d054eb1",
+        "tag": "SatUSD/vector"
+      },
+      "kind": "tagged_hash",
+      "name": "tagged_hash_7",
+      "output": "d6a8f57603c6c3bd0e8c9f54ad4c516f2b242506632ac7aeed4a628a96d62e1e"
+    },
+    {
+      "inputs": {
+        "value": "0"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_0",
+      "output": "00"
+    },
+    {
+      "inputs": {
+        "value": "1"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_1",
+      "output": "01"
+    },
+    {
+      "inputs": {
+        "value": "252"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_2",
+      "output": "fc"
+    },
+    {
+      "inputs": {
+        "value": "253"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_3",
+      "output": "fd00fd"
+    },
+    {
+      "inputs": {
+        "value": "65535"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_4",
+      "output": "fdffff"
+    },
+    {
+      "inputs": {
+        "value": "65536"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_5",
+      "output": "fe00010000"
+    },
+    {
+      "inputs": {
+        "value": "4294967295"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_6",
+      "output": "feffffffff"
+    },
+    {
+      "inputs": {
+        "value": "4294967296"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_7",
+      "output": "ff0000000100000000"
+    },
+    {
+      "inputs": {
+        "value": "18446744073709551615"
+      },
+      "kind": "bigsize",
+      "name": "bigsize_8",
+      "output": "ffffffffffffffffff"
+    },
+    {
+      "encoding_hex": "0001001111111111111111111111111111111111111111111111111111111111111111000000000000004c4b40000a000500000000000000c800640000001e0000001e0000000000000000009896800122222222222222222222222222222222222222222222222222222222222222220000000000000000000000000000000000000000000000000000000000000000000201020302",
+      "fields": {
+        "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+        "automation_tiers": [
+          [
+            1,
+            2
+          ],
+          [
+            3,
+            2
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "200",
+          "retain_bps": 10,
+          "service_bps": 5
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "10000000",
+          "slash_conditions": [
+            "2222222222222222222222222222222222222222222222222222222222222222"
+          ]
+        },
+        "max_size_sats": "5000000",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 100,
+        "quote_validity_s": 30,
+        "refund_delta_blocks": 0,
+        "settle_primitive": 0,
+        "settle_window_s": 30,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_rail0",
+      "rail_id": "1c0b44c336477f8aa3ac12099bfca05be1dd5219fe7edb098de451a16c44d8bf"
+    },
+    {
+      "encoding_hex": "dd13007524064d73d9873212dfced9f9d8e444aef1f1ae05aa2109ee8cdb0310ec3d360000c677e73f1cc412a30372003f0000000000009440ce749ac923857d488a20da17c726620e5e02e0c438180215eeb41809d2f83fdf6556f5e16583f6ad1c51298bbfa6717b0c770bb8b886b26e3ea76b40665dc820a504ece751d4df9c6476303eda7bb84fb31c315f0b47410000000000000000000000000000000000000000000000000000000000000000000201010301",
+      "fields": {
+        "asset_id": "7524064d73d9873212dfced9f9d8e444aef1f1ae05aa2109ee8cdb0310ec3d36",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "37952",
+          "retain_bps": 882,
+          "service_bps": 63
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "7065688231844788248",
+          "slash_conditions": [
+            "15eeb41809d2f83fdf6556f5e16583f6ad1c51298bbfa6717b0c770bb8b886b2",
+            "6e3ea76b40665dc820a504ece751d4df9c6476303eda7bb84fb31c315f0b4741"
+          ]
+        },
+        "max_size_sats": "14301153399989867171",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 52852,
+        "quote_validity_s": 2596873093,
+        "refund_delta_blocks": 3658991398,
+        "settle_primitive": 0,
+        "settle_window_s": 2101905952,
+        "spec_version": 56595
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_0",
+      "rail_id": "63b2f0b2061ae1ed2f4dd377df8bbf9d21fcfb8bca7591b57501255a01643b76"
+    },
+    {
+      "encoding_hex": "000101e875ab0f918fa53c3f271dc48eaf7473b4c393da1e889decfd8ac2e7c61175e5010001000302cb3e781266f2cec1c9360681d9ac6c6b76ebf749c6b64bad943eb3a2c106be78c25a43662d46e2a274cc81631ad4088fa0fd8ce85d2c466c3207ec973271e2d206425443455552c058934d0006001a007a41bbbc0001344c53c842818c92028701390000000000003f7ad6f6f99dd5ddf1847e36c7d8f1b14a4a3b090884279c0325dd5f29b16b16149d826ed7cc95f259ef9b041c0d61d77f611fc8ae57c554dc686a9edd2cd928ecaa0c9f014a0642d09956c4cd33c5fd555bd3341909af6507ec78aeffdcd021e449621cf9b3b8f2ec732fcfb95e1dadc84676e6bbbd367cb00000000000000000000000000000000000000000000000000000000000000000017e64b093c24d5bd74548c8ea09a99466539f0346bbaa479613bad52f44b1523929e25e38040003010302030301",
+      "fields": {
+        "asset_id": "e875ab0f918fa53c3f271dc48eaf7473b4c393da1e889decfd8ac2e7c61175e5",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "16250",
+          "retain_bps": 647,
+          "service_bps": 313
+        },
+        "liveness_escape": {
+          "beacon": "7e64b093c24d5bd74548c8ea09a99466539f0346bbaa479613bad52f44b15239",
+          "delay_s": 702701112,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "5353156017066878876",
+          "slash_conditions": [
+            "25dd5f29b16b16149d826ed7cc95f259ef9b041c0d61d77f611fc8ae57c554dc",
+            "686a9edd2cd928ecaa0c9f014a0642d09956c4cd33c5fd555bd3341909af6507",
+            "ec78aeffdcd021e449621cf9b3b8f2ec732fcfb95e1dadc84676e6bbbd367cb0"
+          ]
+        },
+        "max_size_sats": "3768479107776613522",
+        "oracle_spec": {
+          "event_template": {
+            "base": 6,
+            "cadence_s": 3227030349,
+            "is_signed": false,
+            "nb_digits": 26,
+            "pair": "BTCEUR",
+            "precision": 2051128252,
+            "unit": ""
+          },
+          "k": 1,
+          "n": 3,
+          "oracle_pubkeys": [
+            "cb3e781266f2cec1c9360681d9ac6c6b76ebf749c6b64bad943eb3a2c106be78",
+            "c25a43662d46e2a274cc81631ad4088fa0fd8ce85d2c466c3207ec973271e2d2"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 55030,
+        "quote_validity_s": 4187870685,
+        "refund_delta_blocks": 3352883633,
+        "settle_primitive": 1,
+        "settle_window_s": 4051992118,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_1",
+      "rail_id": "c6fc2b977f4798b4558046d8aadfbd233771e72233c4090deed86520f8f7acd8"
+    },
+    {
+      "encoding_hex": "0001029c7dca0491fe86b3af00d4a42d78caf6225a563ad6c8950843dada894dd90fc20298c2d0dad5397a4dce576df00288a20d9a530c6b04011000f20000000000007ea1f7c662ba2baf18b21fcf1875a1c8871b8f45398118ca02c7ce8b23bf7f3819ac7d287a13209fd92b0f28836dc4e0390101e811dd513b49de51a771190d0b1e7c22dd774d10208019b868932f8228f7e022a89e3e9510a2c92a5a1f31cdc264ffbc7c452a136e3fcbf38931f44fc95002e8da09a69200bd02057983ef7551040001010202030301",
+      "fields": {
+        "asset_id": "9c7dca0491fe86b3af00d4a42d78caf6225a563ad6c8950843dada894dd90fc2",
+        "automation_tiers": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            3,
+            1
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "c92a5a1f31cdc264ffbc7c452a136e3fcbf38931f44fc95002e8da09a69200bd",
+        "fee_schedule": {
+          "fixed_sats": "32417",
+          "retain_bps": 272,
+          "service_bps": 242
+        },
+        "liveness_escape": {
+          "params": "7983ef7551",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "9735532546971736266",
+          "slash_conditions": [
+            "c7ce8b23bf7f3819ac7d287a13209fd92b0f28836dc4e0390101e811dd513b49",
+            "de51a771190d0b1e7c22dd774d10208019b868932f8228f7e022a89e3e9510a2"
+          ]
+        },
+        "max_size_sats": "9845446691854772996",
+        "oracle_spec": {
+          "bond_sats": "15364446078344064496",
+          "variant": 2,
+          "window_blocks": 2562904282
+        },
+        "price_dev_bound_bps": 63430,
+        "quote_validity_s": 1656368047,
+        "refund_delta_blocks": 410362312,
+        "settle_primitive": 2,
+        "settle_window_s": 414326735,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_2",
+      "rail_id": "b31ece68fe9fa00091065c38c66359aa4d9e0b30c0fcb3c93ddc6fc368f4c796"
+    },
+    {
+      "encoding_hex": "0001000068e14f1b945a91b30c5edbc5252ca3111371d881be1f42350cefe81327bb40032ecccc6576cd4141679dc3cf00d7cc64780e5e8bb002f900fa0000000000003c91a83619d8f0c4eeb967dd5724a8ae1ccd03f7f603cadb01209361b1142096c32e228d360ab9b1bdbec142f92116a81cd776c75f88da6bd9000000000000000000000000000000000000000000000000000000000000000000010201",
+      "fields": {
+        "asset_id": "0068e14f1b945a91b30c5edbc5252ca3111371d881be1f42350cefe81327bb40",
+        "automation_tiers": [
+          [
+            2,
+            1
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "15505",
+          "retain_bps": 761,
+          "service_bps": 250
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "2075319366806915803",
+          "slash_conditions": [
+            "209361b1142096c32e228d360ab9b1bdbec142f92116a81cd776c75f88da6bd9"
+          ]
+        },
+        "max_size_sats": "15549914080203410352",
+        "oracle_spec": {
+          "min_volume_usd": "8560570215868253135",
+          "variant": 3,
+          "window_blocks": 785173605
+        },
+        "price_dev_bound_bps": 43062,
+        "quote_validity_s": 433647812,
+        "refund_delta_blocks": 1462020270,
+        "settle_primitive": 0,
+        "settle_window_s": 4005128157,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_3",
+      "rail_id": "63797fc1207af682d8dc301eccdb9ebfbd102c48667ef24a3434c452faf66e55"
+    },
+    {
+      "encoding_hex": "0001016dd88f12b04d74cde4979ef88a77d1f0c25a30a3673025e6ab7d8ea4f37de3030001f445cbd82eddefb3034c0178000000000000f1a763680f0e92b05ec854f95b91036f548bb97f85d08dbc03c1b5a2bc90e989eae8b3e2add37634357c5bac6618c32c60d1fea099a2f55a173c56da8446b9052cde82b8906e95c52aa61c631c38b149a56c4f36255d6d27b7ca63db37f7a8df8b3b0f47c964a5603ca66218d6268e3b7ac9d62c3bd00e5e047416b705cbf255f371482910ed0922091daa0cd367b86641e14aac613f8dda2f01f8fb3a0a62958b809fa59c9a2f1a355e63f54d6b3dbec9fd178a27c2050f2c590536342f00",
+      "fields": {
+        "asset_id": "6dd88f12b04d74cde4979ef88a77d1f0c25a30a3673025e6ab7d8ea4f37de303",
+        "automation_tiers": [],
+        "direction": 1,
+        "dispute_hook": "7416b705cbf255f371482910ed0922091daa0cd367b86641e14aac613f8dda2f",
+        "fee_schedule": {
+          "fixed_sats": "61863",
+          "retain_bps": 844,
+          "service_bps": 376
+        },
+        "liveness_escape": {
+          "beacon": "f8fb3a0a62958b809fa59c9a2f1a355e63f54d6b3dbec9fd178a27c2050f2c59",
+          "delay_s": 87438383,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "6092166878305750460",
+          "slash_conditions": [
+            "c1b5a2bc90e989eae8b3e2add37634357c5bac6618c32c60d1fea099a2f55a17",
+            "3c56da8446b9052cde82b8906e95c52aa61c631c38b149a56c4f36255d6d27b7",
+            "ca63db37f7a8df8b3b0f47c964a5603ca66218d6268e3b7ac9d62c3bd00e5e04"
+          ]
+        },
+        "max_size_sats": "17601698848007122867",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 25448,
+        "quote_validity_s": 252613296,
+        "refund_delta_blocks": 1536230255,
+        "settle_primitive": 1,
+        "settle_window_s": 1590187257,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_4",
+      "rail_id": "4fcf3989cfac7c73b977220de1e301a196f4b141c844cf9e70919a84d04b4b5c"
+    },
+    {
+      "encoding_hex": "00010291657bf5d2029521ad97f32605aae4aa85dcf1bec67f0743c2d26674e7a7fe7b010001000301a464aa32ad3f7ae29eeb26a1e38025e8bf53d89d709dd6eb3cd73473fb9fa0b70642544355534464167506000200160012b7d36e0002bd6354f69f900d8e033e03840000000000007dd28ca1464363755eff9505976ceb40ff670fbe20e2328603437147820d87fb9b05b12e98a6ba3640da2f687af1fb8346ea51183f8aea93de93c0ec0ab54402b8fc15c024ce6b38a4c93d32ac22c22fa7bb30a1eefe84fa8e9979d15c4371df1aad56e59946b3b5cb83b277bd2efaa7b34bf33bc4dbb6674b000000000000000000000000000000000000000000000000000000000000000002197018ba9d00b0596e91cc83609121579b74c3a22111fbfc4228010303",
+      "fields": {
+        "asset_id": "91657bf5d2029521ad97f32605aae4aa85dcf1bec67f0743c2d26674e7a7fe7b",
+        "automation_tiers": [
+          [
+            3,
+            3
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "32210",
+          "retain_bps": 830,
+          "service_bps": 900
+        },
+        "liveness_escape": {
+          "params": "7018ba9d00b0596e91cc83609121579b74c3a22111fbfc4228",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "18403695711542719110",
+          "slash_conditions": [
+            "437147820d87fb9b05b12e98a6ba3640da2f687af1fb8346ea51183f8aea93de",
+            "93c0ec0ab54402b8fc15c024ce6b38a4c93d32ac22c22fa7bb30a1eefe84fa8e",
+            "9979d15c4371df1aad56e59946b3b5cb83b277bd2efaa7b34bf33bc4dbb6674b"
+          ]
+        },
+        "max_size_sats": "13646844714078440846",
+        "oracle_spec": {
+          "event_template": {
+            "base": 2,
+            "cadence_s": 1679193350,
+            "is_signed": false,
+            "nb_digits": 22,
+            "pair": "BTCUSD",
+            "precision": 314037102,
+            "unit": ""
+          },
+          "k": 1,
+          "n": 3,
+          "oracle_pubkeys": [
+            "a464aa32ad3f7ae29eeb26a1e38025e8bf53d89d709dd6eb3cd73473fb9fa0b7"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 36001,
+        "quote_validity_s": 1178821493,
+        "refund_delta_blocks": 2540497728,
+        "settle_primitive": 2,
+        "settle_window_s": 1593808133,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_5",
+      "rail_id": "b562ec37dddab80ff4147a3a8479ae909831c33875a6d1ea160bacb3cfaef349"
+    },
+    {
+      "encoding_hex": "000100abb2fd9da0fe92e8b68c528c6c9f9d0ae1de25cf7e02f066c91e47684e48a4f7024d33c79cbe4c116839e81543005eeb6dd5ef8f8a0001d503220000000000004d4341020d783d9825a650ebd2a54a1828daac3e7c7a0fad02261209d3acd9f1e59e69c29dd712c72c3446cc8d329118369ab976e72ca3103d731f70b6b0250b1add132d21f461feb8d66f3753a05b467099dd0e1377a425021b6e692fd051c8d28b84d7bcc9a415719b0e14f5275218b885d9e7240bf7317a0003010302030301",
+      "fields": {
+        "asset_id": "abb2fd9da0fe92e8b68c528c6c9f9d0ae1de25cf7e02f066c91e47684e48a4f7",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "1b6e692fd051c8d28b84d7bcc9a415719b0e14f5275218b885d9e7240bf7317a",
+        "fee_schedule": {
+          "fixed_sats": "19779",
+          "retain_bps": 469,
+          "service_bps": 802
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "2943854690816364461",
+          "slash_conditions": [
+            "261209d3acd9f1e59e69c29dd712c72c3446cc8d329118369ab976e72ca3103d",
+            "731f70b6b0250b1add132d21f461feb8d66f3753a05b467099dd0e1377a42502"
+          ]
+        },
+        "max_size_sats": "6839681224706853376",
+        "oracle_spec": {
+          "bond_sats": "13712354104782099779",
+          "variant": 2,
+          "window_blocks": 1295239068
+        },
+        "price_dev_bound_bps": 16642,
+        "quote_validity_s": 225983896,
+        "refund_delta_blocks": 3534047768,
+        "settle_primitive": 0,
+        "settle_window_s": 631656683,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_6",
+      "rail_id": "5fd4d132237d8504849cbefe0957fb1de9c817c588a50d08332017013879ad03"
+    },
+    {
+      "encoding_hex": "d8630125a337ec9dab1fa2de1f162c3249748c716f29bee3269816b4883c297076e7200352233a9875d80acf7783f1a701e5e35d2c7db0546f02dc0024000000000000b0769b96cc215ac33f57cff04610b33c212004cbf2292a110360ef6122c5857d5984e435cd2e67394d6cf71546c395ae6ac8bfe443c6092cb0e613251c4371d491a8e2ba6414240d81014ea152e579ca7ea81eaff43e727b5eb1533d05d1534400292d0c606020902faf72fb0668d28d1584522ea55a48c5d9d3eb874349a4cf91a43ea39a9ecf3ff3dc1f32d5c4a5241bddd3f9f6dc619b1a018912fa46e757ea4ba2de1b307e25f173219ce64782001a6c6dccd901e9e6b5f7b7531b21010203",
+      "fields": {
+        "asset_id": "25a337ec9dab1fa2de1f162c3249748c716f29bee3269816b4883c297076e720",
+        "automation_tiers": [
+          [
+            2,
+            3
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "d3eb874349a4cf91a43ea39a9ecf3ff3dc1f32d5c4a5241bddd3f9f6dc619b1a",
+        "fee_schedule": {
+          "fixed_sats": "45174",
+          "retain_bps": 732,
+          "service_bps": 36
+        },
+        "liveness_escape": {
+          "beacon": "8912fa46e757ea4ba2de1b307e25f173219ce64782001a6c6dccd901e9e6b5f7",
+          "delay_s": 3075676961,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "2386913076494019089",
+          "slash_conditions": [
+            "60ef6122c5857d5984e435cd2e67394d6cf71546c395ae6ac8bfe443c6092cb0",
+            "e613251c4371d491a8e2ba6414240d81014ea152e579ca7ea81eaff43e727b5e",
+            "b1533d05d1534400292d0c606020902faf72fb0668d28d1584522ea55a48c5d9"
+          ]
+        },
+        "max_size_sats": "16565186300067468399",
+        "oracle_spec": {
+          "min_volume_usd": "8491548983586714023",
+          "variant": 3,
+          "window_blocks": 1378040472
+        },
+        "price_dev_bound_bps": 39830,
+        "quote_validity_s": 3424737987,
+        "refund_delta_blocks": 1175499580,
+        "settle_primitive": 1,
+        "settle_window_s": 1062719472,
+        "spec_version": 55395
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_7",
+      "rail_id": "2d0814eb99e66cb7216e0c301f645aab191acbb218b5595eb7a4f55c8f5626d4"
+    },
+    {
+      "encoding_hex": "00010266561779e9c09dfaed629b6f007799e2ce22d77c18bb31d6ac126afcfe17bc9e00024fdd4649061382ef03d001db000000000000ecafe05284ec6bc2a0d87c9b6e04d0253263cdf8d27f2df900000000000000000000000000000000000000000000000000000000000000000002184527f81ba3e8e17d14fcdb9e9427263db1d4631af7ffd54d010301",
+      "fields": {
+        "asset_id": "66561779e9c09dfaed629b6f007799e2ce22d77c18bb31d6ac126afcfe17bc9e",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "60591",
+          "retain_bps": 976,
+          "service_bps": 475
+        },
+        "liveness_escape": {
+          "params": "4527f81ba3e8e17d14fcdb9e9427263db1d4631af7ffd54d",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "3630972193157885433",
+          "slash_conditions": []
+        },
+        "max_size_sats": "5754833178297860847",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 57426,
+        "quote_validity_s": 2230086594,
+        "refund_delta_blocks": 1845809189,
+        "settle_primitive": 2,
+        "settle_window_s": 2698542235,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_8",
+      "rail_id": "e5200c26ebe9a21a3ff6794fefe269f1d458851933973fac18d5813b7a6d4852"
+    },
+    {
+      "encoding_hex": "0001002c0aabf505d194c546ccaa04e918250192fd4ea899656b9652cb4d5b4db5dab70100010003021ce43b3e32a24953baea1174750c48e0c2eab12214ef721a31b340098712367b84a3f3d552fc522e887a4ed834e9f7a8aef2297521704d904a193843b5055c900642544355534455831f290008001d00323eea5700002d7a34ef46999b8801670384000000000000dfaab05f564810d4684c2dced84921d4a58f5d5941c9087f00000000000000000000000000000000000000000000000000000000000000000000010003",
+      "fields": {
+        "asset_id": "2c0aabf505d194c546ccaa04e918250192fd4ea899656b9652cb4d5b4db5dab7",
+        "automation_tiers": [
+          [
+            0,
+            3
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "57258",
+          "retain_bps": 359,
+          "service_bps": 900
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "11929856575864899711",
+          "slash_conditions": []
+        },
+        "max_size_sats": "3276989881151757192",
+        "oracle_spec": {
+          "event_template": {
+            "base": 8,
+            "cadence_s": 1434656553,
+            "is_signed": false,
+            "nb_digits": 29,
+            "pair": "BTCUSD",
+            "precision": 842984023,
+            "unit": ""
+          },
+          "k": 1,
+          "n": 3,
+          "oracle_pubkeys": [
+            "1ce43b3e32a24953baea1174750c48e0c2eab12214ef721a31b340098712367b",
+            "84a3f3d552fc522e887a4ed834e9f7a8aef2297521704d904a193843b5055c90"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 45151,
+        "quote_validity_s": 1447563476,
+        "refund_delta_blocks": 3628671444,
+        "settle_primitive": 0,
+        "settle_window_s": 1749822926,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_9",
+      "rail_id": "81373df7d1f5c53af9b2656c7fabf0e6c12648beff797f7da6447328c8a485a9"
+    },
+    {
+      "encoding_hex": "00010144c80972c78a0bb6577377b8786e5690887cc9930e2cf82fc5ce3d005359c2e0029f6e18317db4a0d47c8f82f4011dd564352eb253bb001800140000000000000761b95187ff06840344779df5bd6f330e9c54ecab00bc5d036a5b8b33d3fa4147780e4132257a43a584b526ab253a2b7ce796ac57cd487a8135f7cbb59d213922c90465b2f154ba30145a5a62e0e80aa5fed37a94b01192a8134efdf4220b101a04f9350c5c10a64ae71bf1c1b19ddd985182e3222462df560000000000000000000000000000000000000000000000000000000000000000014d0ac96fc2d2cc90683ac67c3da714038b0f0795ba82c6ca6a7575de16c7f48e80b14be4040003010302030302",
+      "fields": {
+        "asset_id": "44c80972c78a0bb6577377b8786e5690887cc9930e2cf82fc5ce3d005359c2e0",
+        "automation_tiers": [
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            3
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "1889",
+          "retain_bps": 24,
+          "service_bps": 20
+        },
+        "liveness_escape": {
+          "beacon": "4d0ac96fc2d2cc90683ac67c3da714038b0f0795ba82c6ca6a7575de16c7f48e",
+          "delay_s": 2159102948,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "1052809788355820637",
+          "slash_conditions": [
+            "6a5b8b33d3fa4147780e4132257a43a584b526ab253a2b7ce796ac57cd487a81",
+            "35f7cbb59d213922c90465b2f154ba30145a5a62e0e80aa5fed37a94b01192a8",
+            "134efdf4220b101a04f9350c5c10a64ae71bf1c1b19ddd985182e3222462df56"
+          ]
+        },
+        "max_size_sats": "2149734576718762939",
+        "oracle_spec": {
+          "bond_sats": "9058041585032200948",
+          "variant": 2,
+          "window_blocks": 2674792497
+        },
+        "price_dev_bound_bps": 47441,
+        "quote_validity_s": 2281637508,
+        "refund_delta_blocks": 4122832691,
+        "settle_primitive": 1,
+        "settle_window_s": 54818717,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_10",
+      "rail_id": "a14a1dfb115385a1f70061133466f4b6533d9ca111cbed091c6d38acbdb0f92d"
+    },
+    {
+      "encoding_hex": "000102a8b06f681977f3d00029716710337d201f245c675ead747776a399ba167c8188033bdf32a4bd2310afa3e3c2bb025a0a91fa9c37328f03db00480000000000001bcb8d3d7babae492192140764adbbe771d260ed63d5e5d3007479fd612830989a104c4b6ed357e413bd5948a9cf1b1eef5e1ab0015b4f3dda02137a4522b21734a937fceb82e03eadca69b8ac5f0202030303",
+      "fields": {
+        "asset_id": "a8b06f681977f3d00029716710337d201f245c675ead747776a399ba167c8188",
+        "automation_tiers": [
+          [
+            3,
+            3
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "7479fd612830989a104c4b6ed357e413bd5948a9cf1b1eef5e1ab0015b4f3dda",
+        "fee_schedule": {
+          "fixed_sats": "7115",
+          "retain_bps": 987,
+          "service_bps": 72
+        },
+        "liveness_escape": {
+          "params": "7a4522b21734a937fceb82e03eadca69b8ac5f",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "8201724444093572563",
+          "slash_conditions": []
+        },
+        "max_size_sats": "6488158718729335439",
+        "oracle_spec": {
+          "min_volume_usd": "13628755243908186811",
+          "variant": 3,
+          "window_blocks": 1004483236
+        },
+        "price_dev_bound_bps": 36157,
+        "quote_validity_s": 2074848841,
+        "refund_delta_blocks": 1689107431,
+        "settle_primitive": 2,
+        "settle_window_s": 563221511,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_11",
+      "rail_id": "3e148052f43f3de8a081cf12c6ccb63360ea63b3021e6c756d4a39f53e7ec3c7"
+    },
+    {
+      "encoding_hex": "000100f7088e329feb3157e98f21594db7756ba5db02ce01ac669bab48a982d7148b2700001e9e6b9acf94018600d1021c000000000000db8a320b35813729a7e5c1ecbb1f20c4133a1ed02440a42001e85afc7810ba86fcd4c9c0ea37e0b32107758d4a80a7dcf076b453a64a22bbd00000000000000000000000000000000000000000000000000000000000000000000200030101",
+      "fields": {
+        "asset_id": "f7088e329feb3157e98f21594db7756ba5db02ce01ac669bab48a982d7148b27",
+        "automation_tiers": [
+          [
+            0,
+            3
+          ],
+          [
+            1,
+            1
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "56202",
+          "retain_bps": 209,
+          "service_bps": 540
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "1385453714680095776",
+          "slash_conditions": [
+            "e85afc7810ba86fcd4c9c0ea37e0b32107758d4a80a7dcf076b453a64a22bbd0"
+          ]
+        },
+        "max_size_sats": "2206319180109840774",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 12811,
+        "quote_validity_s": 897660713,
+        "refund_delta_blocks": 3139379396,
+        "settle_primitive": 0,
+        "settle_window_s": 2816852460,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_12",
+      "rail_id": "ba4ee0dc4841299e115c22e97c751a3954ef255b04c41ffe7c9df009ddac4b3e"
+    },
+    {
+      "encoding_hex": "0001014af0ee31ebee5cff7190e6c0f90431d53820950e878d51d221b0ab31e19c545d01000100020272525075a3c0064449d8d2967ab477ca0d1c26b0a1971405851b03b606e1caafa87940d42c754491a661b900cc56ba69bb08529cc7e37b21398a709c062de01c0642544355534400000001000200140000000000075553442f42544301a12cc234b2c251eb03e001820000000000008935fd618b9067492563314043b1e4184dc1037b251d5259025477014a4b03422feb9ea0e1ca9b3b7e44f1d7de4d8ff15e880ee5b9279ed4e45da64ed60fcfbbe7146f3bc65a43235ac96c04a9c3ce24a2357bf5be0eac33c3000000000000000000000000000000000000000000000000000000000000000001be033beec92d088119fd34efd890561bba7b088eb116a45be8c3fa76295c90cc973709b80200010103",
+      "fields": {
+        "asset_id": "4af0ee31ebee5cff7190e6c0f90431d53820950e878d51d221b0ab31e19c545d",
+        "automation_tiers": [
+          [
+            0,
+            1
+          ],
+          [
+            1,
+            3
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "35125",
+          "retain_bps": 992,
+          "service_bps": 386
+        },
+        "liveness_escape": {
+          "beacon": "be033beec92d088119fd34efd890561bba7b088eb116a45be8c3fa76295c90cc",
+          "delay_s": 2536966584,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "5602763238864147033",
+          "slash_conditions": [
+            "5477014a4b03422feb9ea0e1ca9b3b7e44f1d7de4d8ff15e880ee5b9279ed4e4",
+            "5da64ed60fcfbbe7146f3bc65a43235ac96c04a9c3ce24a2357bf5be0eac33c3"
+          ]
+        },
+        "max_size_sats": "11613871070674833899",
+        "oracle_spec": {
+          "event_template": {
+            "base": 2,
+            "cadence_s": 1,
+            "is_signed": false,
+            "nb_digits": 20,
+            "pair": "BTCUSD",
+            "precision": 0,
+            "unit": "USD/BTC"
+          },
+          "k": 1,
+          "n": 2,
+          "oracle_pubkeys": [
+            "72525075a3c0064449d8d2967ab477ca0d1c26b0a1971405851b03b606e1caaf",
+            "a87940d42c754491a661b900cc56ba69bb08529cc7e37b21398a709c062de01c"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 64865,
+        "quote_validity_s": 2341496649,
+        "refund_delta_blocks": 1135731736,
+        "settle_primitive": 1,
+        "settle_window_s": 627257664,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_13",
+      "rail_id": "31495fe9d1dc33d2f113539e0e96eddcd6c4f07d0af92ebfac3208184b755640"
+    },
+    {
+      "encoding_hex": "726f02979eb94190e3a85272a31325c142d411ce91d74b21038cea7dfaa790b8b97b020276a9b72a045d52321fbd3cd8024a9a62e54f0506b70317006600000000000081bebe601ee263f66e1edf03c40ea04850229ba89d98ec890000000000000000000000000000000000000000000000000000000000000000000226272cd8205c9a56faca2d3900130bbf3f8cbc2e00c87f737ff52d43b443e7be1acdc5e44c297c03000102010302",
+      "fields": {
+        "asset_id": "979eb94190e3a85272a31325c142d411ce91d74b21038cea7dfaa790b8b97b02",
+        "automation_tiers": [
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "33214",
+          "retain_bps": 791,
+          "service_bps": 102
+        },
+        "liveness_escape": {
+          "params": "272cd8205c9a56faca2d3900130bbf3f8cbc2e00c87f737ff52d43b443e7be1acdc5e44c297c",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "5774348820743253129",
+          "slash_conditions": []
+        },
+        "max_size_sats": "5375717842232870583",
+        "oracle_spec": {
+          "bond_sats": "314497924220140760",
+          "variant": 2,
+          "window_blocks": 1990833962
+        },
+        "price_dev_bound_bps": 48736,
+        "quote_validity_s": 518153206,
+        "refund_delta_blocks": 3289292872,
+        "settle_primitive": 2,
+        "settle_window_s": 1847516931,
+        "spec_version": 29295
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_14",
+      "rail_id": "3b099334f5106e3f9811aa1ae8edbc8a0cf9aa1daae15563e4b2fa61c93a56de"
+    },
+    {
+      "encoding_hex": "000100c4196ed76455066af45d96cbc9a6d21a97bfe22959739843c39f21fca5a07e6d0373c91a9124c6507223b93321003b3796a52bdc034e03b500ac0000000000000a806d0a05297bd9465dd57b26286f3e4d113d1956918e6802d1f9a1adb80d897daeb17a3e4284c30d0be26117ec465801dc91c41b2f830a78ec02d76788de1e1af8550642e465c5b424d8a7e137fcc4455595b91326cee66328de8b28cefcc3fe70498c8d44a1e906b60a046a38203015020b285cbd7131f90003010202020303",
+      "fields": {
+        "asset_id": "c4196ed76455066af45d96cbc9a6d21a97bfe22959739843c39f21fca5a07e6d",
+        "automation_tiers": [
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            3,
+            3
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "28de8b28cefcc3fe70498c8d44a1e906b60a046a38203015020b285cbd7131f9",
+        "fee_schedule": {
+          "fixed_sats": "2688",
+          "retain_bps": 949,
+          "service_bps": 172
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "5553286994560388712",
+          "slash_conditions": [
+            "d1f9a1adb80d897daeb17a3e4284c30d0be26117ec465801dc91c41b2f830a78",
+            "ec02d76788de1e1af8550642e465c5b424d8a7e137fcc4455595b91326cee663"
+          ]
+        },
+        "max_size_sats": "4267044808106443598",
+        "oracle_spec": {
+          "min_volume_usd": "2649893881909949217",
+          "variant": 3,
+          "window_blocks": 1942559377
+        },
+        "price_dev_bound_bps": 27914,
+        "quote_validity_s": 86604761,
+        "refund_delta_blocks": 640184126,
+        "settle_primitive": 0,
+        "settle_window_s": 1180554619,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_15",
+      "rail_id": "260d01857b237733af0271a6f0e5fc56741779ed8fb194a498322a15be02d5e8"
+    },
+    {
+      "encoding_hex": "0001016d0c01bccefd8b0c452086b436c3534e137bbe388f20eccd7b1608cb52e9679e00010521f8692af24a2a02f4035a00000000000002d16a2ae7a1fae445ae427f621dcc135e8cfcaa69a659ba02fd1be299d965675c5af00ed79cb0c35c516227e69e203e6bf103ffce2b817ed428b46b8c1505a26abbffadfa41835d701a4c2c6717d64141cf4f8269b8d498910539b0adf8467918e431a51184bd0f2188c29a3771a2cc05c7843ca81796fcab01424520124af05eab552f9b2b84b4e7287b6cc2cd0b243913c385cf02b2479753df82b8a003000301020202",
+      "fields": {
+        "asset_id": "6d0c01bccefd8b0c452086b436c3534e137bbe388f20eccd7b1608cb52e9679e",
+        "automation_tiers": [
+          [
+            2,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            3
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "0539b0adf8467918e431a51184bd0f2188c29a3771a2cc05c7843ca81796fcab",
+        "fee_schedule": {
+          "fixed_sats": "721",
+          "retain_bps": 756,
+          "service_bps": 858
+        },
+        "liveness_escape": {
+          "beacon": "424520124af05eab552f9b2b84b4e7287b6cc2cd0b243913c385cf02b2479753",
+          "delay_s": 3749886112,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "6813098145151867322",
+          "slash_conditions": [
+            "fd1be299d965675c5af00ed79cb0c35c516227e69e203e6bf103ffce2b817ed4",
+            "28b46b8c1505a26abbffadfa41835d701a4c2c6717d64141cf4f8269b8d49891"
+          ]
+        },
+        "max_size_sats": "369849774996867626",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 27178,
+        "quote_validity_s": 3886152420,
+        "refund_delta_blocks": 1646119955,
+        "settle_primitive": 1,
+        "settle_window_s": 1169048191,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_16",
+      "rail_id": "c244190aaff6ed1f01c4ac04b0febfd8ce389df7487f43c8b242e9259314a854"
+    },
+    {
+      "encoding_hex": "000102e815245c8d8a641deb8de9c8a635ecbe84fb633147660ebfdb7f7c3b7d91367e010002000301d40ade496c38af8f51d4d39382e4264589e82b7e25c59a7cfd7f48f6924e34590642544355534400000001000200140000000000075553442f42544302621aaca1beb37383019c03800000000000008912f9c69ba9aa5de16ddb08406f70cf93c588d2977ee3a7037befe338894550c819be6f7e6770719045390ef3ae23997afc2d92b2067d394fa723a614cc0fe6997c4bace03753bd63b3955d84cd7eac16a29f5bcc0dab5af76d965ce29dea82cb5f89b72331ac2b17dd9eb3c0cfcc4f556f00e1d5b9989c53ab16a05e4615d2388226700af1a0c390500dda311e0859e2ad0d1c710fc4e125021dfb54474d1e78b08ad92d0d2d51c820ce88f20b13131771e9221c06cae7010301",
+      "fields": {
+        "asset_id": "e815245c8d8a641deb8de9c8a635ecbe84fb633147660ebfdb7f7c3b7d91367e",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "ab16a05e4615d2388226700af1a0c390500dda311e0859e2ad0d1c710fc4e125",
+        "fee_schedule": {
+          "fixed_sats": "35090",
+          "retain_bps": 412,
+          "service_bps": 896
+        },
+        "liveness_escape": {
+          "params": "fb54474d1e78b08ad92d0d2d51c820ce88f20b13131771e9221c06cae7",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "10648067332053590951",
+          "slash_conditions": [
+            "7befe338894550c819be6f7e6770719045390ef3ae23997afc2d92b2067d394f",
+            "a723a614cc0fe6997c4bace03753bd63b3955d84cd7eac16a29f5bcc0dab5af7",
+            "6d965ce29dea82cb5f89b72331ac2b17dd9eb3c0cfcc4f556f00e1d5b9989c53"
+          ]
+        },
+        "max_size_sats": "7069152375800558467",
+        "oracle_spec": {
+          "event_template": {
+            "base": 2,
+            "cadence_s": 1,
+            "is_signed": false,
+            "nb_digits": 20,
+            "pair": "BTCUSD",
+            "precision": 0,
+            "unit": "USD/BTC"
+          },
+          "k": 2,
+          "n": 3,
+          "oracle_pubkeys": [
+            "d40ade496c38af8f51d4d39382e4264589e82b7e25c59a7cfd7f48f6924e3459"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 63942,
+        "quote_validity_s": 2611587677,
+        "refund_delta_blocks": 1081045199,
+        "settle_primitive": 2,
+        "settle_window_s": 3782073096,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_17",
+      "rail_id": "f0b8f033c468a43ea5e3cd9490412cfee93d170408a3577a283e303a1e161d01"
+    },
+    {
+      "encoding_hex": "00010058838b85e9177a8ae2179f4503343e9c803e63adb045b63ed840b6f66efc597a0221ef420530532735a28d2ad10001039b4f05725f9f00f7013500000000000085b44aa50e1d3915bab0e44b167275dfb0abc84d99448846019081354c30cf2709098a1f5ff10a3bee298af58f9ba62666460c1358251680d0f205d56026f5a4d3c7bc2369c238cbaf6a59f2a0e710abf8b00c279253e2382800040001010202030302",
+      "fields": {
+        "asset_id": "58838b85e9177a8ae2179f4503343e9c803e63adb045b63ed840b6f66efc597a",
+        "automation_tiers": [
+          [
+            3,
+            2
+          ],
+          [
+            2,
+            3
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "f205d56026f5a4d3c7bc2369c238cbaf6a59f2a0e710abf8b00c279253e23828",
+        "fee_schedule": {
+          "fixed_sats": "34228",
+          "retain_bps": 247,
+          "service_bps": 309
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "12730489007302281286",
+          "slash_conditions": [
+            "9081354c30cf2709098a1f5ff10a3bee298af58f9ba62666460c1358251680d0"
+          ]
+        },
+        "max_size_sats": "73072782664163231",
+        "oracle_spec": {
+          "bond_sats": "3482170048201435857",
+          "variant": 2,
+          "window_blocks": 569328133
+        },
+        "price_dev_bound_bps": 19109,
+        "quote_validity_s": 236796181,
+        "refund_delta_blocks": 376600031,
+        "settle_primitive": 0,
+        "settle_window_s": 3132154955,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_18",
+      "rail_id": "67246dd9dd743bff80d3a5e04383de057532f2225955fcec496f79726470dcb7"
+    },
+    {
+      "encoding_hex": "0001019319aa5912f41da3e2df4192e526d04b95ee70f860967c1990e557b900fe90e603aa4ea925ed70f15e4ad88cbd01310f3554104655ed00610157000000000000560ce3f1aed06d55848a6523db3d4987f7f5274480dc716700000000000000000000000000000000000000000000000000000000000000000001d25b5fd77eb060bc1f10ba45e280e3047d8e9ec9f746db60410cb872a46b8d4d358c95920200020301",
+      "fields": {
+        "asset_id": "9319aa5912f41da3e2df4192e526d04b95ee70f860967c1990e557b900fe90e6",
+        "automation_tiers": [
+          [
+            3,
+            1
+          ],
+          [
+            0,
+            2
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "22028",
+          "retain_bps": 97,
+          "service_bps": 343
+        },
+        "liveness_escape": {
+          "beacon": "d25b5fd77eb060bc1f10ba45e280e3047d8e9ec9f746db60410cb872a46b8d4d",
+          "delay_s": 898405778,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "17867230271835500903",
+          "slash_conditions": []
+        },
+        "max_size_sats": "3535102867675698669",
+        "oracle_spec": {
+          "min_volume_usd": "17109440371665439933",
+          "variant": 3,
+          "window_blocks": 2857281829
+        },
+        "price_dev_bound_bps": 58353,
+        "quote_validity_s": 2932895061,
+        "refund_delta_blocks": 3678226823,
+        "settle_primitive": 1,
+        "settle_window_s": 2223662371,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_19",
+      "rail_id": "f150c9982d9908c14f4b11167b8fe2c869b289afa22ecbf62ba2769cac908e50"
+    },
+    {
+      "encoding_hex": "0001027ccadbdde45d9deed0de8e13979dc59872eeea5cb6c16d6fe104e023e4b169260002e0bf190b0c937167011b01cf000000000000d4b50ac6f6b9e8a5fc5bd52cc96b291ba3786b1bd02e4c6d003f14b884e91f370a80e3bdd6e5cc36832c9bd1f3892cb705826158a40900cdaf021fda81599c3da7cbccd570c068ac6adccdbd57386349c84f79708ba2fca94c13010201",
+      "fields": {
+        "asset_id": "7ccadbdde45d9deed0de8e13979dc59872eeea5cb6c16d6fe104e023e4b16926",
+        "automation_tiers": [
+          [
+            2,
+            1
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "3f14b884e91f370a80e3bdd6e5cc36832c9bd1f3892cb705826158a40900cdaf",
+        "fee_schedule": {
+          "fixed_sats": "54453",
+          "retain_bps": 283,
+          "service_bps": 463
+        },
+        "liveness_escape": {
+          "params": "da81599c3da7cbccd570c068ac6adccdbd57386349c84f79708ba2fca94c13",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "11779282592588516461",
+          "slash_conditions": []
+        },
+        "max_size_sats": "16194690320293917031",
+        "oracle_spec": {
+          "variant": 0
+        },
+        "price_dev_bound_bps": 2758,
+        "quote_validity_s": 4139378853,
+        "refund_delta_blocks": 3379243291,
+        "settle_primitive": 2,
+        "settle_window_s": 4233876780,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_20",
+      "rail_id": "95253eb95f5e951b46c2ac955a862428f458cbb0896ab11fc3fc3fcbdc102a5a"
+    },
+    {
+      "encoding_hex": "49e9006465f39bc85cc72d906c7daca623a48e257aae01efeed3d77af21c839ca569af010001000201f40935fecf96eb9c9a8ddc71e0b3c18135f2b9e29a66cf4e21e0356967da749b0642544355534400000001000200140000000000075553442f42544300eb8c1bbc0d7f625e0373018b000000000000692520700d9e157fb8f13247920850aeef18e5aeef6e869a007bc953feca7da5e302c1246ef55f839c844ee9cba842b01e77aece9a522ad4e700010203",
+      "fields": {
+        "asset_id": "6465f39bc85cc72d906c7daca623a48e257aae01efeed3d77af21c839ca569af",
+        "automation_tiers": [
+          [
+            2,
+            3
+          ]
+        ],
+        "direction": 0,
+        "dispute_hook": "7bc953feca7da5e302c1246ef55f839c844ee9cba842b01e77aece9a522ad4e7",
+        "fee_schedule": {
+          "fixed_sats": "26917",
+          "retain_bps": 883,
+          "service_bps": 395
+        },
+        "liveness_escape": {
+          "variant": 0
+        },
+        "lp_stake": {
+          "amount_sats": "17228772914009900698",
+          "slash_conditions": []
+        },
+        "max_size_sats": "16972971590146810462",
+        "oracle_spec": {
+          "event_template": {
+            "base": 2,
+            "cadence_s": 1,
+            "is_signed": false,
+            "nb_digits": 20,
+            "pair": "BTCUSD",
+            "precision": 0,
+            "unit": "USD/BTC"
+          },
+          "k": 1,
+          "n": 2,
+          "oracle_pubkeys": [
+            "f40935fecf96eb9c9a8ddc71e0b3c18135f2b9e29a66cf4e21e0356967da749b"
+          ],
+          "variant": 1
+        },
+        "price_dev_bound_bps": 8304,
+        "quote_validity_s": 228463999,
+        "refund_delta_blocks": 2450018478,
+        "settle_primitive": 0,
+        "settle_window_s": 3102814791,
+        "spec_version": 18921
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_21",
+      "rail_id": "e5c1a34551cc3285ec73f8ed958334a8cab6c9e5c2f39ad0f3a4d586626b8b63"
+    },
+    {
+      "encoding_hex": "000101a5f67887417a9c1299f3c1ce0cce026b5e9e376f98e26c3c60767d7924bc88b8020798ec13b475df601832367f01a5e52708c93ae7ce032602a800000000000041a2726c75e07f9a5dcd7602b191bc304e42bf1fa093b22102d742b9f6910f18d36b6de33c42ea3de8b12e8fc383de7f8ed0e770ac594caca2aee5dae1c80b5c0cb307f5ac0954e10a70f3e8f1c9d25d0acf478c910879f3402e5e03049cae5bea11d8668dd67d42a7428c1b9836223557253a16ead15ecb6201b4aa4f7bb5d459ca75bf07276921ca8e0cd9b21e3a6658bfdeceaf92e2e17216f72ace14040001010202010303",
+      "fields": {
+        "asset_id": "a5f67887417a9c1299f3c1ce0cce026b5e9e376f98e26c3c60767d7924bc88b8",
+        "automation_tiers": [
+          [
+            3,
+            3
+          ],
+          [
+            2,
+            1
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            0,
+            1
+          ]
+        ],
+        "direction": 1,
+        "dispute_hook": "2e5e03049cae5bea11d8668dd67d42a7428c1b9836223557253a16ead15ecb62",
+        "fee_schedule": {
+          "fixed_sats": "16802",
+          "retain_bps": 806,
+          "service_bps": 680
+        },
+        "liveness_escape": {
+          "beacon": "b4aa4f7bb5d459ca75bf07276921ca8e0cd9b21e3a6658bfdeceaf92e2e17216",
+          "delay_s": 4146777620,
+          "variant": 1
+        },
+        "lp_stake": {
+          "amount_sats": "5639279825980207649",
+          "slash_conditions": [
+            "d742b9f6910f18d36b6de33c42ea3de8b12e8fc383de7f8ed0e770ac594caca2",
+            "aee5dae1c80b5c0cb307f5ac0954e10a70f3e8f1c9d25d0acf478c910879f340"
+          ]
+        },
+        "max_size_sats": "11954003704614152142",
+        "oracle_spec": {
+          "bond_sats": "13003545102917973631",
+          "variant": 2,
+          "window_blocks": 127462419
+        },
+        "price_dev_bound_bps": 29292,
+        "quote_validity_s": 1977647002,
+        "refund_delta_blocks": 2979118128,
+        "settle_primitive": 1,
+        "settle_window_s": 1573746178,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_22",
+      "rail_id": "1e41239882c8637a2d08c707157c67cf826ab29e82c2ed2d711e7b2732cb843b"
+    },
+    {
+      "encoding_hex": "000102b4cf0339c85f71eb6e5513afbb4edd0b091cdec01ed36908b35968e01215283303885824973bc2ae66be8308e50256bd3e4e600ee96e022900f5000000000000792c2ec881cfb6c93e4997fee3e86c66a8d72e42e2fc5011026671b406c1637b88dbba4f605aaf5f2e840d0d6ffdc45bd961538cd71aac6622cd64a629098c8db2b457abce336c6264627b8e58d4330d95d988fea0e25a88ac000000000000000000000000000000000000000000000000000000000000000002194966f461dc194993d638b3ddb512f6690392830b619cdafa30010002",
+      "fields": {
+        "asset_id": "b4cf0339c85f71eb6e5513afbb4edd0b091cdec01ed36908b35968e012152833",
+        "automation_tiers": [
+          [
+            0,
+            2
+          ]
+        ],
+        "direction": 2,
+        "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+        "fee_schedule": {
+          "fixed_sats": "31020",
+          "retain_bps": 553,
+          "service_bps": 245
+        },
+        "liveness_escape": {
+          "params": "4966f461dc194993d638b3ddb512f6690392830b619cdafa30",
+          "variant": 2
+        },
+        "lp_stake": {
+          "amount_sats": "12166243783175589905",
+          "slash_conditions": [
+            "6671b406c1637b88dbba4f605aaf5f2e840d0d6ffdc45bd961538cd71aac6622",
+            "cd64a629098c8db2b457abce336c6264627b8e58d4330d95d988fea0e25a88ac"
+          ]
+        },
+        "max_size_sats": "6250220364200077678",
+        "oracle_spec": {
+          "min_volume_usd": "4306195950025771237",
+          "variant": 3,
+          "window_blocks": 2287477911
+        },
+        "price_dev_bound_bps": 11976,
+        "quote_validity_s": 2177873609,
+        "refund_delta_blocks": 3823660134,
+        "settle_primitive": 2,
+        "settle_window_s": 1045010430,
+        "spec_version": 1
+      },
+      "kind": "rail_manifest",
+      "name": "rail_manifest_23",
+      "rail_id": "0e0870afb612578dc361857a31161c3b067500a427b6519cdab8cebe1ca7e76d"
+    },
+    {
+      "encoding_hex": "074ad94e2171aa6477709c01bc049ae2f1a6840925c15cd0c2c980f732cb3d8a00000000003b1efc00004aaff57debd8000000000ac1aff0364b5b1d55192d8d198ee23fad62c58f600951ddc3b3096901cc9d4fba6f97e5",
+      "fields": {
+        "amount_micro_usd": "82119598402520",
+        "expiry_unix_s": "180465648",
+        "lock_template_commitment": "364b5b1d55192d8d198ee23fad62c58f600951ddc3b3096901cc9d4fba6f97e5",
+        "price_msat_per_usd": "3874556",
+        "rail_id": "074ad94e2171aa6477709c01bc049ae2f1a6840925c15cd0c2c980f732cb3d8a"
+      },
+      "kind": "quote",
+      "name": "quote_0",
+      "signing_payload": "b7e89202b59b5f3227ce7097aa3fe9b92dde7b555e2e7b97d8acf16db5332643",
+      "user_sats": "318176982708"
+    },
+    {
+      "encoding_hex": "f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d00000000005fd58f000059e87a174d95000000007e03b09d41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e",
+      "fields": {
+        "amount_micro_usd": "98855015632277",
+        "expiry_unix_s": "2114171037",
+        "lock_template_commitment": "41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e",
+        "price_msat_per_usd": "6280591",
+        "rail_id": "f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d"
+      },
+      "kind": "quote",
+      "name": "quote_1",
+      "signing_payload": "58f99e0f6a81043754fa946e82ab116b656c51b0eead0b69e4533c7f5d59d5fa",
+      "user_sats": "620867921484"
+    },
+    {
+      "encoding_hex": "77d7e7520e460c05bfd64243cf5885b5ab5bc5df561079fee176fe5a01a72caf000000000084aba600004e790512514500000000534628cc95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca",
+      "fields": {
+        "amount_micro_usd": "86281683095877",
+        "expiry_unix_s": "1397106892",
+        "lock_template_commitment": "95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca",
+        "price_msat_per_usd": "8694694",
+        "rail_id": "77d7e7520e460c05bfd64243cf5885b5ab5bc5df561079fee176fe5a01a72caf"
+      },
+      "kind": "quote",
+      "name": "quote_2",
+      "signing_payload": "495e217e17d2cf2687da1540f3aa9f8680ddd717085c5cacac4734e57864af83",
+      "user_sats": "750192832323"
+    },
+    {
+      "encoding_hex": "8d846327c21ea9d8b0481c09547b0adf0a39adc9de8b229dcdde00090fca8ea200000000006404920000401e46e1fa4300000000ccd498e43d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce",
+      "fields": {
+        "amount_micro_usd": "70498782411331",
+        "expiry_unix_s": "3436484836",
+        "lock_template_commitment": "3d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce",
+        "price_msat_per_usd": "6554770",
+        "rail_id": "8d846327c21ea9d8b0481c09547b0adf0a39adc9de8b229dcdde00090fca8ea2"
+      },
+      "kind": "quote",
+      "name": "quote_3",
+      "signing_payload": "be41248f1aad231ef4e583c37bc264723c9bc64065cafe98de68e8a36f91c215",
+      "user_sats": "462103303986"
+    },
+    {
+      "encoding_hex": "c22a2bc09fddcd2d1e0a9b0965fed65213172729039205db7b2fdfb53e6a37f200000000005e1f95000038c4b5b1a1f70000000013150dd9b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf",
+      "fields": {
+        "amount_micro_usd": "62417513062903",
+        "expiry_unix_s": "320146905",
+        "lock_template_commitment": "b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf",
+        "price_msat_per_usd": "6168469",
+        "rail_id": "c22a2bc09fddcd2d1e0a9b0965fed65213172729039205db7b2fdfb53e6a37f2"
+      },
+      "kind": "quote",
+      "name": "quote_4",
+      "signing_payload": "5788abcd6e2bbb99eb1c24488f7879513fe14c68afdae15e1feb046df60b3b9a",
+      "user_sats": "385020494385"
+    },
+    {
+      "encoding_hex": "db1c435ed33932dad783783fef667b55d568b2fb517cf937c817a71e6e77e89500000000005859e50000318edd9357750000000061e36071d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd298",
+      "fields": {
+        "amount_micro_usd": "54489672537973",
+        "expiry_unix_s": "1642291313",
+        "lock_template_commitment": "d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd298",
+        "price_msat_per_usd": "5790181",
+        "rail_id": "db1c435ed33932dad783783fef667b55d568b2fb517cf937c817a71e6e77e895"
+      },
+      "kind": "quote",
+      "name": "quote_5",
+      "signing_payload": "4c53518aceb9ecc61cd20ba5e55c1f215ca48ebf786c0e3d4df397ac0b03f533",
+      "user_sats": "315505066625"
+    },
+    {
+      "encoding_hex": "a43dc9ddd0a5557d904a42c6fa4c3b1d2b7eceed3fb9ea6264bd115ed508511e00000000006c8d6d000018b3ecb675e9000000006afac1777777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e4213903",
+      "fields": {
+        "amount_micro_usd": "27161049593321",
+        "expiry_unix_s": "1794818423",
+        "lock_template_commitment": "7777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e4213903",
+        "price_msat_per_usd": "7114093",
+        "rail_id": "a43dc9ddd0a5557d904a42c6fa4c3b1d2b7eceed3fb9ea6264bd115ed508511e"
+      },
+      "kind": "quote",
+      "name": "quote_6",
+      "signing_payload": "94b405bb6f4bde07d0a5ec9b841bd7e2d2c7906b92c4968013d8e4fd0a83080d",
+      "user_sats": "193226232784"
+    },
+    {
+      "encoding_hex": "67d497bafe3a81bd52cb354216196abfbde8bee3283c2b5ebe9535be997168b2000000000044140b0000145602c01dc700000000cabb25d98dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e",
+      "fields": {
+        "amount_micro_usd": "22359645887943",
+        "expiry_unix_s": "3401262553",
+        "lock_template_commitment": "8dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e",
+        "price_msat_per_usd": "4461579",
+        "rail_id": "67d497bafe3a81bd52cb354216196abfbde8bee3283c2b5ebe9535be997168b2"
+      },
+      "kind": "quote",
+      "name": "quote_7",
+      "signing_payload": "84e46ebeb7886b76a0d9d0462cf8e6f3c1789f1fd3a6040681482a615209e7a8",
+      "user_sats": "99759326541"
+    },
+    {
+      "encoding_hex": "0566aad52fc2bfacc44218de47b5724ba943574bece21c4ca9794e611d88b3c2000000000037d8e3000050694805bec7000000004a9453cd0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db7",
+      "fields": {
+        "amount_micro_usd": "88413110124231",
+        "expiry_unix_s": "1251234765",
+        "lock_template_commitment": "0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db7",
+        "price_msat_per_usd": "3660003",
+        "rail_id": "0566aad52fc2bfacc44218de47b5724ba943574bece21c4ca9794e611d88b3c2"
+      },
+      "kind": "quote",
+      "name": "quote_8",
+      "signing_payload": "1441a77ab1462a4095634b409c70c8bd26c22cd6913e855bf7c7f5b7fa772b48",
+      "user_sats": "323592248294"
+    },
+    {
+      "encoding_hex": "19d85b0d4dff423bdb923bc13bc083c737b50acb2d640afffec3b1d73ba70607000000000046961d00003e520c22637d00000000d2087d5a9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda",
+      "fields": {
+        "amount_micro_usd": "68522111820669",
+        "expiry_unix_s": "3523771738",
+        "lock_template_commitment": "9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda",
+        "price_msat_per_usd": "4625949",
+        "rail_id": "19d85b0d4dff423bdb923bc13bc083c737b50acb2d640afffec3b1d73ba70607"
+      },
+      "kind": "quote",
+      "name": "quote_9",
+      "signing_payload": "a097a1e5732a73c77facfbfa707a3dd64ba446f717c457f54bd2cad45a58dac0",
+      "user_sats": "316979794654"
+    },
+    {
+      "encoding_hex": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+      "fields": {
+        "amount_micro_usd": "18446744073709551615",
+        "expiry_unix_s": "18446744073709551615",
+        "lock_template_commitment": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
+        "price_msat_per_usd": "18446744073709551615",
+        "rail_id": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee"
+      },
+      "kind": "quote",
+      "name": "quote_10",
+      "signing_payload": "145578ad08ceb2e38dad163182e5995d75b21a775f8cbaf67001a9795bc59877",
+      "user_sats": "18446744073709551615"
+    },
+    {
+      "encoding_hex": "000000000000000000000000000000000000000000000000000000000000000000000000000f4240000000000000000100000000000000000000000000000000000000000000000000000000000000000000000000000000",
+      "fields": {
+        "amount_micro_usd": "1",
+        "expiry_unix_s": "0",
+        "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+        "price_msat_per_usd": "1000000",
+        "rail_id": "0000000000000000000000000000000000000000000000000000000000000000"
+      },
+      "kind": "quote",
+      "name": "quote_11",
+      "signing_payload": "3b4af61ab147073d076773653de9a622338fdd7cac54745d0d0c5178bbacf00c",
+      "user_sats": "0"
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "200",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "1000000000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "f92dc4edca297df6d646b3d8292f23d6aff63a18f9a54a4b52c9113feafa51db"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_0_worked_example",
+      "result": {
+        "burn_micro_usd": "1000000000",
+        "gross_sats": "1000000",
+        "lock_template_commitment": "fed553ab7da07c3aba574d345bcb97dc18fe59d35b03a55fd0d916f9d8df7ae5",
+        "retained_sats": "1000",
+        "service_fee_sats": "500",
+        "user_sats": "999300"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "0",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "9999000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "73ccd457ab553e34eaf3f795185a88efdc207d14b287034253f842a3eaa9f5d8"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_1_round_half_up_low",
+      "result": {
+        "burn_micro_usd": "9999000",
+        "gross_sats": "9999",
+        "lock_template_commitment": "b414cee87b4c9f27f31556264c546f8882302a59d36ad13a7f1a8908a130cc7a",
+        "retained_sats": "10",
+        "service_fee_sats": "5",
+        "user_sats": "9994"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "0",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "11000000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "73ccd457ab553e34eaf3f795185a88efdc207d14b287034253f842a3eaa9f5d8"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_2_round_half_up_high",
+      "result": {
+        "burn_micro_usd": "11000000",
+        "gross_sats": "11000",
+        "lock_template_commitment": "244b55bb67388f56ae266842fa9c4d515485d2024ad7d76631ac2bcd9200237a",
+        "retained_sats": "11",
+        "service_fee_sats": "6",
+        "user_sats": "10994"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "0",
+            "retain_bps": 0,
+            "service_bps": 0
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "18446744073709551615",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "77777777",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "6500000",
+          "rail_id": "24bc5a1956567c2346b4f8be98f4998553510de2639feb31a1ef52da7d6a417b"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_3_zero_fees",
+      "result": {
+        "burn_micro_usd": "77777777",
+        "gross_sats": "505555",
+        "lock_template_commitment": "a3ac4331d971a5f407082817931992f96531e53df8982a12c1df09278f49cd79",
+        "retained_sats": "0",
+        "service_fee_sats": "0",
+        "user_sats": "505555"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "65535",
+            "retain_bps": 999,
+            "service_bps": 999
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "18446744073709551615",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "99999999999",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "9999999",
+          "rail_id": "bf0463b9a5526f76923608058bf6a178eac059986299e59be5ef8580461e541b"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_4_max_bps",
+      "result": {
+        "burn_micro_usd": "99999999999",
+        "gross_sats": "999999899",
+        "lock_template_commitment": "43f20c58668d67440a6f03db920ea4a4f0532511730879f096429160e9ec8ce6",
+        "retained_sats": "99899990",
+        "service_fee_sats": "99899990",
+        "user_sats": "900034374"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "200",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "10000000000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "f92dc4edca297df6d646b3d8292f23d6aff63a18f9a54a4b52c9113feafa51db"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_5_over_max_size",
+      "result": {
+        "error": "OverMaxSize"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "200",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "100000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "f92dc4edca297df6d646b3d8292f23d6aff63a18f9a54a4b52c9113feafa51db"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_6_dust_payout",
+      "result": {
+        "error": "DustPayout"
+      }
+    },
+    {
+      "inputs": {
+        "manifest": {
+          "asset_id": "1111111111111111111111111111111111111111111111111111111111111111",
+          "automation_tiers": [
+            [
+              1,
+              2
+            ],
+            [
+              3,
+              2
+            ]
+          ],
+          "direction": 0,
+          "dispute_hook": "0000000000000000000000000000000000000000000000000000000000000000",
+          "fee_schedule": {
+            "fixed_sats": "200",
+            "retain_bps": 10,
+            "service_bps": 5
+          },
+          "liveness_escape": {
+            "variant": 0
+          },
+          "lp_stake": {
+            "amount_sats": "10000000",
+            "slash_conditions": []
+          },
+          "max_size_sats": "5000000",
+          "oracle_spec": {
+            "variant": 0
+          },
+          "price_dev_bound_bps": 100,
+          "quote_validity_s": 30,
+          "refund_delta_blocks": 0,
+          "settle_primitive": 0,
+          "settle_window_s": 30,
+          "spec_version": 1
+        },
+        "quote": {
+          "amount_micro_usd": "700000",
+          "expiry_unix_s": "1700000000",
+          "lock_template_commitment": "0000000000000000000000000000000000000000000000000000000000000000",
+          "price_msat_per_usd": "1000000",
+          "rail_id": "f92dc4edca297df6d646b3d8292f23d6aff63a18f9a54a4b52c9113feafa51db"
+        }
+      },
+      "kind": "swap_plan",
+      "name": "swap_plan_7_exact_dust_boundary",
+      "result": {
+        "burn_micro_usd": "700000",
+        "gross_sats": "700",
+        "lock_template_commitment": "8ad2f2f23a4fa30aca105551c8192e30b4b7b33c8c8cf2870c06c747c9d9e1e1",
+        "retained_sats": "1",
+        "service_fee_sats": "0",
+        "user_sats": "500"
+      }
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "0",
+        "retained_fees_cum_sats": "0"
+      },
+      "kind": "capacity",
+      "name": "capacity_0",
+      "output": "0"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "1",
+        "retained_fees_cum_sats": "0"
+      },
+      "kind": "capacity",
+      "name": "capacity_1",
+      "output": "0"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "0",
+        "retained_fees_cum_sats": "1"
+      },
+      "kind": "capacity",
+      "name": "capacity_2",
+      "output": "0"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "10000000",
+        "retained_fees_cum_sats": "0"
+      },
+      "kind": "capacity",
+      "name": "capacity_3",
+      "output": "5000000"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "10000000",
+        "retained_fees_cum_sats": "123456"
+      },
+      "kind": "capacity",
+      "name": "capacity_4",
+      "output": "5061728"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "0",
+        "retained_fees_cum_sats": "18446744073709551615"
+      },
+      "kind": "capacity",
+      "name": "capacity_5",
+      "output": "9223372036854775807"
+    },
+    {
+      "inputs": {
+        "lp_stake_sats": "18446744073709551615",
+        "retained_fees_cum_sats": "18446744073709551615"
+      },
+      "kind": "capacity",
+      "name": "capacity_6",
+      "output": "18446744073709551615"
+    },
+    {
+      "encoding_hex": "0000002a0000000002faf08006f0cd273bdaf2cec49e12bb04a6d736b5bf9a15c141403ade0a9f4c94db3fad02111111111111111111111111111111111111111111111111111111111111111100000000004d3c6000000000004d3c60222222222222222222222222222222222222222222222222222222222222222200000000000f424000000000000f424000000000029e71e0",
+      "input_hash": "06f0cd273bdaf2cec49e12bb04a6d736b5bf9a15c141403ade0a9f4c94db3fad",
+      "inputs": {
+        "epoch": 42,
+        "positions": [
+          {
+            "lp_stake_sats": "10000000",
+            "rail_id": "1111111111111111111111111111111111111111111111111111111111111111",
+            "retained_fees_cum_sats": "123456"
+          },
+          {
+            "lp_stake_sats": "2000000",
+            "rail_id": "2222222222222222222222222222222222222222222222222222222222222222",
+            "retained_fees_cum_sats": "0"
+          }
+        ],
+        "reserve_total_sats": "50000000"
+      },
+      "kind": "allotment",
+      "name": "allotment_pinned_42",
+      "plan_hash": "fbc61e5d5310af7b3b13df1b12f5a707a59fd406649f312566e661b05470dcfb",
+      "unallocated_sats": "43938272"
+    },
+    {
+      "encoding_hex": "0000000100000000002dc6c02c481d382cc805562134a66d9aa933160dfd3fa6b1376ae1baf747c54bd740b502010101010101010101010101010101010101010101010101010101010101010100000000003d090000000000001e8480020202020202020202020202020202020202020202020202020202020202020200000000001e848000000000000f42400000000000000000",
+      "input_hash": "2c481d382cc805562134a66d9aa933160dfd3fa6b1376ae1baf747c54bd740b5",
+      "inputs": {
+        "epoch": 1,
+        "positions": [
+          {
+            "lp_stake_sats": "8000000",
+            "rail_id": "0101010101010101010101010101010101010101010101010101010101010101",
+            "retained_fees_cum_sats": "0"
+          },
+          {
+            "lp_stake_sats": "4000000",
+            "rail_id": "0202020202020202020202020202020202020202020202020202020202020202",
+            "retained_fees_cum_sats": "0"
+          }
+        ],
+        "reserve_total_sats": "3000000"
+      },
+      "kind": "allotment",
+      "name": "allotment_oversubscribed",
+      "plan_hash": "a3f0e57872a0f602d671851f01554d1521ce63b7eb820c071653ddc22403bc65",
+      "unallocated_sats": "0"
+    },
+    {
+      "encoding_hex": "000000070000000005f5e1009641b547e626b10f8dbc75c5a0ba5dfff5c33bcf7d29768faf46607b43c9ecbe02010101010101010101010101010101010101010101010101010101010101010100000000001e848000000000001e8480020202020202020202020202020202020202020202020202020202020202020200000000004c4d3400000000004c4d3400000000058b0f4c",
+      "input_hash": "9641b547e626b10f8dbc75c5a0ba5dfff5c33bcf7d29768faf46607b43c9ecbe",
+      "inputs": {
+        "epoch": 7,
+        "positions": [
+          {
+            "lp_stake_sats": "10000000",
+            "rail_id": "0202020202020202020202020202020202020202020202020202020202020202",
+            "retained_fees_cum_sats": "1000"
+          },
+          {
+            "lp_stake_sats": "4000000",
+            "rail_id": "0101010101010101010101010101010101010101010101010101010101010101",
+            "retained_fees_cum_sats": "0"
+          }
+        ],
+        "reserve_total_sats": "100000000"
+      },
+      "kind": "allotment",
+      "name": "allotment_unsorted_input",
+      "plan_hash": "7eb38019fb4ff32444b4ac2e6dae869987db82d4e098465ba4229c5783906911",
+      "unallocated_sats": "92999500"
+    },
+    {
+      "encoding_hex": "0000000900000000000f4240dc05847a2715ee45b4bb4b0e5bcc64515b3b7d7e73496baf5efc8409fe6c97eb0000000000000f4240",
+      "input_hash": "dc05847a2715ee45b4bb4b0e5bcc64515b3b7d7e73496baf5efc8409fe6c97eb",
+      "inputs": {
+        "epoch": 9,
+        "positions": [],
+        "reserve_total_sats": "1000000"
+      },
+      "kind": "allotment",
+      "name": "allotment_empty",
+      "plan_hash": "6087b9d3c76a21edc6ec3fa6c2cc0092df33818988cf3b9c5606a6df77db77bb",
+      "unallocated_sats": "1000000"
+    },
+    {
+      "encoding_hex": "0000000a00000000000f424011c1a10d22b5050d688e1390dd1d6cfe219de3deb5571833941e3c91d73360a001aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa0000000000000000000000000000000000000000000f4240",
+      "input_hash": "11c1a10d22b5050d688e1390dd1d6cfe219de3deb5571833941e3c91d73360a0",
+      "inputs": {
+        "epoch": 10,
+        "positions": [
+          {
+            "lp_stake_sats": "0",
+            "rail_id": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+            "retained_fees_cum_sats": "0"
+          }
+        ],
+        "reserve_total_sats": "1000000"
+      },
+      "kind": "allotment",
+      "name": "allotment_zero_positions",
+      "plan_hash": "7017aaf0be7f4ef99e59a2f85cf119ac0c8734571bea054730343bffaa72e67f",
+      "unallocated_sats": "1000000"
+    },
+    {
+      "encoding_hex": "03e60961000007cd08cf8c4e31af94055afc12321448fb1345b3dd045692dc69e4f1356363305b857b4e065c0d02890e1204017e70758fd9a49cd5c0c84622a38f982ee0f8e7f5b367f3a9062100000008b78414a800000008b78414a806d68de9a0a8bb8d09116e320cccaf55be8671e0d71f92533a42de2e38937d9e0000000b895cdb600000000b895cdb6022db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e0990000000019dc9b750000000019dc9b7556b1b6cd249e9c91d4f6c7ed4f5acc808b9922bb81f1aaab870417f63175a20f000000019586ac8d000000019586ac8d5a83599e89034ed73fbd2f81f34e1e76584c378d1c1018887991c1cfb7a9fb22000000055cf54df6000000055cf54df65d92b7e2698f038743067aa8545ace55e5c787cdcd9381206c7a843904908d7b0000000899861fcf0000000899861fcf6626fcb7f94c8aa379ef0168121663effcf8fab2eef9abfb0a760148ffd37cc000000005a75a1a6300000005a75a1a636a7fb48618a4fd2d4c7a53a5ff5dfb9c77ff69b2f11143ec59cb580d3764d8b100000001661c832900000001661c8329997d2c9fbeea2fef336f7cb4e2b615f40df6aa23a33ca9dd607689011c698695000000030aee7c63000000030aee7c63d91cd5bf7b13ccd6b8b87ec541e3a99cfcb8d27d7043057b4bcaef4c3d10569300000009f0d64e2d00000009f0d64e2ddd20f07cb1d4f07a44a6ff52c7a9a9cf6bb13ea0cbbf0f7cd33e6bf096af1832000000063556ecf3000000063556ecf3e60a9432d9cb236c149c3e433d8c024b39e008aee6ef8a2535dc316d91a6fdc0000000035c47104c000000035c47104ceb1df4f4fa5e4a9b9502be037f0afb7f003f0845c55d67eee76ba4b14553f0180000000ae9957b510000000ae9957b51000007809da105d3",
+      "input_hash": "31af94055afc12321448fb1345b3dd045692dc69e4f1356363305b857b4e065c",
+      "inputs": {
+        "epoch": 65407329,
+        "positions": [
+          {
+            "lp_stake_sats": "85291664592",
+            "rail_id": "d91cd5bf7b13ccd6b8b87ec541e3a99cfcb8d27d7043057b4bcaef4c3d105693",
+            "retained_fees_cum_sats": "98899850"
+          },
+          {
+            "lp_stake_sats": "315650772",
+            "rail_id": "22db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e099",
+            "retained_fees_cum_sats": "552125462"
+          },
+          {
+            "lp_stake_sats": "46007373614",
+            "rail_id": "5a83599e89034ed73fbd2f81f34e1e76584c378d1c1018887991c1cfb7a9fb22",
+            "retained_fees_cum_sats": "61459646"
+          },
+          {
+            "lp_stake_sats": "13257294867",
+            "rail_id": "56b1b6cd249e9c91d4f6c7ed4f5acc808b9922bb81f1aaab870417f63175a20f",
+            "retained_fees_cum_sats": "349902087"
+          },
+          {
+            "lp_stake_sats": "28529731393",
+            "rail_id": "e60a9432d9cb236c149c3e433d8c024b39e008aee6ef8a2535dc316d91a6fdc0",
+            "retained_fees_cum_sats": "336394584"
+          },
+          {
+            "lp_stake_sats": "25411136350",
+            "rail_id": "997d2c9fbeea2fef336f7cb4e2b615f40df6aa23a33ca9dd607689011c698695",
+            "retained_fees_cum_sats": "725470569"
+          },
+          {
+            "lp_stake_sats": "48390063710",
+            "rail_id": "6626fcb7f94c8aa379ef0168121663effcf8fab2eef9abfb0a760148ffd37cc0",
+            "retained_fees_cum_sats": "175009384"
+          },
+          {
+            "lp_stake_sats": "92868902149",
+            "rail_id": "eb1df4f4fa5e4a9b9502be037f0afb7f003f0845c55d67eee76ba4b14553f018",
+            "retained_fees_cum_sats": "868219294"
+          },
+          {
+            "lp_stake_sats": "73486090031",
+            "rail_id": "5d92b7e2698f038743067aa8545ace55e5c787cdcd9381206c7a843904908d7b",
+            "retained_fees_cum_sats": "384794735"
+          },
+          {
+            "lp_stake_sats": "11597815884",
+            "rail_id": "6a7fb48618a4fd2d4c7a53a5ff5dfb9c77ff69b2f11143ec59cb580d3764d8b1",
+            "retained_fees_cum_sats": "418407942"
+          },
+          {
+            "lp_stake_sats": "74274951027",
+            "rail_id": "02890e1204017e70758fd9a49cd5c0c84622a38f982ee0f8e7f5b367f3a90621",
+            "retained_fees_cum_sats": "602298846"
+          },
+          {
+            "lp_stake_sats": "98908339636",
+            "rail_id": "06d68de9a0a8bb8d09116e320cccaf55be8671e0d71f92533a42de2e38937d9e",
+            "retained_fees_cum_sats": "190069005"
+          },
+          {
+            "lp_stake_sats": "52886060501",
+            "rail_id": "dd20f07cb1d4f07a44a6ff52c7a9a9cf6bb13ea0cbbf0f7cd33e6bf096af1832",
+            "retained_fees_cum_sats": "443325458"
+          }
+        ],
+        "reserve_total_sats": "8577197509710"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_0",
+      "plan_hash": "17164070f80505fa0287ddd84208855a01a819cba9d8812c6976a598b00b8366",
+      "unallocated_sats": "8248981784019"
+    },
+    {
+      "encoding_hex": "a614bc41000002b936e3e1423197199b4e4cab083c6bbed07c8bba30bdfc917694034029e7ecc0ece0721171050b0def52a2a33b9fbe482604cdcd95413a9439335f9881c0396597cc54500584000000009d82ace1000000009d82ace14c9ad7fc59263482acb83f24cec0bbc664229c844a3bbb415033db9fdb9ecad700000001ccbb05b800000001ccbb05b88cd310c992cb8e5f60f2e3f00dd1dc96b03cddca67217a183826410c96405f6d000000033468cb55000000033468cb559e5496ce8ea807094e36a4e8e05549528e188aeaba1dc6ea62e465049e27143c0000000631a3a80e0000000631a3a80ece1ddbf1ecdbc1c45ab93e1306be6f7ce13740915397294600f70bf261a3c5c60000000630cc7d4f0000000630cc7d4f000002a735cd3df7",
+      "input_hash": "3197199b4e4cab083c6bbed07c8bba30bdfc917694034029e7ecc0ece0721171",
+      "inputs": {
+        "epoch": 2786376769,
+        "positions": [
+          {
+            "lp_stake_sats": "14682876232",
+            "rail_id": "4c9ad7fc59263482acb83f24cec0bbc664229c844a3bbb415033db9fdb9ecad7",
+            "retained_fees_cum_sats": "776675880"
+          },
+          {
+            "lp_stake_sats": "52617214946",
+            "rail_id": "9e5496ce8ea807094e36a4e8e05549528e188aeaba1dc6ea62e465049e27143c",
+            "retained_fees_cum_sats": "588010554"
+          },
+          {
+            "lp_stake_sats": "27448831958",
+            "rail_id": "8cd310c992cb8e5f60f2e3f00dd1dc96b03cddca67217a183826410c96405f6d",
+            "retained_fees_cum_sats": "79537877"
+          },
+          {
+            "lp_stake_sats": "4305821453",
+            "rail_id": "0b0def52a2a33b9fbe482604cdcd95413a9439335f9881c0396597cc54500584",
+            "retained_fees_cum_sats": "979352246"
+          },
+          {
+            "lp_stake_sats": "52502901173",
+            "rail_id": "ce1ddbf1ecdbc1c45ab93e1306be6f7ce13740915397294600f70bf261a3c5c6",
+            "retained_fees_cum_sats": "674121961"
+          }
+        ],
+        "reserve_total_sats": "2994513109314"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_1",
+      "plan_hash": "4c9ea93df1b480aad04ef1321d1ed80c132aa607b2a1ebcd0c897491cb5add9c",
+      "unallocated_sats": "2917185437175"
+    },
+    {
+      "encoding_hex": "14d927ab00000400bac72c934327728a3c3f26233bfc0c99b582bd17852f6968455990910557dd89f6866f920c00ed7315e792dc3b6e2c091212b775b7573e2b48aadbd9058969c32fa7bb5264000000093455b20e000000093455b20e0c77c4353a9e734e3d00f0134947cf7982b2b255b9aece50f34a17e0bff5c74b0000000a7e52bcbb0000000a7e52bcbb1199de332e6f88accd02e720023bf2875f35f6cbfbd4a1403b51b5ab180693530000000b6e63254a0000000b6e63254a2f4f2da7b7562a28bc3effb55a7378b2d748e832ea6120978edfe4bca567e80e0000000141e386850000000141e386852f94e2ff4666d775516f828a6fb74026bb3742c55b5b6950713730166dfb586f0000000188c5a82b0000000188c5a82b5111b426aae86236b2acc7315dc5945a44e4f7bac3f4d49831cc4cf32a8345220000000aae88cbed0000000aae88cbed89e528febd7257c7d45fd79217799286eee48cb3f7f38067077f03e0249b663700000005b35b54b500000005b35b54b5b8a016f9329fb03f22663ecb01c82dc9f721beb8bddb864c742777e93c96f2fd00000008a31be8c000000008a31be8c0c2c3ff8a1d62639bf5e02d6d98c9080fd1f1b155c94d457736582e70c18aed580000000076cc7f110000000076cc7f11d41a54f33084cf11cb4719f499a8dda317e0196a5799e96db5a2bcf2134aa93b000000062961af1e000000062961af1ed8d2164a94d5fde26b303e09dd7c3336ece5f0ea209b2fe37eab1740802949be00000006095c2d1100000006095c2d11fcd44ff62336fbe04c5b31dbe05665cc6a51f59096d2067e782adf506213f86500000005b0d7deea00000005b0d7deea000003b36fb02644",
+      "input_hash": "4327728a3c3f26233bfc0c99b582bd17852f6968455990910557dd89f6866f92",
+      "inputs": {
+        "epoch": 349775787,
+        "positions": [
+          {
+            "lp_stake_sats": "91423923549",
+            "rail_id": "5111b426aae86236b2acc7315dc5945a44e4f7bac3f4d49831cc4cf32a834522",
+            "retained_fees_cum_sats": "331823741"
+          },
+          {
+            "lp_stake_sats": "12325098526",
+            "rail_id": "2f94e2ff4666d775516f828a6fb74026bb3742c55b5b6950713730166dfb586f",
+            "retained_fees_cum_sats": "854146104"
+          },
+          {
+            "lp_stake_sats": "47908275886",
+            "rail_id": "fcd44ff62336fbe04c5b31dbe05665cc6a51f59096d2067e782adf506213f865",
+            "retained_fees_cum_sats": "975271719"
+          },
+          {
+            "lp_stake_sats": "89367478524",
+            "rail_id": "0c77c4353a9e734e3d00f0134947cf7982b2b255b9aece50f34a17e0bff5c74b",
+            "retained_fees_cum_sats": "770570362"
+          },
+          {
+            "lp_stake_sats": "10755917441",
+            "rail_id": "2f4f2da7b7562a28bc3effb55a7378b2d748e832ea6120978edfe4bca567e80e",
+            "retained_fees_cum_sats": "44877449"
+          },
+          {
+            "lp_stake_sats": "78794042477",
+            "rail_id": "00ed7315e792dc3b6e2c091212b775b7573e2b48aadbd9058969c32fa7bb5264",
+            "retained_fees_cum_sats": "271431600"
+          },
+          {
+            "lp_stake_sats": "97257068459",
+            "rail_id": "1199de332e6f88accd02e720023bf2875f35f6cbfbd4a1403b51b5ab18069353",
+            "retained_fees_cum_sats": "936194794"
+          },
+          {
+            "lp_stake_sats": "47993531083",
+            "rail_id": "89e528febd7257c7d45fd79217799286eee48cb3f7f38067077f03e0249b6637",
+            "retained_fees_cum_sats": "974356128"
+          },
+          {
+            "lp_stake_sats": "52000154559",
+            "rail_id": "d41a54f33084cf11cb4719f499a8dda317e0196a5799e96db5a2bcf2134aa93b",
+            "retained_fees_cum_sats": "927988349"
+          },
+          {
+            "lp_stake_sats": "73399671097",
+            "rail_id": "b8a016f9329fb03f22663ecb01c82dc9f721beb8bddb864c742777e93c96f2fd",
+            "retained_fees_cum_sats": "792836167"
+          },
+          {
+            "lp_stake_sats": "3938556142",
+            "rail_id": "c2c3ff8a1d62639bf5e02d6d98c9080fd1f1b155c94d457736582e70c18aed58",
+            "retained_fees_cum_sats": "47670580"
+          },
+          {
+            "lp_stake_sats": "51711414416",
+            "rail_id": "d8d2164a94d5fde26b303e09dd7c3336ece5f0ea209b2fe37eab1740802949be",
+            "retained_fees_cum_sats": "142264723"
+          }
+        ],
+        "reserve_total_sats": "4401180126355"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_2",
+      "plan_hash": "0086f5d5af9c66d4974d0acef5fc7adee899cc0134a55118f9ad0d7f9fecc3fa",
+      "unallocated_sats": "4069207844420"
+    },
+    {
+      "encoding_hex": "46c722f2000005689383e795f9477f7332edbc29cc98d65d32596f4fa1b769b91dbe7ddddc7a48a40793430908062a7214886078d88f48682386e688a61e39bc2ba53e9f40a029fb5a29df3e9c00000003af6c80ff00000003af6c80ff070af4c39d992319a4b51990a4f13bcdf320acccf8553ca7c38619d77d2ec094000000052654b30a000000052654b30a579c8944498c787395e66e8d02b745f6a7e4c5e8d7efdce41b04a1520fa320440000000605fc4ed90000000605fc4ed958b17a09d5edc5aceb25cbfa16612fd4e372e7d6fb2b37563386d48ab8de201600000001dc6ef63400000001dc6ef63465e57a1077c1670977205c15a72cff36997d8257912738190ff2d7657ff5a53500000005f476d57f00000005f476d57fd7222e2b6f0c615e8029fe5edbe5aa5f4ef100d1609eee99be0c3b43e3783e3d0000000ad0a6498a0000000ad0a6498aed3b323b76c1f558b92550ab38ab67bd1503a10c6c6258a0d27947aeb5010161000000014460d6e4000000014460d6e4f702674950e72e6c8abdf1a59cae0d616a9cfdacb5063f6a0d8422faca56973000000000aa1972af00000000aa1972af0000054527c005e3",
+      "input_hash": "f9477f7332edbc29cc98d65d32596f4fa1b769b91dbe7ddddc7a48a407934309",
+      "inputs": {
+        "epoch": 1187455730,
+        "positions": [
+          {
+            "lp_stake_sats": "43892067836",
+            "rail_id": "070af4c39d992319a4b51990a4f13bcdf320acccf8553ca7c38619d77d2ec094",
+            "retained_fees_cum_sats": "343775257"
+          },
+          {
+            "lp_stake_sats": "50978912232",
+            "rail_id": "579c8944498c787395e66e8d02b745f6a7e4c5e8d7efdce41b04a1520fa32044",
+            "retained_fees_cum_sats": "761537995"
+          },
+          {
+            "lp_stake_sats": "92296681573",
+            "rail_id": "d7222e2b6f0c615e8029fe5edbe5aa5f4ef100d1609eee99be0c3b43e3783e3d",
+            "retained_fees_cum_sats": "603781808"
+          },
+          {
+            "lp_stake_sats": "15759634150",
+            "rail_id": "58b17a09d5edc5aceb25cbfa16612fd4e372e7d6fb2b37563386d48ab8de2016",
+            "retained_fees_cum_sats": "226819458"
+          },
+          {
+            "lp_stake_sats": "5332719561",
+            "rail_id": "f702674950e72e6c8abdf1a59cae0d616a9cfdacb5063f6a0d8422faca569730",
+            "retained_fees_cum_sats": "374869398"
+          },
+          {
+            "lp_stake_sats": "10091613968",
+            "rail_id": "ed3b323b76c1f558b92550ab38ab67bd1503a10c6c6258a0d27947aeb5010161",
+            "retained_fees_cum_sats": "792714936"
+          },
+          {
+            "lp_stake_sats": "50443921756",
+            "rail_id": "65e57a1077c1670977205c15a72cff36997d8257912738190ff2d7657ff5a535",
+            "retained_fees_cum_sats": "708608419"
+          },
+          {
+            "lp_stake_sats": "30801063834",
+            "rail_id": "062a7214886078d88f48682386e688a61e39bc2ba53e9f40a029fb5a29df3e9c",
+            "retained_fees_cum_sats": "854987365"
+          }
+        ],
+        "reserve_total_sats": "5946709632917"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_3",
+      "plan_hash": "7bd5c56e9344302c2a88d587b27b2ad883daf526caea8d0097b555204104eb44",
+      "unallocated_sats": "5794577778147"
+    },
+    {
+      "encoding_hex": "0adb567c000008098abbb9f9ef4af5b5230cc899df4d4254e1d4fb9de2f19e596d779a70153289119d64621409322d0fe30aa24205b46d6195749e605b704a31f681cc6eb3cdf5a829e4c41f76000000043b5eccd4000000043b5eccd469b6cbfc8f55cf2934921e1f8a0dee512d5ae8c2305f4b9f532ad78529345f5600000000713eeff600000000713eeff67b85c50c3e084e4a3991e961cf2b9edc0b26f2b1968cc046183a6b7df46b914200000006f3d4bf3500000006f3d4bf35a211ccc69c3cb764aeca4731b1d665e59d50cc875072e6fa04810ee6acbd76e8000000026a228111000000026a228111a87ee42e7891d630a1d5509ce4ae761e39618f4d7756086236d736ec243f2ad3000000031339bff9000000031339bff9c79a5f48f24cf81da1d9ebecfae85e09831d6314a88f77d2e3e163114927f956000000089ccc7962000000089ccc7962dfc256bc81461fac8290bbbd35fc578ce5def97d4567f838d2f7a0f29be01104000000069b16c4cb000000069b16c4cbf1815d9d314b7f34a0b6717992edd7e0045b120ed7516635a5717ee44b60881e000000070f2396c6000000070f2396c6f5564e889d775b9691491335f08001a92b2897c006bad80e4a1899340dcab40900000000ef5cd6e700000000ef5cd6e7000007e136895116",
+      "input_hash": "ef4af5b5230cc899df4d4254e1d4fb9de2f19e596d779a70153289119d646214",
+      "inputs": {
+        "epoch": 182146684,
+        "positions": [
+          {
+            "lp_stake_sats": "35766954136",
+            "rail_id": "322d0fe30aa24205b46d6195749e605b704a31f681cc6eb3cdf5a829e4c41f76",
+            "retained_fees_cum_sats": "584921360"
+          },
+          {
+            "lp_stake_sats": "20021084537",
+            "rail_id": "a211ccc69c3cb764aeca4731b1d665e59d50cc875072e6fa04810ee6acbd76e8",
+            "retained_fees_cum_sats": "720076970"
+          },
+          {
+            "lp_stake_sats": "60041974369",
+            "rail_id": "f1815d9d314b7f34a0b6717992edd7e0045b120ed7516635a5717ee44b60881e",
+            "retained_fees_cum_sats": "595548972"
+          },
+          {
+            "lp_stake_sats": "7413900573",
+            "rail_id": "f5564e889d775b9691491335f08001a92b2897c006bad80e4a1899340dcab409",
+            "retained_fees_cum_sats": "617777329"
+          },
+          {
+            "lp_stake_sats": "26231370466",
+            "rail_id": "a87ee42e7891d630a1d5509ce4ae761e39618f4d7756086236d736ec243f2ad3",
+            "retained_fees_cum_sats": "183536913"
+          },
+          {
+            "lp_stake_sats": "56008373434",
+            "rail_id": "dfc256bc81461fac8290bbbd35fc578ce5def97d4567f838d2f7a0f29be01104",
+            "retained_fees_cum_sats": "735155420"
+          },
+          {
+            "lp_stake_sats": "59651352621",
+            "rail_id": "7b85c50c3e084e4a3991e961cf2b9edc0b26f2b1968cc046183a6b7df46b9142",
+            "retained_fees_cum_sats": "69867069"
+          },
+          {
+            "lp_stake_sats": "73255527548",
+            "rail_id": "c79a5f48f24cf81da1d9ebecfae85e09831d6314a88f77d2e3e163114927f956",
+            "retained_fees_cum_sats": "725241417"
+          },
+          {
+            "lp_stake_sats": "3557579367",
+            "rail_id": "69b6cbfc8f55cf2934921e1f8a0dee512d5ae8c2305f4b9f532ad78529345f56",
+            "retained_fees_cum_sats": "242320773"
+          }
+        ],
+        "reserve_total_sats": "8837075286521"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_4",
+      "plan_hash": "50bca8002a8abc7b55cfc43860a2636adbecc3951790cc5daf28f13a73cc30f6",
+      "unallocated_sats": "8663864004886"
+    },
+    {
+      "encoding_hex": "8173ec94000004be62b714442fde9b82f7688faa8de0dbcf8929160b7d3d325566d8a271416dfe1ab7e621d60464b600dc410d6d6425e30f10edb3fffa788249c1d82ae7ab687be7177f470e5a00000007cb92fa1000000007cb92fa109957833dde90df24b660959c0b88669bc6ec80b59b01eda0845386a0a5027a93000000033db333e4000000033db333e49dc353581cb09bc427e674caff80047087435f6101a3927c0dd742aa704316e9000000053bb92354000000053bb92354fbf0d85f01aedd65f5cb13692780644a1cec8fec9c4f519903cfa62dbb88144200000009bf1d3d6d00000009bf1d3d6d000004a45e9a858f",
+      "input_hash": "2fde9b82f7688faa8de0dbcf8929160b7d3d325566d8a271416dfe1ab7e621d6",
+      "inputs": {
+        "epoch": 2171858068,
+        "positions": [
+          {
+            "lp_stake_sats": "44104095255",
+            "rail_id": "9dc353581cb09bc427e674caff80047087435f6101a3927c0dd742aa704316e9",
+            "retained_fees_cum_sats": "849555602"
+          },
+          {
+            "lp_stake_sats": "27540370026",
+            "rail_id": "9957833dde90df24b660959c0b88669bc6ec80b59b01eda0845386a0a5027a93",
+            "retained_fees_cum_sats": "299742558"
+          },
+          {
+            "lp_stake_sats": "66709534772",
+            "rail_id": "64b600dc410d6d6425e30f10edb3fffa788249c1d82ae7ab687be7177f470e5a",
+            "retained_fees_cum_sats": "250821612"
+          },
+          {
+            "lp_stake_sats": "83660812219",
+            "rail_id": "fbf0d85f01aedd65f5cb13692780644a1cec8fec9c4f519903cfa62dbb881442",
+            "retained_fees_cum_sats": "61328159"
+          }
+        ],
+        "reserve_total_sats": "5215746462788"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_5",
+      "plan_hash": "a11337ff04f90c7c76e74ea5521094d050d6c396135a6c9c8f0234207575ad12",
+      "unallocated_sats": "5104008332687"
+    },
+    {
+      "inputs": {
+        "asset_id": "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb",
+        "script_key_xonly": "7c79b9b26e463895eef5679d8558942c86c4ad2233adef01bc3e6d540b3653fe",
+        "txid_wire": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+        "vout": 1
+      },
+      "kind": "burn_key",
+      "name": "burn_key_0",
+      "output": "f855f4942ec00540ea3b7df97e14a366fb1d842437aa5d18c6b1e7647d987bff"
+    },
+    {
+      "inputs": {
+        "asset_id": "3760e76ea2287e5b707d709078b7fe8322b4abb21b85db16aa964c951349dab2",
+        "script_key_xonly": "f42b9a1d259dd7e208e4d13492e141c14456540c8434898c7b124d81dbb83410",
+        "txid_wire": "b9ff17764107d73427997748ca3912f06df67faa30a07599c53795e5d2e13cf4",
+        "vout": 89472037
+      },
+      "kind": "burn_key",
+      "name": "burn_key_1",
+      "output": "b6c1e0c9476513ecb469792b3bde43ae7197b01f0c77ac9b11454544df3e3039"
+    },
+    {
+      "inputs": {
+        "asset_id": "63ddad87e9c9e40aac7de711d45281bdcfca2675a7f693fb731d70c6b851c15f",
+        "script_key_xonly": "99e5659163148c0cedd7715887916c2877a177f05a0b2ca254b1c24d877da298",
+        "txid_wire": "8f48706b753171caf51975990b034b083a134fd5a86f33e21fe25d15f0e457c5",
+        "vout": 894528365
+      },
+      "kind": "burn_key",
+      "name": "burn_key_2",
+      "output": "1bf69ef48e054c340b5c749f7270c4551b945666ee4f470ba9857e28818a2e80"
+    },
+    {
+      "inputs": {
+        "asset_id": "318281e87715ac36dfc2f9954f16f55030b548de340aa4ff9853a2ae54646e4b",
+        "script_key_xonly": "046697d86588f3e8647fa6ad71ca4ba91baeb1be50aa76048679ade1ba271115",
+        "txid_wire": "9fc17b8f5034d9717d5befc73b54e6a4ea2b6dde03ab8268f4e720ce7a79f94c",
+        "vout": 1784002022
+      },
+      "kind": "burn_key",
+      "name": "burn_key_3",
+      "output": "6b430514b79e4427be4bf75f34988be94b5b66a1800ebe339cb670a050376c75"
+    },
+    {
+      "inputs": {
+        "asset_id": "c24710fa3beb4ff046db60bb990712c54e9a9dc47d8e302bb98eba074e2dff1e",
+        "script_key_xonly": "c3c5c6634c8e163d076d6e36195367c34c4ab373bde4adab840aae5d8be9f9e4",
+        "txid_wire": "5ce06e2a72bf3296c9dda532debab986eed444a07f4633e220731371a551c40a",
+        "vout": 1770165220
+      },
+      "kind": "burn_key",
+      "name": "burn_key_4",
+      "output": "3842fb1a517dac1d5fae6bef35c34d960b259154214220db585de75cf76c3ef0"
+    },
+    {
+      "inputs": {
+        "asset_id": "f8f34fefb849c625ae8d5c9996fab9d976aae4dc8aaec37f21aaac2ead991f6b",
+        "script_key_xonly": "fad9bb41bdc66eef20f4bc6d7fd8fee1c618c75389fdf10742a76433a897998d",
+        "txid_wire": "9d5e47b74898832147c6add53456d635c52ab42ae24fbef5f9fab1623b49fb03",
+        "vout": 1588112123
+      },
+      "kind": "burn_key",
+      "name": "burn_key_5",
+      "output": "a620cd3f63b435a748cc44437aaa930638bf5b24810449641bfafe77d0a7bfc8"
+    },
+    {
+      "inputs": {
+        "asset_id": "cdccb0ebd2ed05da4b2e3b2b8525e74b77bcae0e8c065b0041132f9fec67fddc",
+        "script_key_xonly": "3805f3c66062a3938d68d609465bdde281cc3721c92e4de83c93b0c85e14b86d",
+        "txid_wire": "b34b951b33c48f078233f53fa482ed43a956ee9b1d2c7a0079eaedb010609054",
+        "vout": 1016108494
+      },
+      "kind": "burn_key",
+      "name": "burn_key_6",
+      "output": "6bbc6e17831155b02de7b77429e40b9fdd39b00a3f628a3b3d85ee5dc8eac410"
+    },
+    {
+      "inputs": {
+        "asset_id": "bd737ad753311e891587cd6426e85bfc34aeaa524b4cd0d73fce7a0bbf50214d",
+        "script_key_xonly": "44463a436f15abaf71261bef8c1449f118b2ffa743daca091451e9c356676f79",
+        "txid_wire": "d916c18acf7d1e13d3816c08f0fed238ff02a19d1bdcda33733915cee0951bee",
+        "vout": 4248819897
+      },
+      "kind": "burn_key",
+      "name": "burn_key_7",
+      "output": "cb378bddbc46962a72c2a8be3311710cd3294f62ced10c4c536adf7406ec1e92"
+    },
+    {
+      "digits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "inputs": {
+        "price_usd": 0
+      },
+      "kind": "oracle_digits",
+      "name": "oracle_digits_0",
+      "recomposed": 0
+    },
+    {
+      "digits": [
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        1
+      ],
+      "inputs": {
+        "price_usd": 1
+      },
+      "kind": "oracle_digits",
+      "name": "oracle_digits_1",
+      "recomposed": 1
+    },
+    {
+      "digits": [
+        0,
+        0,
+        0,
+        0,
+        1,
+        1,
+        1,
+        0,
+        1,
+        0,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1,
+        0,
+        1,
+        1
+      ],
+      "inputs": {
+        "price_usd": 60123
+      },
+      "kind": "oracle_digits",
+      "name": "oracle_digits_2",
+      "recomposed": 60123
+    },
+    {
+      "digits": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "inputs": {
+        "price_usd": 1048575
+      },
+      "kind": "oracle_digits",
+      "name": "oracle_digits_3",
+      "recomposed": 1048575
+    },
+    {
+      "digits": [
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1,
+        1
+      ],
+      "inputs": {
+        "price_usd": 4294967295
+      },
+      "kind": "oracle_digits",
+      "name": "oracle_digits_4",
+      "recomposed": 1048575
+    },
+    {
+      "inputs": {
+        "digit_index": 0,
+        "event_id": "SatUSD/BTCUSD/1700000000",
+        "seed": "0707070707070707070707070707070707070707070707070707070707070707"
+      },
+      "kind": "oracle_nonce",
+      "name": "oracle_nonce_0",
+      "output": "9cf4c1b173dc12c5e81e25b103cc3ce725c6b45c5224ff779e334fc2244d4352"
+    },
+    {
+      "inputs": {
+        "digit_index": 19,
+        "event_id": "SatUSD/BTCUSD/1700000000",
+        "seed": "0707070707070707070707070707070707070707070707070707070707070707"
+      },
+      "kind": "oracle_nonce",
+      "name": "oracle_nonce_1",
+      "output": "a29d6d14ef5fbfe7084ca7ee61f5e4d4c14574c551cb4f72f800fc65dd6915aa"
+    },
+    {
+      "inputs": {
+        "digit_index": 7,
+        "event_id": "SatUSD/BTCUSD/1800000000",
+        "seed": "0909090909090909090909090909090909090909090909090909090909090909"
+      },
+      "kind": "oracle_nonce",
+      "name": "oracle_nonce_2",
+      "output": "5ba0562c71346e9ab1b8a5d2dfc18bfe9efc92ada105ec49ea0a874cf1d74747"
+    },
+    {
+      "inputs": {
+        "digit": 0
+      },
+      "kind": "attestation_msg",
+      "name": "attestation_msg_0",
+      "output": "2012241bd361f299bb727af5f402c41af84d01268e571d45753bb14fd61391f3"
+    },
+    {
+      "inputs": {
+        "digit": 1
+      },
+      "kind": "attestation_msg",
+      "name": "attestation_msg_1",
+      "output": "00be2b1d8b6da97d5c26e826c2dc7647adfec2ff107d1e4d8ea8041ed8d29453"
+    },
+    {
+      "announcement_tlv_hex": "fdd824fd031a8285c223744ad3fec0039320dd602c464f18edcfa00efa7e3ef2acbf6c837001a0cc1cda4d97a949c3c79641a122b6ef4bcf1efead1ef5f2d6a329c744d4df855df2bfd1d8aabf9612c6f3d77349b700fe3011b4b635f04e2f09f3c4159b7b9efdd822fd02b40014e9454911ee93c2a56bbd20be5fa1b7b7b8f94f5b8698722103b35c1ae695216a364e09c2ddf503effd4c8bd24f20ec7ddb294b716d3794c709746a41e32aae02b4d7b7e329188fae6a5220b92db11b35b02d296783caaedeb3a39dc610a8618fb6ba0adf4f6249d1eb7701ae9d0ac5d9d5821fd3dc6c101f29545f20756d83fea6ac68f3572277529e73523f7be4563072b6ad3c4e993b83971b3fb2585f229dc1128483b0f1722433b4a20641ac6d88d9b8c0bbc34544ed462f966f30400a574f929449ccdbe89a9bb67114173e4ea7c553d35d9dfd8a660ed94a31ea304b83fbc3eeb2152d3137e16b18d2f6ba1f1110269dba5ed23fa0730c6e605cd562dcdcfa6c71fa7d2646eb0577f4fd129b6392af7797f1150767699b92b08e32081f8f268132bb66e945739bb52b523824cb71a2f365a6ae13a5efb357822085c9968d0c42583c791ce72e6d3c67848a655da6475dd248108f2c9bbe7a06322a239fcbcf946832b8d351909f25fa0abaa8d917e7f78efd92b18600c3d1a724e2b3afe755afe60b90497892106210a3947d903d6647d2f350ae3e4a493e3c320e3ab96d0212e77b4f9975ab74231957db4f4d06c8d77a52a0b6a09169f2bb746e0063100962b2b0fe7dc918104d1845c0b812a9755e9e119800dc57b0ae530dd30fcc57243a2395540e265a01ca19edd400b027aeeb8c296412354d49b2d8c9e801883fa9047d41d0fd3c8d02bdfbb673f87e7cd1cfd14bee78d9e91cbac68f960011c6757ced67a47738ef9e420ad0f728a202a903e6a136bb4e031e0477bbe8e2bfa75f031963ba5807964e1aa5de85f85f7a80e8040fd07fc93456f1a1272156a14563499ba14d7c24ed952725f0e42f754eb685e6f7fa99603071dce9cec315526553f100fdd80a11000200075553442f425443000000000014185361745553442f4254435553442f31373030303030303030",
+      "attestation_tlv_hex": "fdd868fd0563185361745553442f4254435553442f313730303030303030305df2bfd1d8aabf9612c6f3d77349b700fe3011b4b635f04e2f09f3c4159b7b9e0014e9454911ee93c2a56bbd20be5fa1b7b7b8f94f5b8698722103b35c1ae695216ab0ed8722e42aeb869dec040400e09887d1599f7a55c769e3185d567f6e857a07364e09c2ddf503effd4c8bd24f20ec7ddb294b716d3794c709746a41e32aae026742d067e1b4cbda520a479470acec49a2a1d9087949d6bdc7da806c4e114b64b4d7b7e329188fae6a5220b92db11b35b02d296783caaedeb3a39dc610a8618fa4dececdb810b94b307041fd877218d4da03c241d562619d467826f0f74c1f11b6ba0adf4f6249d1eb7701ae9d0ac5d9d5821fd3dc6c101f29545f20756d83feaa1ff823ea10a1414bf7d78bb461aa1d78c471b0a9690cf37a97549519eb0015a6ac68f3572277529e73523f7be4563072b6ad3c4e993b83971b3fb2585f229db2ebd4ecd9b92888f811421ace9686dcbb364e01e7e5f309084d3bc57d3b3c15c1128483b0f1722433b4a20641ac6d88d9b8c0bbc34544ed462f966f30400a57807f57c284f636e6227ab1e95af7930fdc3fca0534833b7140f1761298806ff24f929449ccdbe89a9bb67114173e4ea7c553d35d9dfd8a660ed94a31ea304b831981bf5717df17e12ce7f128e5df5c73b6af66ed4913719b2b7ba6ebe5927a30fbc3eeb2152d3137e16b18d2f6ba1f1110269dba5ed23fa0730c6e605cd562dc5bbc4a1cd8a0a438b9c3cc676db364c72c2eb2b394efdb3175ccb0b99dd79b2bdcfa6c71fa7d2646eb0577f4fd129b6392af7797f1150767699b92b08e32081f678fd814a0e0d9b4f3a747c3fbeb7460c1edd43c35a2e39976a88e09010a472b8f268132bb66e945739bb52b523824cb71a2f365a6ae13a5efb357822085c996f24953f0ff25ac00ba3e865106c7299e059257e1f79530ac31bb240e1eb3c2888d0c42583c791ce72e6d3c67848a655da6475dd248108f2c9bbe7a06322a239f37020ca321ab2c758df05b3950c9283685ace4662b023ffdf4819ca316576f0dcbcf946832b8d351909f25fa0abaa8d917e7f78efd92b18600c3d1a724e2b3af652fc0e6a74ed949f6e387ba56d04f2b35e34ea68e66ef29cdb12a9093285f79e755afe60b90497892106210a3947d903d6647d2f350ae3e4a493e3c320e3ab94c0665d6ac02a730e484f1d47be1caa60f620e074b45d308882f0f542108e6ae6d0212e77b4f9975ab74231957db4f4d06c8d77a52a0b6a09169f2bb746e00636915b02b82b937577f94493b067cb9998860c3e61981689551f1f516eb98a3c3100962b2b0fe7dc918104d1845c0b812a9755e9e119800dc57b0ae530dd30fcc597f2e4f2ea40a0e10bc5d81cdcfa132adf2001dcbf6b7946b46a8711ecf1dd857243a2395540e265a01ca19edd400b027aeeb8c296412354d49b2d8c9e80188b409210f4cf8968b7907e9c05cd49b12c6fc7520a9ae7b278eabdcfc53f7e6b63fa9047d41d0fd3c8d02bdfbb673f87e7cd1cfd14bee78d9e91cbac68f960011c6dad07f252cd1159475d0c99362f9033103657c4c6c96894d724d5414d537a4c6757ced67a47738ef9e420ad0f728a202a903e6a136bb4e031e0477bbe8e2bfce17aea0a07dcfb550c65a0a780092b23bd9fd086e9144f271361c0e7d0b2582a75f031963ba5807964e1aa5de85f85f7a80e8040fd07fc93456f1a1272156a169504860fe9b078b3183c0205058f802e8990ab5c9b99007487749da13134b2a4563499ba14d7c24ed952725f0e42f754eb685e6f7fa99603071dce9cec31552a60980d40161fa34fcea3f02ddf322432409b62fbc7f5aae951b409c67bbae5401300130013001300131013101310130013101300131013001310131013001310131013001310131",
+      "inputs": {
+        "master_seed": "2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a2a",
+        "price_usd": 60123,
+        "unix_ts": "1700000000"
+      },
+      "kind": "oracle_pair",
+      "name": "oracle_pair_0",
+      "pubkey": "5df2bfd1d8aabf9612c6f3d77349b700fe3011b4b635f04e2f09f3c4159b7b9e"
+    },
+    {
+      "announcement_tlv_hex": "fdd824fd031ab7820806b639e9ccd6c6d377a09332ba82dff3c55367f06ce06d9e4dcfd3ecb7da56cf2ac0f694978e7ae21e0d680f8d7239398f2fb52a01778eb4cd1bd4ec8ac27cb8e3d3b67510b701b5ab50005d793ffb5c34fc74416c6a9e710476ad98b5fdd822fd02b4001470d7029c30bedcd89751425948481a8948ccabfccbbb3e4f11f8ca62405f00596ffa116c8cb66e8d469b828117da47fa01e8fe647669910ffacd6556addd3b27f69638752fe2d1e4d06630bdedd870a9146303ce3c5771f5b313bf334c61154c7a7f5cd9603e50e01141816b7943e23ceb32a9504651490dfc346cd48e75a92cdc1ed5a72743b042ba2a05875599671862f85cdb8d3536164386e5bacd50513d905d096e2a3ac3d505af645ea013e7b88e52100486af82c54e3f198e3c224385c466c5c42e59d78a872f786f56e3e985c50e153689d376cf604217fb5bc2607265b7787c98b50b2a00d2df753b19d4e0bc7d2cb6e99a1ed631c6b1391310c414f408a2a64b8ef2f92252a9cb03432ff41fce8d47d446061b101bc99db5b53fbecaeebc693f6be87c61cd2ec3a8a3145e3adadbc12103b243ef6d4ca833df85152764f487441a564e851abe7f910775c0a7d28a6bf38bf0d159badd4388bdb950e1d87693b23b7d377bc6aa580ee82fdadebd09207a72d5945108d8befa5c41db1f22f8c4c7fca88d423a5fa3c4af479f36c80f6756f0071bc16b16e0957dfaa57021e2103ff8c286c7338a386b3b7c4f69fdad4b46d84a6a84b3ff268fe3d7336765e74da437de796c71cf32ab972572f18bf6732a8d6a0acec46e5eaeb196fa801466d566771034ebc795f23892f78e2bb59b679a07d89deade51f864556a74766f8ce167beab4bf2d78db07b0e4a45615cd802376068315d60cc72109622dc26998166d9b6df225199e300e34a24da681ac071cd070909707d490a9db61c3800fc983c3338b4d5172e716d9d33bd01c97543dfe7167fc2a0ee339a47d3966b0126ce137ca92d3f58a3442864bdf82b2c7616e15deef3c9187bfe0c8c5c8b90684ee180fdd80a11000200075553442f425443000000000014185361745553442f4254435553442f31373530303030303030",
+      "attestation_tlv_hex": "fdd868fd0563185361745553442f4254435553442f31373530303030303030c27cb8e3d3b67510b701b5ab50005d793ffb5c34fc74416c6a9e710476ad98b5001470d7029c30bedcd89751425948481a8948ccabfccbbb3e4f11f8ca62405f0059b8284dd6264bb53a854689384ed865964f0314dce278a6102630465ce365e3846ffa116c8cb66e8d469b828117da47fa01e8fe647669910ffacd6556addd3b275631c98e98c6059317e7a40ec95a7879eb0a33b4c35a55c122666edf56e5c2faf69638752fe2d1e4d06630bdedd870a9146303ce3c5771f5b313bf334c61154c41892914a4fe1e7a59ba837037cd8a874d0e7719af746c62a7f24f1c67dcc4587a7f5cd9603e50e01141816b7943e23ceb32a9504651490dfc346cd48e75a92c665043a83aabd6f76a91dea3d39e7cda2308579956e7f6005817b27bc491500bdc1ed5a72743b042ba2a05875599671862f85cdb8d3536164386e5bacd50513db8c40ef6b67d58fa999e58be7471b594887ebdbf79ed152829a66136e3fe3418905d096e2a3ac3d505af645ea013e7b88e52100486af82c54e3f198e3c2243856d321da30c0dd192156ce1810fc0590c763040ebe6943657de72216bb9041b29c466c5c42e59d78a872f786f56e3e985c50e153689d376cf604217fb5bc26072d35fe35c093a7bf36c6aff15457ed9b5cf4028b7d8136119c5864f36f4d43aac65b7787c98b50b2a00d2df753b19d4e0bc7d2cb6e99a1ed631c6b1391310c41408878a2d931ee162d84d2d3742206047e30907c8ee5d20075ba122b75c891118f408a2a64b8ef2f92252a9cb03432ff41fce8d47d446061b101bc99db5b53fbe41ebabc5411bcbc78d9d0f44aa23eb30d20d6174401f0a55246ebf7470264e7dcaeebc693f6be87c61cd2ec3a8a3145e3adadbc12103b243ef6d4ca833df8515862bff5e1a78cd00dc94dbbf93b0d47968b67a32a17fee4d52b675e9ef1c62462764f487441a564e851abe7f910775c0a7d28a6bf38bf0d159badd4388bdb9504b060ecaa6a8ef0bea62ba421daf04018d45104513dc44ac2d5fb8bfaae583c8e1d87693b23b7d377bc6aa580ee82fdadebd09207a72d5945108d8befa5c41db21d58c8d360f7293519db16f3aa7dc9699e789ffa955192d53d463e5ed10d26a1f22f8c4c7fca88d423a5fa3c4af479f36c80f6756f0071bc16b16e0957dfaa561461745c6606e9413e4a34e4bc99a092f578f93e2f1f54913d65bbeb37aef9b7021e2103ff8c286c7338a386b3b7c4f69fdad4b46d84a6a84b3ff268fe3d733e7eb4ee6629b9561a15d202c87ce4e2162a0dbf94522f307b3ec6c3973242ed36765e74da437de796c71cf32ab972572f18bf6732a8d6a0acec46e5eaeb196fadaf1e5b91b968289fb7fcffa9642db3bc7c94d01437462edbf7780cadf44e95f801466d566771034ebc795f23892f78e2bb59b679a07d89deade51f864556a74d97027d9bcaded4a5adb68a6b569bda1fbbe7b5fd0a85af31639b37026e921aa766f8ce167beab4bf2d78db07b0e4a45615cd802376068315d60cc72109622dc859b21e5fe23a54f0a498b60bcfc2f261c3ba368a4f346491d3ed85389b7049e26998166d9b6df225199e300e34a24da681ac071cd070909707d490a9db61c3807af2a84640fe84caffbc21d5beb2f8f1acb44f2958ef8cb94e043c6b986738400fc983c3338b4d5172e716d9d33bd01c97543dfe7167fc2a0ee339a47d3966b3e229e05afa3da737266a5f22fe032da9d7cbd8fcec163ad7ef4e2c0c1796efd0126ce137ca92d3f58a3442864bdf82b2c7616e15deef3c9187bfe0c8c5c8b9054d09d3dde616093099c271d10ea00af5ffc12924e729cb64543867417c30a8f01300130013001300130013001300130013001300130013001300130013001300130013001300130",
+      "inputs": {
+        "master_seed": "0101010101010101010101010101010101010101010101010101010101010101",
+        "price_usd": 0,
+        "unix_ts": "1750000000"
+      },
+      "kind": "oracle_pair",
+      "name": "oracle_pair_1",
+      "pubkey": "c27cb8e3d3b67510b701b5ab50005d793ffb5c34fc74416c6a9e710476ad98b5"
+    },
+    {
+      "announcement_tlv_hex": "fdd824fd031a06a341e2c9dc426bc276563ab6d00247ff0fcb46ede28a9efa4483826c22d32c2583ac9e63b5223e485253fda527df05cd2e6654238645df139ad4431ba17ffa690993300e56d0c24d43aa3bc2d50e042c7124ff74087a10c09cf4d2a742016bfdd822fd02b40014bc82e391f5efb5f762580c0b2a4a5d1205c50a0a85741e4815b8ec156fb8ed6fd36a8914a89d239f12614f54b6493684309b87137bf59e8ff02e84be8bf8f0a26a4209c19cb311b5a7f33d69f020d43a5ebf197ff7d0241d7bafbb767eeb0355b613568f3e3f1b8dc611e2618790ef771a5346f88fd575bc8fa815255e71d9b1eef63321d04a5d7850f760520177488847c0048c0be38ad48c3c0a509b503c78cf563c8ebbed1f13ababe993659e80bc8891ade9274281dc342e746ab62ab3e97220b84017db8bff5296f4a476df357f4792d7d9b4a846600519eb109ca67a5d3aee841e4f98a453ac4c59c7ef9957b1af8b38e8d60b437727a159702492c6c3a31d3c718250b17fa5caac85aaf3c63acf51db6ec8830b8c20290673bf5d516163bb89e3b8b5bd40b064eac681d3bf97b087855fd2fb4c71389461176cdc4ccbfe84f3b51eaeaf6a10924557c1498aca988420e858c0faa45f7d841edaef529c43c2768de7387f48dfc7b2c23b74138a24e819ecf36ef8ec6db380ce0522e6525535ab4c43ab49161b8d2947a525263a2486734a4dc53282f96ea94894635078a116fe9b0c24d4e77e9988f5f12da23ec8c5beb9985bf52dba3dcf4573d80e60dcf1820f861e14e003d83908987cb84b561366b2f12371b113969316af7c352ef0ddf7c5a4ba103a9dbaa2e23df43f236a94f159b3e61d3896a0d1e91406bc1aea8ebf8ac76231a170f6882243fbcd4794407de382e72ebaf59a81781233e06bf2fb23f2d6a001319cf35743e09c5a60243cdf04786930d9ad7768d45aa19009c1a4219d375ea8419c25d689f0e1a3d80af1a7d63c86147e3a77d0c2110d191002363b16a5471cc75356be2875087f00eedc12dabce01b8822decfda234b91b86b49d200fdd80a11000200075553442f425443000000000014185361745553442f4254435553442f31383030303030303030",
+      "attestation_tlv_hex": "fdd868fd0563185361745553442f4254435553442f31383030303030303030690993300e56d0c24d43aa3bc2d50e042c7124ff74087a10c09cf4d2a742016b0014bc82e391f5efb5f762580c0b2a4a5d1205c50a0a85741e4815b8ec156fb8ed6fb4298a8b8296a1204645235e381d74d0c33a7a7b85c1622009257ddddd3101b8d36a8914a89d239f12614f54b6493684309b87137bf59e8ff02e84be8bf8f0a21c7f28dd8c1a00d54b631b57b9022ca2934747f447d0493f2973ac4830ac87536a4209c19cb311b5a7f33d69f020d43a5ebf197ff7d0241d7bafbb767eeb03553ef0562d457d88306c69659832ec829b87e922baa8ddc3a1e1b4a1072bacfb3eb613568f3e3f1b8dc611e2618790ef771a5346f88fd575bc8fa815255e71d9b101cb8b534fa7d9501b7c6759e5715113b48177ed92113cf3398e5dd12e91aeb3eef63321d04a5d7850f760520177488847c0048c0be38ad48c3c0a509b503c78ae0b615e31209464b1dd1fb741d74c775a010f4a813214afe16233d3db55d15bcf563c8ebbed1f13ababe993659e80bc8891ade9274281dc342e746ab62ab3e9e66cc5b38d881c8f8f9797dab71b8e2014620d330df7a8d4e0d5ca26ba4bbc8c7220b84017db8bff5296f4a476df357f4792d7d9b4a846600519eb109ca67a5d06fca29b8410c51158aaab7743d43fdd459c136813c6f99dc88573ae692a9b633aee841e4f98a453ac4c59c7ef9957b1af8b38e8d60b437727a159702492c6c39dd1c985ee4dc5a073a87ca0e4b7f812975524ef551c282a4d1d4370c0f0588da31d3c718250b17fa5caac85aaf3c63acf51db6ec8830b8c20290673bf5d51613aa039ca573c41b1841d4be064741103f642da2dd44b7afa71cb58eae005f7ab63bb89e3b8b5bd40b064eac681d3bf97b087855fd2fb4c71389461176cdc4ccb521eced497bf3269d0b08313e87db94cf1c1c248a638c3ba980ae846ca52d053fe84f3b51eaeaf6a10924557c1498aca988420e858c0faa45f7d841edaef529cdd4afa441f8dede79ce693704ac3618248cd78f78c0d5d9a23fe095845a6905843c2768de7387f48dfc7b2c23b74138a24e819ecf36ef8ec6db380ce0522e652fd7593e5399b098ba36d64037c143832fb86eba9b647e909a0bd09c2548f98da5535ab4c43ab49161b8d2947a525263a2486734a4dc53282f96ea948946350784ff7b62641b19124d815c88cd2a2911c48536e0c3e7a703a7516fecb9aa6f075a116fe9b0c24d4e77e9988f5f12da23ec8c5beb9985bf52dba3dcf4573d80e606bc0740aa97d8a8759b29de1d6469ab6d22284704da9847ac4929fff13959caddcf1820f861e14e003d83908987cb84b561366b2f12371b113969316af7c352e8d2d5860081f7ac18c010f7083a1cad08fa7e0a411f79f68aea3073a955a4be0f0ddf7c5a4ba103a9dbaa2e23df43f236a94f159b3e61d3896a0d1e91406bc1a865ec01a262bd117fb9e13c738c4f308105707f1e70e32bdeeae81886a42ab29ea8ebf8ac76231a170f6882243fbcd4794407de382e72ebaf59a81781233e06b4f71366db697f4a91285b1189fbfbadc231c60859677d0eb1c877abf33678b41f2fb23f2d6a001319cf35743e09c5a60243cdf04786930d9ad7768d45aa19009fb0421febaafea583e40e762bfa4259312994ded610fb483fcfbdd8deedd39f0c1a4219d375ea8419c25d689f0e1a3d80af1a7d63c86147e3a77d0c2110d19107eb82493bb004ebc97e721f12b2ef5ae88eecf5d28c523272b767658ed11268d02363b16a5471cc75356be2875087f00eedc12dabce01b8822decfda234b91b841aac1d0b20d23f0059463097c1ce7e592c42ff155701be559b4b31e5ec781a101310131013101310131013101310131013101310131013101310131013101310131013101310131",
+      "inputs": {
+        "master_seed": "0202020202020202020202020202020202020202020202020202020202020202",
+        "price_usd": 1048575,
+        "unix_ts": "1800000000"
+      },
+      "kind": "oracle_pair",
+      "name": "oracle_pair_2",
+      "pubkey": "690993300e56d0c24d43aa3bc2d50e042c7124ff74087a10c09cf4d2a742016b"
+    },
+    {
+      "announcement_tlv_hex": "fdd824fd031a6548751c39721ffc08ff447cdc6ca2fcd1e7cca4480c72e64a71c3e129eabcda4d1ac1074460b1d4d6c0e07efbfaa8a679ae800602fdc1374f9fdc2014cc8a547274eab9d570a34aee002d8f7869c277bbafd1385e01c30672da22205db5e80ffdd822fd02b400145a72d6c6e9d36f2ae44715aec83e41380d0f78fa0b9a3d1fd9591bf9e0cfdc4130b3d9ade098f629e6f814f579abf16536b775aa0b97275aa387619659210783f9fa920e1c6108ee8d1c1377005ca110dba0e9c51a7d55e8195316cfa5b46c065458cfa68d6712ed8aa2000945aa2366460c958093ef3e09ecc247e4979acd9a020f0c616e4d0264fc4868967ed2a2672714403ef7acb75b18061a4125d276d7246c0e96c77976a51e9dfbcc3e5cdb5fdd6725230eff9fc064e1b34f670cf0e8f708efe48df10135e7665395fda58f30d11dee570256cd5b711a538e29138008a8f7e75d90ff48c81e3c20f3d88ddf2515418d98da6b120aeb2c855cc2019dc745edbaf8eeb19d521e9097d27290feae1d322693b979d4005fd87027da61d3fbbbfaf5009281696af04607465973e1c78300a44b8faf1571ac7e0ef4469f62dcba94f86aaf938dbe581673ff28b1dc644ebca1f67a552587737f9fbaf1bab6090b7e6455b91c60c86b8b7d2a6cf1602058f6539a12720147d1c641dc35193b51e62021ab0c79a17d48ef510336139d18cb0a831ddca2ee2357c88401c7576183b96c8a14ab09f9ba015166caccce4a7eb7064c01ce4becc121c9c2476d744af6928cd53c432aab50ef5a3a950d3f93a9f13f613cd6ca1e81af692e4c6729426876a46cdc109e30098dd7dc371a9969152913d98baedeb457c4a67699e9881f940c3918450da84455a6d20205c382b4daba5c3ae3a047a867f5928c747b6ddaca847da6de765d53a93f66568936c96b041df5b728691c6d2d038a155950444074433ea229c58abbbadaf7adaf9b9d48d3c192b40316143139d8ba6691bd43c94a13ba500dbae8e62ba4fbcb5ba3c320aedbf4a72e24bd6ca2e6430c0c1ed57d52713fb300fdd80a11000200075553442f425443000000000014185361745553442f4254435553442f31393030303030303030",
+      "attestation_tlv_hex": "fdd868fd0563185361745553442f4254435553442f313930303030303030307274eab9d570a34aee002d8f7869c277bbafd1385e01c30672da22205db5e80f00145a72d6c6e9d36f2ae44715aec83e41380d0f78fa0b9a3d1fd9591bf9e0cfdc41ae0668fb3c0f582c1a114543a8c6f22139bef743cc97c67442f3920c2b8df98230b3d9ade098f629e6f814f579abf16536b775aa0b97275aa387619659210783a3a923214e8ddf841ca92bf00adceb75339ff6c9cf475b28e761f8896d280acdf9fa920e1c6108ee8d1c1377005ca110dba0e9c51a7d55e8195316cfa5b46c064aab074b6ce70fdcee2cf07548241dee6c9998269252caa39eb87a27c97689495458cfa68d6712ed8aa2000945aa2366460c958093ef3e09ecc247e4979acd9abf367270ba07f7f486e7a5acafebb2b693885d7105a7c2f79f1d70845ff1bfed020f0c616e4d0264fc4868967ed2a2672714403ef7acb75b18061a4125d276d78831e024fa1388fba3104130e416c3f654eddf7ecb14c7135b032bc2456956c3246c0e96c77976a51e9dfbcc3e5cdb5fdd6725230eff9fc064e1b34f670cf0e84828a7cb53823bf0a992f0c0393678ec2e5056b27a53031c86cf88f139d11808f708efe48df10135e7665395fda58f30d11dee570256cd5b711a538e29138008f015af9cc37db59725fddee05a74d591504dd636817b51ea45a31da5a0986acaa8f7e75d90ff48c81e3c20f3d88ddf2515418d98da6b120aeb2c855cc2019dc7c7adfd3dd980baa7b4f2a7a1891dbde36d134af475b090bfb3975a67fc7d9d3c45edbaf8eeb19d521e9097d27290feae1d322693b979d4005fd87027da61d3fbb6471818dc99f13494795c4c507a0f53c2f7a65b4ec16551ac5d68948c904abbbbfaf5009281696af04607465973e1c78300a44b8faf1571ac7e0ef4469f62dc7bbbe32829ffdf5fd420da209d4a7c9f0d98881886375b39d0a60206ed71d7ebba94f86aaf938dbe581673ff28b1dc644ebca1f67a552587737f9fbaf1bab609db8f241fea3e36fd80e16860246aa40559004d1d3f0e6d4088ac8a5eb6b6e3120b7e6455b91c60c86b8b7d2a6cf1602058f6539a12720147d1c641dc35193b51820831c89b411add9eeb2ca460d17061bbb61a15560727cc6f143a61dada185ee62021ab0c79a17d48ef510336139d18cb0a831ddca2ee2357c88401c75761835cbeb78226571b21c9d1ecb40ad3baeb79f8580de89532ecd43959bae7def976b96c8a14ab09f9ba015166caccce4a7eb7064c01ce4becc121c9c2476d744af6ceed947ceb809f39b63aa0db08ae94ddbd6a4ef526d673c5661b5226e54ccb82928cd53c432aab50ef5a3a950d3f93a9f13f613cd6ca1e81af692e4c672942688d9e7e598ae1309850c3b9ff36588783cd6a17c3d24ee55ae6e2df83fb97c01c76a46cdc109e30098dd7dc371a9969152913d98baedeb457c4a67699e9881f94fa917f455b8d46235415a81e51e54a3e30daf6fe7535ec52037afbffa65d49cf0c3918450da84455a6d20205c382b4daba5c3ae3a047a867f5928c747b6ddaca11c5dea76c14d7d5875451060f3525a3e2c6e836a1c2e51705bb5f4e5a7323e3847da6de765d53a93f66568936c96b041df5b728691c6d2d038a15595044407460ae3d93ee070f244087a8927e05c4d52d257f0518fab7e7a6cbd01278cf386b433ea229c58abbbadaf7adaf9b9d48d3c192b40316143139d8ba6691bd43c94a8a99b1f78427391a55fa8dde1901dc6fc3953eacdd603a335ee5ea5293d6176113ba500dbae8e62ba4fbcb5ba3c320aedbf4a72e24bd6ca2e6430c0c1ed57d528413a2257271e30914adc14aef3433864fab89ea5fc6e68be0d980727c785d9901310131013101310131013101310131013101310131013101310131013101310131013101310131",
+      "inputs": {
+        "master_seed": "0303030303030303030303030303030303030303030303030303030303030303",
+        "price_usd": 4294967295,
+        "unix_ts": "1900000000"
+      },
+      "kind": "oracle_pair",
+      "name": "oracle_pair_3",
+      "pubkey": "7274eab9d570a34aee002d8f7869c277bbafd1385e01c30672da22205db5e80f"
+    },
+    {
+      "inputs": {
+        "m": 4,
+        "price_usd": 0
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_0",
+      "output": 0
+    },
+    {
+      "inputs": {
+        "m": 4,
+        "price_usd": 65535
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_1",
+      "output": 0
+    },
+    {
+      "inputs": {
+        "m": 4,
+        "price_usd": 65536
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_2",
+      "output": 1
+    },
+    {
+      "inputs": {
+        "m": 4,
+        "price_usd": 4294967295
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_3",
+      "output": 15
+    },
+    {
+      "inputs": {
+        "m": 1,
+        "price_usd": 60123
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_4",
+      "output": 0
+    },
+    {
+      "inputs": {
+        "m": 20,
+        "price_usd": 60123
+      },
+      "kind": "bucket_of",
+      "name": "bucket_of_5",
+      "output": 60123
+    },
+    {
+      "buckets": [
+        [
+          0,
+          0,
+          65536,
+          "32768000"
+        ],
+        [
+          1,
+          65536,
+          131072,
+          "98304000"
+        ],
+        [
+          2,
+          131072,
+          196608,
+          "163840000"
+        ],
+        [
+          3,
+          196608,
+          262144,
+          "229376000"
+        ],
+        [
+          4,
+          262144,
+          327680,
+          "294912000"
+        ],
+        [
+          5,
+          327680,
+          393216,
+          "360448000"
+        ],
+        [
+          6,
+          393216,
+          458752,
+          "425984000"
+        ],
+        [
+          7,
+          458752,
+          524288,
+          "491520000"
+        ],
+        [
+          8,
+          524288,
+          589824,
+          "557056000"
+        ],
+        [
+          9,
+          589824,
+          655360,
+          "622592000"
+        ],
+        [
+          10,
+          655360,
+          720896,
+          "688128000"
+        ],
+        [
+          11,
+          720896,
+          786432,
+          "753664000"
+        ],
+        [
+          12,
+          786432,
+          851968,
+          "819200000"
+        ],
+        [
+          13,
+          851968,
+          917504,
+          "884736000"
+        ],
+        [
+          14,
+          917504,
+          983040,
+          "950272000"
+        ],
+        [
+          15,
+          983040,
+          1048576,
+          "1015808000"
+        ]
+      ],
+      "inputs": {
+        "m": 4,
+        "user_sats_factor": "1000"
+      },
+      "kind": "bucket_schedule",
+      "name": "bucket_schedule_m4"
+    },
+    {
+      "adaptor_point": "035caa19ed1b26afcd8e1b475b5a153ccd2e1d5ab681d546b28e05902768348af0",
+      "bucket_secret": "957d54253f5486c412846960d524b59fe5859483d881213e2a4a5a7ee0ee3843",
+      "inputs": {
+        "m": 4,
+        "master_seed": "0909090909090909090909090909090909090909090909090909090909090909",
+        "price_usd": 60123,
+        "unix_ts": "1700000100"
+      },
+      "kind": "bucket_point",
+      "name": "bucket_point_0",
+      "other_bucket_point": "03643ba9fcff322839e36d13bbc98860f95689979749cc7faca39a95e7d6b8599d",
+      "winning_bucket": 0
+    },
+    {
+      "adaptor_point": "03aa18956ebb59fe100934995189894ca40321fbb2508788a7575898ebb0b09bbb",
+      "bucket_secret": "3f3f67e42d9b9bde31b3a69cbe27b2ed60a2da6c88d619d4863baf26402f3b1b",
+      "inputs": {
+        "m": 4,
+        "master_seed": "0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b0b",
+        "price_usd": 98765,
+        "unix_ts": "1700000200"
+      },
+      "kind": "bucket_point",
+      "name": "bucket_point_1",
+      "other_bucket_point": "03a5d83b96ca3eea0528f64a9f35eebc86e61a46f457c5474b764216d8f11b8b1a",
+      "winning_bucket": 1
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "0",
+        "points": [
+          [
+            "990000",
+            "1"
+          ],
+          [
+            "1000000",
+            "100"
+          ],
+          [
+            "1010000",
+            "1"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_whale_volume",
+      "output": "1000000"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "0",
+        "points": [
+          [
+            "999000",
+            "50"
+          ],
+          [
+            "1001000",
+            "50"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_tie_lower",
+      "output": "999000"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "0",
+        "points": [
+          [
+            "1000000",
+            "30"
+          ],
+          [
+            "1001000",
+            "30"
+          ],
+          [
+            "999000",
+            "30"
+          ],
+          [
+            "1400000",
+            "10000"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_outlier_trimmed",
+      "output": "1000000"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "10",
+        "points": [
+          [
+            "1000000",
+            "5"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_below_floor",
+      "output": null
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "5",
+        "points": [
+          [
+            "1000000",
+            "5"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_at_floor",
+      "output": "1000000"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "0",
+        "points": []
+      },
+      "kind": "internal_twap",
+      "name": "twap_empty",
+      "output": null
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "0",
+        "points": [
+          [
+            "1000000",
+            "10"
+          ],
+          [
+            "1050000",
+            "1"
+          ],
+          [
+            "1050001",
+            "1"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_band_edge",
+      "output": "1000000"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "864724",
+        "points": [
+          [
+            "1047713",
+            "501627"
+          ],
+          [
+            "932794",
+            "691567"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_gen_0",
+      "output": null
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "1772536",
+        "points": [
+          [
+            "938279",
+            "542364"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_gen_1",
+      "output": null
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "761345",
+        "points": [
+          [
+            "1070491",
+            "552574"
+          ],
+          [
+            "1011471",
+            "23954"
+          ],
+          [
+            "992625",
+            "67174"
+          ],
+          [
+            "1088749",
+            "974392"
+          ],
+          [
+            "914222",
+            "322247"
+          ],
+          [
+            "1057708",
+            "296493"
+          ],
+          [
+            "1040123",
+            "544045"
+          ],
+          [
+            "927852",
+            "116913"
+          ],
+          [
+            "1002662",
+            "659598"
+          ],
+          [
+            "1061598",
+            "42827"
+          ],
+          [
+            "1028295",
+            "88020"
+          ],
+          [
+            "971705",
+            "916617"
+          ],
+          [
+            "941489",
+            "251819"
+          ],
+          [
+            "965665",
+            "426751"
+          ],
+          [
+            "957446",
+            "79580"
+          ],
+          [
+            "1045417",
+            "167796"
+          ],
+          [
+            "904153",
+            "816900"
+          ],
+          [
+            "922098",
+            "472604"
+          ],
+          [
+            "1031127",
+            "644149"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_gen_2",
+      "output": "1002662"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "1360011",
+        "points": [
+          [
+            "1048029",
+            "622961"
+          ],
+          [
+            "1087395",
+            "263821"
+          ],
+          [
+            "1027440",
+            "980658"
+          ],
+          [
+            "1065408",
+            "644382"
+          ],
+          [
+            "984476",
+            "82976"
+          ],
+          [
+            "1056330",
+            "176429"
+          ],
+          [
+            "975393",
+            "836009"
+          ],
+          [
+            "995020",
+            "837592"
+          ],
+          [
+            "998716",
+            "271481"
+          ],
+          [
+            "994828",
+            "179843"
+          ],
+          [
+            "924505",
+            "438987"
+          ],
+          [
+            "1094490",
+            "971802"
+          ],
+          [
+            "925789",
+            "551280"
+          ],
+          [
+            "916110",
+            "900781"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_gen_3",
+      "output": "995020"
+    },
+    {
+      "inputs": {
+        "min_volume_micro_usd": "1088210",
+        "points": [
+          [
+            "980058",
+            "595772"
+          ],
+          [
+            "1043588",
+            "998806"
+          ],
+          [
+            "975489",
+            "128786"
+          ],
+          [
+            "1049309",
+            "744987"
+          ]
+        ]
+      },
+      "kind": "internal_twap",
+      "name": "twap_gen_4",
+      "output": null
+    },
+    {
+      "inputs": {
+        "csv_delta": 100,
+        "internal_x": "a2a2e11bf7c04160f2b278d91ce665ec36e325b14bd956bd4ebe00f9c74f7e01",
+        "lp_x": "2a43fe9d62326b7857839bc648d8701b9f044af111551131718198b9acb65b12",
+        "refund_script_hex": "0164b27520e3ec2dfb13ed91d30f1059afa5ea4b231fb03433eb75f3b526415b08bbc9d9adad202a43fe9d62326b7857839bc648d8701b9f044af111551131718198b9acb65b12ac",
+        "ta_leaf_hash": "c4a06a6e99fe87acde08c0cdba3b7633f3a3363f878f18f5e27ec8c40635f78f",
+        "user_x": "e3ec2dfb13ed91d30f1059afa5ea4b231fb03433eb75f3b526415b08bbc9d9ad"
+      },
+      "kind": "funding_output",
+      "merkle_root": "156792e35c03d4af69e7ea0d9f3291a597d9ad6d4f8064b22cbbe39734f9138b",
+      "name": "funding_output_0",
+      "output_x": "b47af901009ac22a36bc0de3a0c703d8991f7964cf43c842dfcaf645fae4057c",
+      "sibling_preimage_hex": "00c0480164b27520e3ec2dfb13ed91d30f1059afa5ea4b231fb03433eb75f3b526415b08bbc9d9adad202a43fe9d62326b7857839bc648d8701b9f044af111551131718198b9acb65b12ac"
+    },
+    {
+      "inputs": {
+        "csv_delta": 1100,
+        "internal_x": "683d30bf97c4a9e05f14916345b79769fc944ece7256ccb316fd74f4e4888aba",
+        "lp_x": "4b858fe4f21a78170da736d1d4c5f50a1a638c711b59c13adda8b4c6b2ecaa77",
+        "refund_script_hex": "024c04b27520a959d342319dc0f804bc2dcd1beaf9fd03fcc7dd82aa19542ed700dab9a6ac0aad204b858fe4f21a78170da736d1d4c5f50a1a638c711b59c13adda8b4c6b2ecaa77ac",
+        "ta_leaf_hash": "572bc38ee9266776036ce7d363f1dc28a98f5717b7e47e8516392178b451d48d",
+        "user_x": "a959d342319dc0f804bc2dcd1beaf9fd03fcc7dd82aa19542ed700dab9a6ac0a"
+      },
+      "kind": "funding_output",
+      "merkle_root": "a8974a3fe30ab656595b26786732b4b536dc9d3e55a4e48b3e9a291f7bf4d096",
+      "name": "funding_output_1",
+      "output_x": "db54b6fa6ffcc2367dbaebbeb9e62287b6b352df6877e7387b1f2f7e48454c0c",
+      "sibling_preimage_hex": "00c049024c04b27520a959d342319dc0f804bc2dcd1beaf9fd03fcc7dd82aa19542ed700dab9a6ac0aad204b858fe4f21a78170da736d1d4c5f50a1a638c711b59c13adda8b4c6b2ecaa77ac"
+    },
+    {
+      "inputs": {
+        "csv_delta": 2100,
+        "internal_x": "2d7d25ae6cd523f79215ff157a51831fdbd99ab7510c8baa7a35c9a46eef63a9",
+        "lp_x": "2077bc500aad3d27eb03055577b5569e9449fa333fee6624639c9adcd99aa325",
+        "refund_script_hex": "023408b275209a13ab6d773a2efe6a817a35d7ebf14028490fd046542c849998f51b3dbd7cc0ad202077bc500aad3d27eb03055577b5569e9449fa333fee6624639c9adcd99aa325ac",
+        "ta_leaf_hash": "aaea6166f97ee88b3c3e603d664b3445a3f4744287b2c6e09d63188969bd5c90",
+        "user_x": "9a13ab6d773a2efe6a817a35d7ebf14028490fd046542c849998f51b3dbd7cc0"
+      },
+      "kind": "funding_output",
+      "merkle_root": "6399084e807c895fd014e782906aad1a2b06728f315deadb9fa380a790462497",
+      "name": "funding_output_2",
+      "output_x": "c77eb949644b0fb63d46f56c88132d60a1b26b912bfb6edf517838a8f2ba71ce",
+      "sibling_preimage_hex": "00c049023408b275209a13ab6d773a2efe6a817a35d7ebf14028490fd046542c849998f51b3dbd7cc0ad202077bc500aad3d27eb03055577b5569e9449fa333fee6624639c9adcd99aa325ac"
+    },
+    {
+      "inputs": {
+        "csv_delta": 3100,
+        "internal_x": "b7b9af21b35250e1e71c02c168a53cf31f052a0f186c7de38b064b170f21a28e",
+        "lp_x": "195f2a7522474f466e80f58ecebdb519dafe1043ce2c4cd2d201e15eba4a6676",
+        "refund_script_hex": "021c0cb2752096a32b67b39b9e4c98d643d656616b2ec41309a46820ea9b7b0e8727d6ca5d28ad20195f2a7522474f466e80f58ecebdb519dafe1043ce2c4cd2d201e15eba4a6676ac",
+        "ta_leaf_hash": "0118d416cc3d8d60c04a4d4a1f6aacfa6aaf314a3eb29d94f4df88b9eec88d10",
+        "user_x": "96a32b67b39b9e4c98d643d656616b2ec41309a46820ea9b7b0e8727d6ca5d28"
+      },
+      "kind": "funding_output",
+      "merkle_root": "630e1602a56fb1ce569dbdbda7f84d65d24ac3bf5c05b843f234e130d8099dc6",
+      "name": "funding_output_3",
+      "output_x": "ae2602a5b87318caa26272b2affcabbffdb8c94fea94c50f6625ee5b8d6c61e5",
+      "sibling_preimage_hex": "00c049021c0cb2752096a32b67b39b9e4c98d643d656616b2ec41309a46820ea9b7b0e8727d6ca5d28ad20195f2a7522474f466e80f58ecebdb519dafe1043ce2c4cd2d201e15eba4a6676ac"
+    }
+  ]
+}

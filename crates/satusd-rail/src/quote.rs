@@ -46,7 +46,10 @@ impl Quote {
     /// sats = amount × price / (10^6 × 10^3).
     pub fn user_sats(&self) -> u64 {
         let prod = u128::from(self.amount_micro_usd) * u128::from(self.price_msat_per_usd);
-        (prod / 1_000_000_000) as u64
+        // Saturate instead of wrapping: an adversarial price×amount
+        // must surface as an absurd (cap-violating) value, never a
+        // small one.
+        u64::try_from(prod / 1_000_000_000).unwrap_or(u64::MAX)
     }
 }
 

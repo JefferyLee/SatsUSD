@@ -1763,9 +1763,15 @@ name = "satusd-vectors"
 version = "0.1.0"
 dependencies = [
  "hex",
+ "satusd-allot",
  "satusd-crypto",
  "satusd-da",
+ "satusd-oracle",
+ "satusd-rail",
+ "satusd-rail0",
+ "satusd-rail1",
  "satusd-types",
+ "satusd-verify",
  "serde_json",
  "sha2",
 ]

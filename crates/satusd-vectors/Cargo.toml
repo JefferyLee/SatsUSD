@@ -9,6 +9,20 @@ rust-version.workspace = true
 satusd-types = { path = "../satusd-types" }
 satusd-crypto = { path = "../satusd-crypto" }
 satusd-da = { path = "../satusd-da" }
+satusd-rail = { path = "../satusd-rail" }
+satusd-rail0 = { path = "../satusd-rail0" }
+satusd-rail1 = { path = "../satusd-rail1" }
+satusd-oracle = { path = "../satusd-oracle" }
+satusd-allot = { path = "../satusd-allot" }
+satusd-verify = { path = "../satusd-verify" }
 sha2.workspace = true
 hex.workspace = true
 serde_json.workspace = true
+
+[[bin]]
+name = "satusd-vectors"
+path = "src/main.rs"
+
+[[bin]]
+name = "rail-vectors"
+path = "src/bin/rail_vectors.rs"
