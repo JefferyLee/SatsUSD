@@ -50,6 +50,21 @@ serves `GET /v0/pubkey | /v0/announcement/<ts> | /v0/attestation/<ts>
 | /v0/latest` (spec 03 §3.2 — transport non-normative, TLVs are the
 standard).
 
+### Live founder-run instance (signet scaffolding, PRD §8)
+
+```
+base url : http://207.148.98.132:9590
+pubkey   : 943853cf7912f0f8515746e3c5db4aa97e9dc1a64648be925a647f10dcbd5019
+cadence  : 1 s · price source: fixed 100000 (live source pending)
+retention: attestation/announcement files pruned after 14 days
+           (anyone may mirror; clients verify signatures, never
+           endpoints)
+```
+
+Deployed 2026-06-12 (systemd `oracled.service`, Ubuntu 22.04).
+Equivocation by this oracle is provable and key-extracting per
+spec 05 §2 — watch it.
+
 ## Scaffolding notes
 
 - lnd runs `--noseedbackup` (signet coins carry no value); replace
