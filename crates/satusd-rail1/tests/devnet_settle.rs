@@ -50,6 +50,8 @@ use secp256k1::{Secp256k1, SecretKey};
 const FUND_UNITS: u64 = 5_000;
 const M: u8 = 4;
 const FEE_SATS: u64 = 2_000;
+/// Payout base per bucket — sized so a ~0.005 BTC signet UTXO funds it.
+const USER_SATS_BASE: u64 = 400_000;
 const ORACLE_PRICE: u32 = 100_000;
 
 fn root() -> PathBuf {
@@ -307,7 +309,7 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         .as_array()
         .unwrap()
         .iter()
-        .find(|u| u["amount"].as_f64().unwrap() >= 0.0055)
+        .find(|u| u["amount"].as_f64().unwrap() >= 0.0042)
         .ok_or("no LP utxo")?;
     let lp_outpoint = OutPoint::new(
         lp_utxo["txid"].as_str().unwrap().parse()?,
@@ -352,7 +354,7 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
     // signet this is literally true: the price is 90 s in the future).
     let mut cets: Vec<BucketCet> = Vec::new();
     for b in 0..(1u32 << M) {
-        let user_sats = 500_000 + u64::from(b); // distinct per bucket
+        let user_sats = USER_SATS_BASE + u64::from(b); // distinct per bucket
         let lp_change = lp_txout.value.to_sat() - user_sats - FEE_SATS;
 
         // Anchor template: [funding, LP] in; [asset slots ‖ payout ‖
@@ -549,7 +551,7 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         .clone();
     let payout_present = tx.output.iter().any(|o| {
         o.script_pubkey == bitcoin::ScriptBuf::from_hex(&payout_script).unwrap()
-            && o.value.to_sat() == 500_000 + u64::from(winner)
+            && o.value.to_sat() == USER_SATS_BASE + u64::from(winner)
     });
     assert!(payout_present, "winning bucket's payout is in the CET");
 
@@ -571,7 +573,7 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         "J4 SETTLED: oracle-gated CET spent the DLC funding output by key path — \
          {} units moved + {} sats paid, bucket {winner} of 2^{M}",
         FUND_UNITS,
-        500_000 + u64::from(winner)
+        USER_SATS_BASE + u64::from(winner)
     );
     Ok(())
 }
