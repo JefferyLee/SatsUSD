@@ -55,7 +55,9 @@ standard).
 ```
 base url : http://207.148.98.132:9590
 pubkey   : 943853cf7912f0f8515746e3c5db4aa97e9dc1a64648be925a647f10dcbd5019
-cadence  : 1 s · price source: fixed 100000 (live source pending)
+cadence  : 1 s · price: live median of Coinbase/Kraken/Bitstamp
+           (≥2 venues required; stale >120 s ⇒ tick skipped, never
+           back-filled)
 retention: attestation/announcement files pruned after 14 days
            (anyone may mirror; clients verify signatures, never
            endpoints)

@@ -22,7 +22,7 @@ by Jeff; the oracle seed exists only on the server.
 | Seed | `/root/satusd-oracle/seed` (hex, mode 600) — **the oracle's identity; never leaves the server, never entered a chat or repo.** Losing it = a new oracle pubkey (acceptable on signet; mainnet needs real key management) |
 | Data | `/root/satusd-oracle/data` — `ann-<ts>.hex`, `att-<ts>.hex`, `latest.txt` |
 | Retention | `/etc/cron.daily/oracled-prune` deletes `*.hex` older than 14 days (~3.5 GB steady state) |
-| Public surface | `http://207.148.98.132:9590` — pubkey `943853cf7912f0f8515746e3c5db4aa97e9dc1a64648be925a647f10dcbd5019`, 1 s cadence, fixed price 100000 (live source pending) |
+| Public surface | `http://207.148.98.132:9590` — pubkey `943853cf7912f0f8515746e3c5db4aa97e9dc1a64648be925a647f10dcbd5019`, 1 s cadence, live 3-venue median price (since 2026-06-12; ticks with no fresh price are skipped, never back-filled) |
 
 ## Routine commands
 
