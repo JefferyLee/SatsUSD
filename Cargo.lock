@@ -1613,6 +1613,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-lp"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bitcoin",
+ "hex",
+ "satusd-oracle",
+ "satusd-rail",
+ "satusd-rail0",
+ "satusd-tapd-client",
+ "secp256k1 0.31.1",
+ "serde",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "satusd-operator"
 version = "0.1.0"
 dependencies = [

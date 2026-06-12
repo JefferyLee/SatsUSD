@@ -181,6 +181,7 @@ async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
         lp_outpoint,
         lp_prev_txout,
         user_payout: user_payout.clone(),
+        extra_outputs: vec![],
     };
     let committed = sign_commit(&mut wallet, funded, &template, 2).await?;
     println!(

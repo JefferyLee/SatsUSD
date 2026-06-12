@@ -45,6 +45,9 @@ pub struct AnchorTemplate {
     pub lp_prev_txout: TxOut,
     /// The user's BTC payout (SwapPlan::user_sats).
     pub user_payout: TxOut,
+    /// Additional value-bearing outputs (e.g. the LP's change in
+    /// the two-party flow). Empty in the single-party harness.
+    pub extra_outputs: Vec<TxOut>,
 }
 
 /// The TA anchor input's on-chain facts, parsed from the funded
@@ -238,6 +241,7 @@ pub fn build_anchor_template(
                 script_pubkey: anchor_placeholder_script(),
             })
             .chain(std::iter::once(t.user_payout.clone()))
+            .chain(t.extra_outputs.iter().cloned())
             .collect(),
     };
     let mut psbt = Psbt::from_unsigned_tx(tx).expect("template tx is unsigned");
