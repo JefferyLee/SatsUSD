@@ -46,8 +46,13 @@ satusd balance                # SATUSD_NET=signet cargo run -p satusd-cli --bin 
 ```sh
 export SATUSD_NET=signet
 cargo run -p satusd-cli --bin satusd -- \
-  redeem <lp-url> 0.80
+  redeem http://207.148.98.132:9595 0.80
 ```
+
+The founder-run signet LP is at `http://207.148.98.132:9595` — small
+amounts only (per-quote cap is in `GET /v0/manifest`). It is *a*
+market participant, not *the* endpoint: anyone may run their own,
+and clients should verify rails by manifest hash, not by URL.
 
 Watch what the CLI does **before** it signs anything:
 
@@ -63,10 +68,6 @@ Refusal on any mismatch is the design, not an error. Then: your
 tapd signs the asset leg, your lnd signs the anchor, the LP
 co-signs over HTTP, your node broadcasts. One transaction carries
 both legs — the SatUSD moving and the BTC paying you.
-
-The founder-run LP for the signet alpha: ask for the current URL
-(it is deliberately not hardcoded anywhere — rails are a market,
-not an endpoint).
 
 ## 5. Verify independently (optional, encouraged)
 
