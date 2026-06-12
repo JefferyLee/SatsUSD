@@ -50,53 +50,111 @@ window.setLang = function (lang) {
 };
 
 /* ════ S1 · three rulers (ambient) ════ */
+// Beveled gold bar — the constant object being measured.
+function drawGoldBar(ctx, x, y, w, h) {
+  const inset = 18;
+  ctx.save();
+  const grd = ctx.createLinearGradient(0, y, 0, y + h);
+  grd.addColorStop(0, "#b89455"); grd.addColorStop(0.18, "#8a6f3a"); grd.addColorStop(1, "#5a4824");
+  ctx.fillStyle = grd;
+  ctx.beginPath();
+  ctx.moveTo(x + inset, y); ctx.lineTo(x + w - inset, y);
+  ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+  ctx.closePath(); ctx.fill();
+  ctx.strokeStyle = "rgba(255,220,160,.35)"; ctx.lineWidth = 1.2;
+  ctx.beginPath(); ctx.moveTo(x + inset + 2, y + 1.5); ctx.lineTo(x + w - inset - 2, y + 1.5); ctx.stroke();
+  ctx.strokeStyle = "rgba(0,0,0,.45)"; ctx.lineWidth = 1;
+  ctx.beginPath();
+  ctx.moveTo(x + inset, y); ctx.lineTo(x + w - inset, y);
+  ctx.lineTo(x + w, y + h); ctx.lineTo(x, y + h);
+  ctx.closePath(); ctx.stroke();
+  ctx.restore();
+}
+
+// Fiat: monotonic compression toward a floor, then holds — inflation
+// doesn't reverse. Tiny residual jitter so the floor doesn't look frozen.
+function fiatShrink(sec) {
+  return Math.max(0.55, 1 - sec * 0.015) + Math.sin(sec * 0.7) * 0.005;
+}
+
+// BTC: coherent price moves (all marks shift together) — high-freq jitter
+// stacked on top of slow regime cycles. Amplitudes calibrated so a typical
+// view shows ±30–50% scale deformation, matching real BTC drawdowns/rallies.
+function btcOffset(sec) {
+  const jitter = (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
+  const phase = (sec / 14) * Math.PI * 2;
+  const regime = Math.sin(phase) * 0.30 + Math.sin(phase * 0.5 + 1.7) * 0.15;
+  return jitter + regime;
+}
+
 function drawRulers(ctx, W, H, t) {
   ctx.clearRect(0, 0, W, H);
   const sec = t / 1000;
   const lanes = [
     { x0: 40,  label: T("法币", "FIAT"),   mode: "shrink", color: RED },
-    { x0: 510, label: "BTC",               mode: "shake",   color: DIM },
-    { x0: 980, label: "SatUSD",            mode: "steady",  color: ORANGE },
+    { x0: 510, label: "BTC",               mode: "shake",  color: DIM },
+    { x0: 980, label: "SatUSD",            mode: "dual",   color: ORANGE },
   ];
   const RW = 380, y = H * 0.52;
-  // the constant object being measured
-  lanes.forEach((l) => {
-    ctx.fillStyle = "#1a1a20";
-    ctx.fillRect(l.x0, y - 58, RW, 26);
-    ctx.strokeStyle = "#333"; ctx.strokeRect(l.x0, y - 58, RW, 26);
-  });
+  lanes.forEach((l) => drawGoldBar(ctx, l.x0, y - 58, RW, 28));
+
   lanes.forEach((l) => {
     ctx.strokeStyle = l.color; ctx.lineWidth = 3;
-    ctx.beginPath(); ctx.moveTo(l.x0, y + 10); ctx.lineTo(l.x0 + RW, y + 10); ctx.stroke();
+    let railEnd = RW;
+    if (l.mode === "shrink") railEnd = RW * fiatShrink(sec);
+    else if (l.mode === "shake") railEnd = RW * Math.min(1.05, Math.max(0.5, 1 + btcOffset(sec)));
+    ctx.beginPath(); ctx.moveTo(l.x0, y + 10); ctx.lineTo(l.x0 + railEnd, y + 10); ctx.stroke();
+
     const n = 11;
     for (let i = 0; i < n; i++) {
       let fx = i / (n - 1);
-      if (l.mode === "shrink") {
-        // slow inflation breathing: the ruler itself contracts toward the
-        // origin, so its gradations bunch up to the left as the right end
-        // retreats — same gold bar reads off the right edge sooner.
-        const s = 1 - 0.30 * (0.5 + 0.5 * Math.sin(sec * 0.5));
-        fx = fx * s;
-      } else if (l.mode === "shake") {
-        fx += (Math.sin(sec * 9 + i * 2.1) + Math.sin(sec * 17 + i)) * 0.013;
-      }
+      if (l.mode === "shrink")      fx = fx * fiatShrink(sec);
+      else if (l.mode === "shake")  fx = fx * (1 + btcOffset(sec));
+      // dual mode: the USD top scale is steady — fx unchanged
       const x = l.x0 + fx * RW;
-      if (x > l.x0 + RW + 18) continue;
+      if (x > l.x0 + RW + 18 || x < l.x0 - 4) continue;
       ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
       ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
     }
+
+    // SatUSD subscale: sats per SatUSD — jitters with BTC + slow monotonic
+    // drift down (BTC appreciation: fewer sats per dollar over time).
+    if (l.mode === "dual") {
+      const subY = y + 60;
+      const drift = Math.min(0.40, sec * 0.008);
+      const sScale = (1 + btcOffset(sec)) * (1 - drift);
+      ctx.strokeStyle = "rgba(154,154,163,.55)"; ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(l.x0, subY);
+      ctx.lineTo(l.x0 + RW * Math.min(1.05, Math.max(0.4, sScale)), subY);
+      ctx.stroke();
+      for (let i = 0; i < n; i++) {
+        const fx = (i / (n - 1)) * sScale;
+        const x = l.x0 + fx * RW;
+        if (x > l.x0 + RW + 18 || x < l.x0 - 4) continue;
+        ctx.lineWidth = i % 5 === 0 ? 2.4 : 1.2;
+        ctx.beginPath(); ctx.moveTo(x, subY); ctx.lineTo(x, subY - (i % 5 === 0 ? 18 : 10)); ctx.stroke();
+      }
+      // bedrock under the subscale
+      ctx.fillStyle = "rgba(247,147,26,.12)"; ctx.fillRect(l.x0, subY + 12, RW, 6);
+    }
+
+    // Label + sub-label (two lines for richer modes)
     ctx.fillStyle = l.color; ctx.font = F(26, 600); ctx.textAlign = "left";
-    ctx.fillText(l.label, l.x0, y + 78);
-    ctx.fillStyle = FAINT; ctx.font = F(20);
-    const sub = l.mode === "shrink" ? T("尺子在变短", "the ruler is shortening")
-            : l.mode === "shake" ? T("刻度在震颤", "gradations vibrating")
-            : T("刻度即美元，锚在比特币上", "dollar gradations, on Bitcoin bedrock");
-    ctx.fillText(sub, l.x0, y + 108);
-    if (l.mode === "steady") { // bedrock
-      ctx.fillStyle = "rgba(247,147,26,.12)";
-      ctx.fillRect(l.x0, y + 16, RW, 8);
+    ctx.fillText(l.label, l.x0, l.mode === "dual" ? y + 100 : y + 78);
+    ctx.fillStyle = FAINT; ctx.font = F(18);
+    if (l.mode === "shrink") {
+      ctx.fillText(T("尺子在变短", "the ruler is shortening"), l.x0, y + 108);
+      ctx.fillText(T("（永不回弹）", "(never reverses)"), l.x0, y + 130);
+    } else if (l.mode === "shake") {
+      ctx.fillText(T("刻度剧烈震颤", "gradations swing violently"), l.x0, y + 108);
+      ctx.fillText(T("（震幅取自 BTC 实际行情）", "(amplitude matches real BTC regimes)"), l.x0, y + 130);
+    } else {
+      ctx.fillText(T("外层美元（稳）", "outer: USD (steady)"), l.x0, y + 130);
+      ctx.fillText(T("内层 sats／元（颠且渐少）", "inner: sats per SatUSD (jitter + drift)"), l.x0, y + 152);
     }
   });
+
   ctx.fillStyle = FAINT; ctx.font = F(19); ctx.textAlign = "left";
   ctx.fillText(T("被测量的物体（不变）", "the measured object (constant)"), 40, y - 70);
 }
