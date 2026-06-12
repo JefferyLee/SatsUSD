@@ -79,8 +79,8 @@ function fiatShrink(sec) {
 
 // BTC: coherent price moves (all marks scale together) — high-freq jitter
 // stacked on slow regime cycles, plus a long-term upward trend (BTC has
-// appreciated against USD over its history; the inner sats subscale of
-// SatUSD is the inverse of this, so the trend matters there too).
+// appreciated against USD over its history; SatUSD's sat-dot density is
+// the inverse of this, so the trend matters there too).
 function btcOffset(sec) {
   const jitter = (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
   const phase = (sec / 14) * Math.PI * 2;
@@ -88,6 +88,14 @@ function btcOffset(sec) {
   const trend = Math.min(0.30, sec * 0.005);
   return jitter + regime + trend;
 }
+
+// Stable random positions for the "sats inside one SatUSD" dot field.
+// Seeded so they don't shimmer between frames; we render the first N
+// of them where N is inversely proportional to BTC.
+const SAT_DOTS = (() => {
+  const r = mulberry(91);
+  return Array.from({ length: 200 }, () => ({ fx: r(), fy: r() }));
+})();
 
 function drawRulers(ctx, W, H, t) {
   ctx.clearRect(0, 0, W, H);
@@ -121,28 +129,35 @@ function drawRulers(ctx, W, H, t) {
       ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
       ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
     }
-    // SatUSD subscale: sats-per-SatUSD — the inverse of BTC's price ruler.
-    // BTC up (top BTC scale stretches)  →  fewer sats inside one dollar (subscale compresses)
-    // BTC down (top BTC scale shrinks)  →  more  sats inside one dollar (subscale expands)
-    // Long-term BTC appreciation (trend in btcOffset) compresses the subscale
-    // over time — visible "sats per dollar shrinking" as BTC wins.
+    // SatUSD: a dot field beneath the ruler — each dot is a sat inside one
+    // SatUSD. The dots are confined to the ruler's *current* length, so as
+    // fiat compresses the USD scale, the same sats get crowded into less
+    // space. Count is inverse-proportional to BTC: BTC up → fewer dots
+    // (sparser); BTC down → more dots (denser). Long-term BTC appreciation
+    // (trend in btcOffset) thins the field monotonically.
     if (l.mode === "dual") {
-      const subY = y + 60;
-      const sScale = 1 / (1 + btcOffset(sec));
-      ctx.strokeStyle = "rgba(154,154,163,.55)"; ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(l.x0, subY);
-      ctx.lineTo(l.x0 + RW * Math.min(1.10, sScale), subY);
-      ctx.stroke();
-      for (let i = 0; i < n; i++) {
-        const fx = (i / (n - 1)) * sScale;
-        const x = l.x0 + fx * RW;
-        if (x > l.x0 + RW + 18 || x < l.x0 - 4) continue;
-        ctx.lineWidth = i % 5 === 0 ? 2.4 : 1.2;
-        ctx.beginPath(); ctx.moveTo(x, subY); ctx.lineTo(x, subY - (i % 5 === 0 ? 18 : 10)); ctx.stroke();
+      const N0 = 80;
+      const targetN = Math.max(20, Math.min(160, N0 / (1 + btcOffset(sec))));
+      const fullN = Math.floor(targetN);
+      const partialAlpha = targetN - fullN;
+      const bandY = y + 42, bandH = 18;
+      ctx.fillStyle = "rgba(247,147,26,.55)";
+      for (let i = 0; i < fullN; i++) {
+        const d = SAT_DOTS[i];
+        const x = l.x0 + d.fx * railEnd;
+        const yy = bandY + d.fy * bandH;
+        ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
       }
-      // bedrock under the subscale
-      ctx.fillStyle = "rgba(247,147,26,.12)"; ctx.fillRect(l.x0, subY + 12, RW, 6);
+      if (fullN < SAT_DOTS.length) {
+        const d = SAT_DOTS[fullN];
+        ctx.fillStyle = `rgba(247,147,26,${0.55 * partialAlpha})`;
+        const x = l.x0 + d.fx * railEnd;
+        const yy = bandY + d.fy * bandH;
+        ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
+      }
+      // bedrock under the dot band
+      ctx.fillStyle = "rgba(247,147,26,.12)";
+      ctx.fillRect(l.x0, bandY + bandH + 6, railEnd, 6);
     }
 
     // Label + sub-label (two lines for richer modes)
@@ -156,8 +171,8 @@ function drawRulers(ctx, W, H, t) {
       ctx.fillText(T("刻度剧烈震颤", "gradations swing violently"), l.x0, y + 108);
       ctx.fillText(T("（震幅取自 BTC 实际行情）", "(amplitude matches real BTC regimes)"), l.x0, y + 130);
     } else {
-      ctx.fillText(T("外层美元：与法币同步压缩", "outer USD: compresses with fiat"), l.x0, y + 130);
-      ctx.fillText(T("内层 sats／元：与 BTC 反向", "inner sats/$: inverse of BTC"), l.x0, y + 152);
+      ctx.fillText(T("尺度：美元（与法币同压）", "scale: USD (compresses with fiat)"), l.x0, y + 130);
+      ctx.fillText(T("橙点：每元含 sats（与 BTC 反向）", "dots: sats per $1 (inverse of BTC)"), l.x0, y + 152);
     }
   });
 
