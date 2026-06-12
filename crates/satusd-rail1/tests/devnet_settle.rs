@@ -18,10 +18,13 @@
 //! settle time (in the full protocol it is locked at LOCK — the
 //! lock-side completion is MuSig2 work, the declared upgrade).
 //!
-//! Run with a live devnet:
+//! Run with a live devnet (local in-process oracle), or against
+//! signet with the PUBLIC oracle (announcements fetched over HTTP,
+//! real maturity wait, attestation fetched after the tick):
 //!
 //! ```text
 //! cargo test -p satusd-rail1 --test devnet_settle -- --ignored --nocapture
+//! SATUSD_NET=signet cargo test -p satusd-rail1 --test devnet_settle -- --ignored --nocapture
 //! ```
 
 use std::path::PathBuf;
@@ -32,7 +35,7 @@ use bitcoin::hashes::Hash;
 use bitcoin::psbt::Psbt;
 use bitcoin::sighash::{Prevouts, SighashCache};
 use bitcoin::{Amount, OutPoint, TapSighashType, TxOut};
-use satusd_oracle::oracle::Oracle;
+use satusd_oracle::oracle::{Announcement, Attestation, Oracle};
 use satusd_rail::encode::tagged_hash;
 use satusd_rail0::builder::{vpsbt_anchor_info, vpsbt_anchor_input, ANCHOR_DUST_SATS};
 use satusd_rail1::adaptor::{decrypt, presign, verify_presig, AdaptorSig};
@@ -67,8 +70,48 @@ fn compressed_even(x: &[u8; 32]) -> Vec<u8> {
     v
 }
 
+const ORACLE_ADDR: &str = "207.148.98.132:9590";
+
+fn http_get(path: &str) -> Result<String, String> {
+    use std::io::{Read, Write};
+    let mut st = std::net::TcpStream::connect(ORACLE_ADDR).map_err(|e| e.to_string())?;
+    st.set_read_timeout(Some(std::time::Duration::from_secs(10)))
+        .ok();
+    let req = format!("GET {path} HTTP/1.1\r\nHost: {ORACLE_ADDR}\r\nConnection: close\r\n\r\n");
+    st.write_all(req.as_bytes()).map_err(|e| e.to_string())?;
+    let mut r = String::new();
+    st.read_to_string(&mut r).map_err(|e| e.to_string())?;
+    let (head, body) = r.split_once("\r\n\r\n").ok_or("malformed")?;
+    if !head.starts_with("HTTP/1.1 200") {
+        return Err(head.lines().next().unwrap_or("").to_string());
+    }
+    Ok(body.trim().to_string())
+}
+
+/// Confirm a wallet txid: regtest mines; signet waits for the chain.
+async fn confirm(env: &satusd_tapd_client::env::NodeEnv, txid: &str) {
+    if env.chain == "regtest" {
+        env.bcli(&["-generate", "2"]);
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        return;
+    }
+    println!("waiting for signet confirmation of {txid}…");
+    for _ in 0..120 {
+        // node-level lookup (txindex=1): the tx may live in lnd's
+        // wallet, not bitcoind's.
+        if let Ok(tx) = env.try_bcli(&["getrawtransaction", txid, "true"]) {
+            if tx["confirmations"].as_i64().unwrap_or(0) >= 1 {
+                tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+                return;
+            }
+        }
+        tokio::time::sleep(std::time::Duration::from_secs(15)).await;
+    }
+    panic!("timeout waiting for {txid}");
+}
+
 #[tokio::test]
-#[ignore = "requires live devnet (make devnet-up)"]
+#[ignore = "requires live devnet (make devnet-up); SATUSD_NET=signet uses the public oracle"]
 async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
     let _r = root();
     let env = satusd_tapd_client::env::NodeEnv::from_env(root());
@@ -91,9 +134,19 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         "--supply",
         &FUND_UNITS.to_string(),
     ]);
-    tapcli(&["assets", "mint", "finalize"]);
-    bcli(&["-generate", "2"]);
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    let fin = tapcli(&["assets", "mint", "finalize"]);
+    let signet = env.chain == "signet";
+    if signet {
+        let batch: serde_json::Value = serde_json::from_str(&fin)?;
+        let mint_txid = batch["batch"]["batch_txid"]
+            .as_str()
+            .ok_or("no batch txid")?;
+        confirm(&env, mint_txid).await;
+        tokio::time::sleep(std::time::Duration::from_secs(5)).await;
+    } else {
+        bcli(&["-generate", "2"]);
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    }
 
     let assets = tap
         .list_assets(taprpc::ListAssetRequest::default())
@@ -146,8 +199,12 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         .await?
         .into_inner();
     let transfer = send.transfer.ok_or("no transfer")?;
-    bcli(&["-generate", "2"]);
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    let fund_anchor_txid = {
+        let mut h = transfer.anchor_tx_hash.clone();
+        h.reverse();
+        hex::encode(h)
+    };
+    confirm(&env, &fund_anchor_txid).await;
 
     let fund_out = transfer
         .outputs
@@ -176,10 +233,33 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         hex::encode(fund.output_x)
     );
 
-    // ---- 2. oracle announces the tick ----
-    let oracle = Oracle::from_seed(&tagged_hash("devnet/j4-oracle", b"seed"))?;
-    let tick = ts0 + 60;
-    let ann = oracle.announce(tick)?;
+    // ---- 2. the oracle's commitment to the tick ----
+    // devnet: in-process oracle. signet: the LIVE public oracle —
+    // announcement fetched over HTTP, outcome genuinely unknown.
+    let local_oracle = Oracle::from_seed(&tagged_hash("devnet/j4-oracle", b"seed"))?;
+    let now = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+    let tick = now + 90;
+    let (ann, oracle_pubkey): (Announcement, [u8; 32]) = if signet {
+        let hex_tlv = http_get(&format!("/v0/announcement/{tick}"))
+            .map_err(|e| format!("announcement: {e}"))?;
+        let tlv = hex::decode(hex_tlv)?;
+        let p = satusd_oracle::tlv::parse_announcement(&tlv).map_err(|e| format!("{e:?}"))?;
+        println!(
+            "public oracle announcement: {} ({} nonces)",
+            p.event_id,
+            p.nonce_points.len()
+        );
+        (
+            Announcement {
+                event_id: p.event_id,
+                nonce_points: p.nonce_points,
+                tlv_bytes: tlv,
+            },
+            p.oracle_pubkey,
+        )
+    } else {
+        (local_oracle.announce(tick)?, local_oracle.pubkey)
+    };
 
     // ---- 3. asset-level CET leg: fund + sign ONE vPSBT moving the
     //         asset out of the funding output ----
@@ -218,12 +298,16 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         .into_inner();
 
     // ---- 4. LP leg + payout addresses ----
+    // Release any wallet locks left by a killed LP daemon (single-
+    // user harness assumption; locks don't survive bitcoind restarts
+    // but do survive daemon crashes).
+    let _ = env.try_bcli(&["lockunspent", "true"]);
     let unspent = bcli(&["listunspent"]);
     let lp_utxo = unspent
         .as_array()
         .unwrap()
         .iter()
-        .find(|u| u["amount"].as_f64().unwrap() >= 0.05)
+        .find(|u| u["amount"].as_f64().unwrap() >= 0.0055)
         .ok_or("no LP utxo")?;
     let lp_outpoint = OutPoint::new(
         lp_utxo["txid"].as_str().unwrap().parse()?,
@@ -256,8 +340,6 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         .x_only_public_key(&secp);
     assert_eq!(qx.serialize(), fund.output_x);
 
-    let winner = bucket_of(ORACLE_PRICE, M);
-    let loser = winner ^ 1;
     struct BucketCet {
         bucket: u32,
         committed_anchor: Vec<u8>,
@@ -266,8 +348,10 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         presig: AdaptorSig,
         sighash: [u8; 32],
     }
+    // Presign EVERY bucket — the outcome does not exist yet (on
+    // signet this is literally true: the price is 90 s in the future).
     let mut cets: Vec<BucketCet> = Vec::new();
-    for &b in &[winner, loser] {
+    for b in 0..(1u32 << M) {
         let user_sats = 500_000 + u64::from(b); // distinct per bucket
         let lp_change = lp_txout.value.to_sat() - user_sats - FEE_SATS;
 
@@ -345,7 +429,7 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         )?;
         let msg: [u8; 32] = sighash.to_byte_array();
 
-        let point = bucket_adaptor_point(&ann, &oracle.pubkey, M, b)?;
+        let point = bucket_adaptor_point(&ann, &oracle_pubkey, M, b)?;
         let nonce_base = tagged_hash("devnet/j4-cet-nonce", &b.to_be_bytes());
         let presig = presign(&tweaked, &nonce_base, &msg, &point)?;
         assert!(verify_presig(&presig, &fund.output_x, &msg, &point)?);
@@ -362,8 +446,37 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
     }
 
     // ---- 6. the outcome arrives ----
-    let att = oracle.attest(tick, ORACLE_PRICE)?;
-    println!("attested: {} → bucket {winner}", ORACLE_PRICE);
+    let att: Attestation = if signet {
+        let now2 = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        if tick + 2 > now2 {
+            println!("waiting {}s for the tick to mature…", tick + 2 - now2);
+            tokio::time::sleep(std::time::Duration::from_secs(tick + 2 - now2)).await;
+        }
+        let mut tlv = None;
+        for _ in 0..10 {
+            match http_get(&format!("/v0/attestation/{tick}")) {
+                Ok(h) => {
+                    tlv = Some(hex::decode(h)?);
+                    break;
+                }
+                Err(_) => tokio::time::sleep(std::time::Duration::from_secs(3)).await,
+            }
+        }
+        let tlv = tlv.ok_or("attestation never appeared")?;
+        let p = satusd_oracle::tlv::parse_attestation(&tlv).map_err(|e| format!("{e:?}"))?;
+        let digits: Vec<u8> = p.outcomes.iter().map(|o| u8::from(o == "1")).collect();
+        Attestation {
+            event_id: p.event_id,
+            price_usd: satusd_oracle::event::price_from_digits(&digits),
+            signatures: p.signatures,
+            tlv_bytes: tlv,
+        }
+    } else {
+        local_oracle.attest(tick, ORACLE_PRICE)?
+    };
+    let winner = bucket_of(att.price_usd, M);
+    let loser = winner ^ 1;
+    println!("attested: {} → bucket {winner}", att.price_usd);
 
     // Selective decryption: the loser bucket has NO valid secret.
     assert!(bucket_secret(&att, M, loser).is_err());
@@ -412,8 +525,23 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
         h.reverse();
         hex::encode(h)
     });
-    bcli(&["-generate", "2"]);
-    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    let settle_txid = {
+        let mut h = settle_transfer.anchor_tx_hash.clone();
+        h.reverse();
+        hex::encode(h)
+    };
+    if signet {
+        // mempool acceptance is the gate; the chain confirms on its
+        // own clock (CET chains on the funding tx in the mempool).
+        let entry = env
+            .try_bcli(&["getrawtransaction", &settle_txid, "true"])
+            .expect("CET visible to the node");
+        assert!(entry["txid"].as_str() == Some(settle_txid.as_str()));
+        println!("signet CET accepted: {settle_txid}");
+    } else {
+        bcli(&["-generate", "2"]);
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    }
 
     // ---- 8. confirm: payout on-chain + asset moved ----
     let tx = Psbt::deserialize(&win.committed_anchor)?

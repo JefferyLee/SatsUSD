@@ -133,6 +133,66 @@ pub fn parse_attestation(bytes: &[u8]) -> Result<ParsedAttestation, ParseError> 
     })
 }
 
+/// A decoded `oracle_announcement` — what a remote consumer needs
+/// to compute anticipation points (event id + committed nonces).
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub struct ParsedAnnouncement {
+    pub announcement_sig: [u8; 64],
+    pub oracle_pubkey: [u8; 32],
+    pub nonce_points: Vec<[u8; 32]>,
+    pub maturity_unix: u32,
+    pub event_id: String,
+}
+
+/// Strict parse of an `oracle_announcement` TLV (mirror of
+/// `oracle_announcement`); the descriptor TLV is length-checked and
+/// skipped.
+pub fn parse_announcement(bytes: &[u8]) -> Result<ParsedAnnouncement, ParseError> {
+    let mut d = Decoder::new(bytes);
+    let type_id = d.bigsize()?;
+    if type_id != TYPE_ORACLE_ANNOUNCEMENT {
+        return Err(ParseError::WrongType(type_id));
+    }
+    let value = d.varbytes()?;
+    if !d.done() {
+        return Err(ParseError::LengthMismatch);
+    }
+    let mut v = Decoder::new(value);
+    let announcement_sig: [u8; 64] = v.take(64)?.try_into().unwrap();
+    let oracle_pubkey = v.bytes32()?;
+    let ev_type = v.bigsize()?;
+    if ev_type != TYPE_ORACLE_EVENT {
+        return Err(ParseError::WrongType(ev_type));
+    }
+    let ev = v.varbytes()?;
+    if !v.done() {
+        return Err(ParseError::LengthMismatch);
+    }
+    let mut e = Decoder::new(ev);
+    let n = e.u16()? as usize;
+    let mut nonce_points = Vec::with_capacity(n);
+    for _ in 0..n {
+        nonce_points.push(e.bytes32()?);
+    }
+    let maturity_unix = e.u32()?;
+    let desc_type = e.bigsize()?;
+    if desc_type != TYPE_DIGIT_DECOMPOSITION_DESCRIPTOR {
+        return Err(ParseError::WrongType(desc_type));
+    }
+    let _ = e.varbytes()?; // descriptor content, layout pinned by vectors
+    let event_id = e.string()?.to_string();
+    if !e.done() {
+        return Err(ParseError::LengthMismatch);
+    }
+    Ok(ParsedAnnouncement {
+        announcement_sig,
+        oracle_pubkey,
+        nonce_points,
+        maturity_unix,
+        event_id,
+    })
+}
+
 /// `oracle_attestation_v0`: event_id ‖ pubkey ‖ sigs ‖ outcomes.
 pub fn oracle_attestation(
     event_id: &str,

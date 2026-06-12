@@ -67,6 +67,27 @@ impl NodeEnv {
         }
     }
 
+    /// Non-panicking bitcoin-cli (polling loops, races expected).
+    pub fn try_bcli(&self, args: &[&str]) -> Result<serde_json::Value, String> {
+        let mut cmd = Command::new("bitcoin-cli");
+        cmd.args([
+            format!("-{}", self.chain),
+            format!("-datadir={}", self.btc_datadir.display()),
+            "-rpcuser=satusd".to_string(),
+            "-rpcpassword=satusd".to_string(),
+            format!("-rpcport={}", self.btc_rpc_port),
+            format!("-rpcwallet={}", self.btc_wallet),
+        ]);
+        cmd.args(args);
+        let out = cmd.output().map_err(|e| e.to_string())?;
+        if !out.status.success() {
+            return Err(String::from_utf8_lossy(&out.stderr).into_owned());
+        }
+        let s = String::from_utf8_lossy(&out.stdout);
+        Ok(serde_json::from_str(s.trim())
+            .unwrap_or_else(|_| serde_json::Value::String(s.trim().to_string())))
+    }
+
     /// bitcoin-cli against this node set's wallet. Panics on failure
     /// (harness semantics — these run inside tests and ops tools).
     pub fn bcli(&self, args: &[&str]) -> serde_json::Value {
