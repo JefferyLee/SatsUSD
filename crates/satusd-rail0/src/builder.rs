@@ -428,6 +428,7 @@ mod tests {
                 script_pubkey: anchor_placeholder_script(),
             },
             user_payout: payout.clone(),
+            extra_outputs: vec![],
         };
         let anchor_in = AnchorInInfo {
             outpoint: OutPoint::new(bitcoin::Txid::all_zeros(), 0),

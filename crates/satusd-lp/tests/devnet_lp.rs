@@ -237,7 +237,7 @@ async fn j3_over_http() -> Result<(), Box<dyn std::error::Error>> {
     // the user payout output exists with the exact quoted value
     let decoded = Psbt::deserialize(&BASE64_STANDARD.decode(finalized["psbt"].as_str().unwrap())?)?;
     assert!(
-        decoded.unsigned_tx.output.iter().any(|o| *o == user_payout),
+        decoded.unsigned_tx.output.contains(&user_payout),
         "user payout present"
     );
     println!(

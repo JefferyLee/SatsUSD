@@ -28,7 +28,7 @@ use std::sync::Arc;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use bitcoin::psbt::Psbt;
-use bitcoin::{Address, Amount, OutPoint, ScriptBuf, TxOut};
+use bitcoin::{Address, Amount, OutPoint, TxOut};
 use satusd_oracle::schnorr::sign_with_nonce;
 use satusd_rail::encode::tagged_hash;
 use satusd_rail::manifest::RailManifest;
@@ -57,9 +57,7 @@ pub struct LpConfig {
 }
 
 struct QuoteRecord {
-    plan: SwapPlan,
     lp_outpoint: OutPoint,
-    lp_prev_txout: TxOut,
     lp_change: Option<TxOut>,
     user_payout: TxOut,
     expiry_unix_s: u64,
@@ -185,10 +183,6 @@ impl Lp {
             txid: txid.parse().unwrap(),
             vout,
         };
-        let lp_prev_txout = TxOut {
-            value: Amount::from_sat(value_sats),
-            script_pubkey: ScriptBuf::from_hex(&script_hex).unwrap(),
-        };
 
         // Change: exact-fee template (CommitVirtualPsbts gets the
         // anchor dust from the input side; our budget covers vbytes).
@@ -261,9 +255,7 @@ impl Lp {
         self.quotes.lock().await.insert(
             payload,
             QuoteRecord {
-                plan,
                 lp_outpoint,
-                lp_prev_txout,
                 lp_change,
                 user_payout,
                 expiry_unix_s: quote.expiry_unix_s,
