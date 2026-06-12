@@ -112,52 +112,50 @@ function drawRulers(ctx, W, H, t) {
   lanes.forEach((l) => drawGoldBar(ctx, l.x0, y - 58, RW, 28));
 
   lanes.forEach((l) => {
-    ctx.strokeStyle = l.color; ctx.lineWidth = 3;
     let railEnd = RW;
     if (l.mode === "shrink" || l.mode === "dual") railEnd = RW * fiatShrink(sec);
     else if (l.mode === "shake") railEnd = RW * Math.min(1.05, Math.max(0.5, 1 + btcOffset(sec)));
-    ctx.beginPath(); ctx.moveTo(l.x0, y + 10); ctx.lineTo(l.x0 + railEnd, y + 10); ctx.stroke();
 
-    const n = 11;
-    // Top scale: fiat and SatUSD both compress with fiatShrink (SatUSD's
-    // denomination IS USD — it shares fiat's fate). BTC's top scale is its
-    // own jittery/regime ride.
-    const topScale = l.mode === "shrink" || l.mode === "dual" ? fiatShrink(sec)
-                   : l.mode === "shake" ? (1 + btcOffset(sec))
-                   : 1;
-    for (let i = 0; i < n; i++) {
-      const fx = (i / (n - 1)) * topScale;
-      const x = l.x0 + fx * RW;
-      if (x > l.x0 + RW + 18 || x < l.x0 - 4) continue;
-      ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
-      ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
+    if (l.mode === "dual") {
+      // SatUSD's USD shell: a *container*, not a ruler. No gradations —
+      // the semantic is "a vessel that holds sats", not "a scale of dollars".
+      // The container compresses with fiat (its right wall walks left at
+      // fiatShrink's rate): the denomination shares fiat's fate.
+      ctx.strokeStyle = l.color; ctx.lineWidth = 1.5;
+      ctx.strokeRect(l.x0, y + 10, railEnd, 38);
+    } else {
+      // Fiat and BTC: a real ruler — line + gradations.
+      ctx.strokeStyle = l.color; ctx.lineWidth = 3;
+      ctx.beginPath(); ctx.moveTo(l.x0, y + 10); ctx.lineTo(l.x0 + railEnd, y + 10); ctx.stroke();
+      const n = 11;
+      const topScale = l.mode === "shrink" ? fiatShrink(sec) : (1 + btcOffset(sec));
+      for (let i = 0; i < n; i++) {
+        const fx = (i / (n - 1)) * topScale;
+        const x = l.x0 + fx * RW;
+        if (x > l.x0 + RW + 18 || x < l.x0 - 4) continue;
+        ctx.lineWidth = i % 5 === 0 ? 3 : 1.5;
+        ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
+      }
     }
-    // SatUSD: a dot field beneath the ruler — each dot is a sat inside one
-    // SatUSD. The strip's natural length tracks the BTC ruler's length, but
-    // the field lives within the gold bar's bounds (the *measured object*),
-    // not within the USD ruler's compressed length. So when BTC stretches
-    // the strip past the gold bar, the excess is clipped; when BTC
-    // compresses the strip below the gold bar, reservoir dots from beyond
-    // fx=1 flow in from the right edge — visible-supply rises exactly
-    // because BTC bought more sats per dollar.
+    // SatUSD: the sats inside the container. The strip's natural length
+    // tracks the BTC ruler, but it lives inside the container's bounds
+    // (the container *holds* the sats). BTC up → fxLimit shrinks → tail
+    // sats clip at the container's right wall. BTC down → fxLimit grows
+    // past 1 → reservoir sats (fx > 1) flow in from beyond the right wall.
     if (l.mode === "dual") {
       const btcScale = 1 + btcOffset(sec);
-      const fxLimit = 1 / btcScale;          // dot visible if fx ≤ fxLimit
-      const fadeBand = 0.06;                  // alpha-fade dots near the edge
-      const bandY = y + 42, bandH = 18;
+      const fxLimit = 1 / btcScale;
+      const fadeBand = 0.06;
+      const bandY = y + 14, bandH = 30;
       for (const d of SAT_DOTS) {
         if (d.fx > fxLimit) continue;
         const fromEdge = fxLimit - d.fx;
         const alpha = fromEdge < fadeBand ? 0.55 * fromEdge / fadeBand : 0.55;
         ctx.fillStyle = `rgba(247,147,26,${alpha})`;
-        const x = l.x0 + d.fx * btcScale * RW;
+        const x = l.x0 + d.fx * btcScale * railEnd;
         const yy = bandY + d.fy * bandH;
         ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
       }
-      // bedrock under the dot band — spans the gold bar's full width
-      // (the constant), not the USD ruler's compressed length
-      ctx.fillStyle = "rgba(247,147,26,.12)";
-      ctx.fillRect(l.x0, bandY + bandH + 6, RW, 6);
     }
 
     // Label + sub-label (two lines for richer modes)
@@ -171,8 +169,8 @@ function drawRulers(ctx, W, H, t) {
       ctx.fillText(T("刻度剧烈震颤", "gradations swing violently"), l.x0, y + 108);
       ctx.fillText(T("（震幅取自 BTC 实际行情）", "(amplitude matches real BTC regimes)"), l.x0, y + 130);
     } else {
-      ctx.fillText(T("尺度：美元（与法币同压）", "scale: USD (compresses with fiat)"), l.x0, y + 130);
-      ctx.fillText(T("橙点：每元含 sats（与 BTC 反向）", "dots: sats per $1 (inverse of BTC)"), l.x0, y + 152);
+      ctx.fillText(T("容器：1 SatUSD（与法币同压）", "container: 1 SatUSD (compresses with fiat)"), l.x0, y + 130);
+      ctx.fillText(T("橙点：装在里面的 sats（与 BTC 反向）", "dots: sats inside (inverse of BTC)"), l.x0, y + 152);
     }
   });
 
