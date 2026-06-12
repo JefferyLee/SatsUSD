@@ -440,6 +440,21 @@ export function noncePointHex(k: Uint8Array): string {
   return toHex32(Point.BASE.multiply(bytesToBig(k)).toAffine().x);
 }
 
+// Plain BIP-340 verification: s·G == R + e·P.
+export function schnorrVerify(pubkeyHex: string, msg: Uint8Array, sig: Uint8Array): boolean {
+  try {
+    const rx = bytesToHex(sig.slice(0, 32));
+    const s = bytesToBig(sig.slice(32));
+    if (s >= N) return false;
+    const e = challenge(rx, pubkeyHex, msg);
+    const left = Point.BASE.multiply(s);
+    const right = liftEven(rx).add(liftEven(pubkeyHex).multiply(e));
+    return left.equals(right);
+  } catch {
+    return false;
+  }
+}
+
 // S = R + e·P — the anticipated signature point (DLC core).
 export function anticipationPoint(rxHex: string, pxHex: string, msg: Uint8Array): any {
   const e = challenge(rxHex, pxHex, msg);

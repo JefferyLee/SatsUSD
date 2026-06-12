@@ -1,9 +1,9 @@
 {
-  "name": "@satusd/types-ref",
+  "name": "@satusd/sdk",
   "version": "0.1.0",
   "private": true,
   "type": "module",
-  "description": "TypeScript reference for SatUSD canonical encoding and hashes (PRD §6, §18).",
+  "description": "SatUSD agent SDK: the verification battery as a library \u2014 plus the cross-language reference vectors that pin it.",
   "scripts": {
     "verify": "node src/verify.ts",
     "typecheck": "tsc --noEmit"
@@ -14,5 +14,9 @@
   "dependencies": {
     "@noble/curves": "^2.2.0",
     "circomlibjs": "^0.1.7"
+  },
+  "exports": {
+    ".": "./src/sdk.ts",
+    "./rail": "./src/rail.ts"
   }
 }
