@@ -54,7 +54,7 @@ function drawRulers(ctx, W, H, t) {
   ctx.clearRect(0, 0, W, H);
   const sec = t / 1000;
   const lanes = [
-    { x0: 40,  label: T("法币", "FIAT"),   mode: "stretch", color: RED },
+    { x0: 40,  label: T("法币", "FIAT"),   mode: "shrink", color: RED },
     { x0: 510, label: "BTC",               mode: "shake",   color: DIM },
     { x0: 980, label: "SatUSD",            mode: "steady",  color: ORANGE },
   ];
@@ -71,9 +71,12 @@ function drawRulers(ctx, W, H, t) {
     const n = 11;
     for (let i = 0; i < n; i++) {
       let fx = i / (n - 1);
-      if (l.mode === "stretch") {
-        const s = 1 + 0.35 * (0.5 + 0.5 * Math.sin(sec * 0.5)); // slow inflation breathing
-        fx = Math.min(1.04, fx * s);
+      if (l.mode === "shrink") {
+        // slow inflation breathing: the ruler itself contracts toward the
+        // origin, so its gradations bunch up to the left as the right end
+        // retreats — same gold bar reads off the right edge sooner.
+        const s = 1 - 0.30 * (0.5 + 0.5 * Math.sin(sec * 0.5));
+        fx = fx * s;
       } else if (l.mode === "shake") {
         fx += (Math.sin(sec * 9 + i * 2.1) + Math.sin(sec * 17 + i)) * 0.013;
       }
@@ -85,7 +88,7 @@ function drawRulers(ctx, W, H, t) {
     ctx.fillStyle = l.color; ctx.font = F(26, 600); ctx.textAlign = "left";
     ctx.fillText(l.label, l.x0, y + 78);
     ctx.fillStyle = FAINT; ctx.font = F(20);
-    const sub = l.mode === "stretch" ? T("刻度在被拉开", "gradations stretching")
+    const sub = l.mode === "shrink" ? T("尺子在变短", "the ruler is shortening")
             : l.mode === "shake" ? T("刻度在震颤", "gradations vibrating")
             : T("刻度即美元，锚在比特币上", "dollar gradations, on Bitcoin bedrock");
     ctx.fillText(sub, l.x0, y + 108);
