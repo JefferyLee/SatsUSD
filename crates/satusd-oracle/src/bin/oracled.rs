@@ -5,7 +5,11 @@
 //! (FR-5, M-B "publicly consumable").
 //!
 //! ```text
-//! oracled <seed-hex-32-bytes> <out-dir> [price_usd=100000] [cadence_s=1] [listen_addr]
+//! oracled <seed-hex-32-bytes> <out-dir> [price_usd|live] [cadence_s=1] [listen_addr]
+//!
+//! `live` price: median of Coinbase/Kraken/Bitstamp spot (≥2 must
+//! answer), background-refreshed every 10 s via system curl; a tick
+//! with no fresh price (>120 s) is SKIPPED, never back-filled.
 //! ```
 //!
 //! HTTP routes (transport is NOT part of the oracle standard — the
@@ -22,9 +26,10 @@
 //! restarts are safe and the full attestation history stays on disk
 //! (equivocation evidence per spec 03 §3.3 needs history).
 //!
-//! PriceSource is pluggable; this binary ships the fixed source
-//! only. Live exchange aggregation per spec 03 §5.1 methodology is
-//! the marker provider's job, not this tick oracle's v0.
+//! PriceSource is pluggable; this binary ships `fixed` (tests,
+//! demos) and `live` (3-venue median). The full spec 03 §5.1 marker
+//! methodology (hash-committed source set) remains the marker
+//! provider's job; `live` is the tick oracle's honest minimum.
 
 use std::io::{Read, Write};
 use std::net::{TcpListener, TcpStream};
@@ -37,14 +42,127 @@ use satusd_oracle::oracle::Oracle;
 /// least `2 × cadence × 60` seconds ahead of maturity.
 const LEAD_TICKS: u64 = 120;
 
+/// `None` = no trustworthy price for this tick → the tick is
+/// SKIPPED, never back-filled: a missing attestation degrades a
+/// rail to its refund path; a wrong price corrupts a settlement.
 trait PriceSource {
-    fn price_usd(&mut self, unix_ts: u64) -> u32;
+    fn price_usd(&mut self, unix_ts: u64) -> Option<u32>;
 }
 
 struct Fixed(u32);
 impl PriceSource for Fixed {
-    fn price_usd(&mut self, _ts: u64) -> u32 {
-        self.0
+    fn price_usd(&mut self, _ts: u64) -> Option<u32> {
+        Some(self.0)
+    }
+}
+
+/// Live BTC/USD: median of three public spot APIs (Coinbase,
+/// Kraken, Bitstamp), refreshed by a background thread every
+/// `REFRESH_S`; served from cache; stale beyond `STALE_S` → None.
+mod live {
+    use std::process::Command;
+    use std::sync::{Arc, Mutex};
+    use std::time::{Duration, SystemTime, UNIX_EPOCH};
+
+    pub const REFRESH_S: u64 = 10;
+    pub const STALE_S: u64 = 120;
+
+    type Cache = Arc<Mutex<Option<(u64, u32)>>>; // (fetched_at, price)
+
+    pub struct Live {
+        cache: Cache,
+    }
+
+    impl Live {
+        pub fn start() -> Self {
+            let cache: Cache = Arc::new(Mutex::new(None));
+            let bg = cache.clone();
+            std::thread::spawn(move || loop {
+                if let Some(p) = fetch_median() {
+                    let now = SystemTime::now()
+                        .duration_since(UNIX_EPOCH)
+                        .map(|d| d.as_secs())
+                        .unwrap_or(0);
+                    *bg.lock().unwrap() = Some((now, p));
+                }
+                std::thread::sleep(Duration::from_secs(REFRESH_S));
+            });
+            Self { cache }
+        }
+
+        pub fn current(&self, now: u64) -> Option<u32> {
+            let cached = *self.cache.lock().unwrap();
+            cached.and_then(|(at, p)| (now.saturating_sub(at) <= STALE_S).then_some(p))
+        }
+    }
+
+    fn curl(url: &str) -> Option<String> {
+        let out = Command::new("curl")
+            .args(["-s", "--max-time", "5", url])
+            .output()
+            .ok()?;
+        out.status
+            .success()
+            .then(|| String::from_utf8_lossy(&out.stdout).into_owned())
+    }
+
+    pub fn parse_coinbase(body: &str) -> Option<f64> {
+        serde_json::from_str::<serde_json::Value>(body).ok()?["data"]["amount"]
+            .as_str()?
+            .parse()
+            .ok()
+    }
+
+    pub fn parse_kraken(body: &str) -> Option<f64> {
+        let v: serde_json::Value = serde_json::from_str(body).ok()?;
+        let result = v["result"].as_object()?;
+        let pair = result.values().next()?;
+        pair["c"][0].as_str()?.parse().ok()
+    }
+
+    pub fn parse_bitstamp(body: &str) -> Option<f64> {
+        serde_json::from_str::<serde_json::Value>(body).ok()?["last"]
+            .as_str()?
+            .parse()
+            .ok()
+    }
+
+    /// Median of the sources that answered. Requires ≥ 2 — a single
+    /// venue must not be able to set the attested price alone.
+    pub fn median_usd(mut prices: Vec<f64>) -> Option<u32> {
+        prices.retain(|p| p.is_finite() && *p > 0.0);
+        if prices.len() < 2 {
+            return None;
+        }
+        prices.sort_by(|a, b| a.partial_cmp(b).unwrap());
+        let mid = prices[(prices.len() - 1) / 2]; // lower-middle, spec 03 convention
+        Some(mid.round() as u32)
+    }
+
+    fn fetch_median() -> Option<u32> {
+        let quotes: Vec<f64> = [
+            curl("https://api.coinbase.com/v2/prices/BTC-USD/spot")
+                .and_then(|b| parse_coinbase(&b)),
+            curl("https://api.kraken.com/0/public/Ticker?pair=XBTUSD")
+                .and_then(|b| parse_kraken(&b)),
+            curl("https://www.bitstamp.net/api/v2/ticker/btcusd/").and_then(|b| parse_bitstamp(&b)),
+        ]
+        .into_iter()
+        .flatten()
+        .collect();
+        let n = quotes.len();
+        let m = median_usd(quotes);
+        if m.is_none() {
+            eprintln!("live price: only {n}/3 sources answered — no update");
+        }
+        m
+    }
+}
+
+struct LiveSource(live::Live);
+impl PriceSource for LiveSource {
+    fn price_usd(&mut self, unix_ts: u64) -> Option<u32> {
+        self.0.current(unix_ts)
     }
 }
 
@@ -54,11 +172,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .get(1)
         .ok_or("usage: oracled <seed-hex> <out-dir> [price] [cadence_s] [listen_addr]")?;
     let out_dir = args.get(2).ok_or("missing out-dir")?.clone();
-    let price: u32 = args
-        .get(3)
-        .map(|s| s.parse())
-        .transpose()?
-        .unwrap_or(100_000);
+    let price_arg = args.get(3).map(String::as_str).unwrap_or("100000");
     let cadence: u64 = args.get(4).map(|s| s.parse()).transpose()?.unwrap_or(1);
     let listen_addr = args.get(5).cloned();
 
@@ -70,7 +184,13 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     seed.copy_from_slice(&bytes);
 
     let oracle = Oracle::from_seed(&seed)?;
-    let mut source = Fixed(price);
+    let mut source: Box<dyn PriceSource> = if price_arg == "live" {
+        println!("oracled: live price (median of coinbase/kraken/bitstamp, refresh {}s, stale cutoff {}s)",
+            live::REFRESH_S, live::STALE_S);
+        Box::new(LiveSource(live::Live::start()))
+    } else {
+        Box::new(Fixed(price_arg.parse()?))
+    };
     std::fs::create_dir_all(&out_dir)?;
     let pubkey_hex = hex_encode(&oracle.pubkey);
     println!("oracled: pubkey={pubkey_hex}");
@@ -102,16 +222,26 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
             next_announce += cadence;
         }
 
-        // Attest every tick that matured since the last loop (sleep
-        // jitter must not leave gaps in the public history).
+        // Attest every tick that matured since the last loop. Sleep
+        // jitter is caught up; anything older than the catch-up
+        // window is skipped permanently — attesting an old tick with
+        // a current price would be a false attestation.
         while last_attested < tick {
             let t = last_attested + cadence;
-            let p = source.price_usd(t);
-            let att = oracle.attest(t, p)?;
-            write_hex(&out_dir, &format!("att-{t}.hex"), &att.tlv_bytes)?;
-            std::fs::write(Path::new(&out_dir).join("latest.txt"), t.to_string())?;
-            println!("tick {t}: price={p} att={}B", att.tlv_bytes.len());
             last_attested = t;
+            if tick - t > 30 {
+                eprintln!("tick {t}: SKIPPED (beyond catch-up window)");
+                continue;
+            }
+            match source.price_usd(t) {
+                Some(p) => {
+                    let att = oracle.attest(t, p)?;
+                    write_hex(&out_dir, &format!("att-{t}.hex"), &att.tlv_bytes)?;
+                    std::fs::write(Path::new(&out_dir).join("latest.txt"), t.to_string())?;
+                    println!("tick {t}: price={p} att={}B", att.tlv_bytes.len());
+                }
+                None => eprintln!("tick {t}: SKIPPED (no fresh price)"),
+            }
         }
 
         std::thread::sleep(Duration::from_secs(cadence));
@@ -207,6 +337,38 @@ mod tests {
         let _ = std::fs::remove_dir_all(&dir);
         std::fs::create_dir_all(&dir).unwrap();
         dir.to_string_lossy().into_owned()
+    }
+
+    #[test]
+    fn live_price_parsers_and_median() {
+        assert_eq!(
+            live::parse_coinbase(
+                r#"{"data":{"amount":"104123.45","base":"BTC","currency":"USD"}}"#
+            ),
+            Some(104123.45)
+        );
+        assert_eq!(
+            live::parse_kraken(
+                r#"{"error":[],"result":{"XXBTZUSD":{"a":["1","1","1"],"c":["104120.40000","0.01"]}}}"#
+            ),
+            Some(104120.4)
+        );
+        assert_eq!(
+            live::parse_bitstamp(r#"{"last":"104125","high":"1"}"#),
+            Some(104125.0)
+        );
+        // Garbage and shape drift fail closed.
+        assert_eq!(live::parse_coinbase("not json"), None);
+        assert_eq!(live::parse_kraken(r#"{"result":{}}"#), None);
+
+        // Median: lower-middle of 3; one venue alone cannot price.
+        assert_eq!(
+            live::median_usd(vec![104120.4, 104123.45, 104125.0]),
+            Some(104123)
+        );
+        assert_eq!(live::median_usd(vec![104120.0, 104125.0]), Some(104120));
+        assert_eq!(live::median_usd(vec![104120.0]), None);
+        assert_eq!(live::median_usd(vec![f64::NAN, -1.0, 104120.0]), None);
     }
 
     #[test]

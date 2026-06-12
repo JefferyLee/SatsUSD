@@ -8,6 +8,7 @@ rust-version.workspace = true
 [dependencies]
 satusd-rail = { path = "../satusd-rail" }
 secp256k1 = "0.31.1"
+serde_json.workspace = true
 sha2.workspace = true
 
 [dev-dependencies]
