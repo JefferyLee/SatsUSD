@@ -12,6 +12,11 @@ use satusd_rail::quote::Quote;
 
 pub const LOCK_TEMPLATE_TAG: &str = "SatUSD/rail0-lock-template/v1";
 
+/// Conservative Bitcoin dust floor for the user payout output —
+/// below this the network refuses the settlement transaction
+/// outright (found the hard way by the first CLI redeem).
+pub const DUST_FLOOR_SATS: u64 = 546;
+
 /// Per spec 00 §3.7: fee computations round half up in the
 /// protocol's favor.
 fn fee_round_half_up(amount: u64, bps: u16) -> u64 {
@@ -69,7 +74,7 @@ impl SwapPlan {
         let user_sats = gross_sats
             .checked_sub(service_fee_sats)
             .and_then(|v| v.checked_sub(fixed))
-            .filter(|v| *v > 0)
+            .filter(|v| *v >= DUST_FLOOR_SATS)
             .ok_or(PlanError::DustPayout)?;
         Ok(SwapPlan {
             rail_id: quote.rail_id,
@@ -185,7 +190,7 @@ mod tests {
         );
 
         let mut dust = quote(&m);
-        dust.amount_micro_usd = 100_000; // $0.10 → 100 sats < fixed 200
+        dust.amount_micro_usd = 700_000; // $0.70 → 700 sats; 700−500−200 < 546 dust floor
         assert_eq!(
             SwapPlan::from_quote(&m, &dust).unwrap_err(),
             PlanError::DustPayout

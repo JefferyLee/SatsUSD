@@ -1,0 +1,23 @@
+[package]
+name = "satusd-cli"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[[bin]]
+name = "satusd"
+path = "src/main.rs"
+
+[dependencies]
+base64 = "0.22"
+bitcoin = "0.32.9"
+hex.workspace = true
+satusd-lp = { path = "../satusd-lp" }
+satusd-oracle = { path = "../satusd-oracle" }
+satusd-rail = { path = "../satusd-rail" }
+satusd-rail0 = { path = "../satusd-rail0" }
+satusd-tapd-client = { path = "../satusd-tapd-client" }
+secp256k1 = "0.31.1"
+serde_json.workspace = true
+tokio = { version = "1", features = ["rt-multi-thread", "macros"] }

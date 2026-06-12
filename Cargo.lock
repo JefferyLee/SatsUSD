@@ -1567,6 +1567,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-cli"
+version = "0.1.0"
+dependencies = [
+ "base64 0.22.1",
+ "bitcoin",
+ "hex",
+ "satusd-lp",
+ "satusd-oracle",
+ "satusd-rail",
+ "satusd-rail0",
+ "satusd-tapd-client",
+ "secp256k1 0.31.1",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "satusd-crypto"
 version = "0.1.0"
 dependencies = [
@@ -1662,6 +1679,7 @@ name = "satusd-rail"
 version = "0.1.0"
 dependencies = [
  "hex",
+ "serde_json",
  "sha2",
 ]
 

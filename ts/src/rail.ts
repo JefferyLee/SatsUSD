@@ -253,7 +253,7 @@ export function swapPlanFromQuote(manifest: any, quote: any): any {
   }
   const service = feeRoundHalfUp(gross, manifest.fee_schedule.service_bps);
   const user = gross - service - big(manifest.fee_schedule.fixed_sats);
-  if (user <= 0n) {
+  if (user < 546n) {
     return { error: "DustPayout" };
   }
   const retained = feeRoundHalfUp(gross, manifest.fee_schedule.retain_bps);

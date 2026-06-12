@@ -8,5 +8,6 @@ pub mod asset_meta;
 pub mod capacity;
 pub mod encode;
 pub mod manifest;
+pub mod manifest_json;
 pub mod quote;
 pub mod state;

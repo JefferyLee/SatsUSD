@@ -351,6 +351,7 @@ impl Lp {
     pub fn manifest_json(&self) -> serde_json::Value {
         let m = &self.cfg.manifest;
         serde_json::json!({
+            "manifest": satusd_rail::manifest_json::to_value(m),
             "rail_id": hex::encode(m.rail_id()),
             "asset_id": hex::encode(self.cfg.asset_id),
             "lp_pubkey": hex::encode(self.cfg.lp_pubkey),

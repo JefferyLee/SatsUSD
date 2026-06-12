@@ -2081,12 +2081,7 @@
       "kind": "swap_plan",
       "name": "swap_plan_7_exact_dust_boundary",
       "result": {
-        "burn_micro_usd": "700000",
-        "gross_sats": "700",
-        "lock_template_commitment": "8ad2f2f23a4fa30aca105551c8192e30b4b7b33c8c8cf2870c06c747c9d9e1e1",
-        "retained_sats": "1",
-        "service_fee_sats": "0",
-        "user_sats": "500"
+        "error": "DustPayout"
       }
     },
     {
