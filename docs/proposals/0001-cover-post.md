@@ -46,7 +46,7 @@ claims are no longer paper claims:
 Full write-up (bilingual EN/中文), with the construction, PSBT
 field appendix, evidence table, and reproduction commands
 (`make devnet-up` + one `cargo test`):
-[LINK to docs/proposals/0001-ta-in-dlc-funding-output.md]
+https://github.com/JefferyLee/SatsUSD/blob/master/docs/proposals/0001-ta-in-dlc-funding-output.md
 
 ## Prior art (and why this isn't 10101)
 
