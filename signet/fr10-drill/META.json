@@ -1,0 +1,10 @@
+{
+  "drill": "FR-10 slash drill — equivocation detection + key extraction",
+  "spec": "docs/spec/05-dispute.md §2 §4",
+  "drill_oracle_pubkey": "926daf74b19f09ee02446f9ef63a7f90f3e997705959ae3181acba90d77ef600",
+  "drill_seed_disclosed": "1f0ad3b2fe4a63c32f87b6737af700480820852fb9cb05f0ec09580f11055ef3",
+  "conflict_ts": 1781276178,
+  "honest_price_usd": 60000,
+  "planted_price_usd": 60001,
+  "served_on": "http://207.148.98.132:9591 (drill instance, now stopped)"
+}

@@ -133,7 +133,8 @@ milestone is a checklist; done is done when the checks pass.
 **M-B — It's public (signet).**
 ☐ J3/J4 completed by ≥ 10 external testers · ☑ oracle daemon
 publicly consumable (live: 207.148.98.132:9590, 3-venue median) ·
-☐ ≥ 1 external LP quoting · ☐ FR-10 slash drill executed ·
+☐ ≥ 1 external LP quoting · ☑ FR-10 slash drill executed
+(2026-06-12, [signet/SLASH_DRILL_FR10.md](../signet/SLASH_DRILL_FR10.md)) ·
 ☐ informal external review received
 *Engineering preconditions complete 2026-06-12: signet genesis
 (registry.md), founder LP daemon, holder CLI, quickstart, agent
