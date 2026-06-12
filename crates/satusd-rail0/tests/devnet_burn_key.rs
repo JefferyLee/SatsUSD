@@ -13,7 +13,7 @@
 use std::path::PathBuf;
 
 use satusd_rail0::burn_key::{derive_burn_key, parse_anchor_point, PrevId};
-use satusd_tapd_client::{connect, taprpc, TaprootAssetsClient};
+use satusd_tapd_client::{taprpc, TaprootAssetsClient};
 
 const BURN_AMOUNT: u64 = 1_000;
 
@@ -29,9 +29,8 @@ fn xonly(key: &[u8]) -> [u8; 32] {
 #[ignore = "requires live devnet (make devnet-up) with a grouped asset"]
 async fn burn_key_matches_tapd() -> Result<(), Box<dyn std::error::Error>> {
     let root = PathBuf::from(env!("CARGO_MANIFEST_DIR")).join("../..");
-    let tls = std::fs::read(root.join("devnet/data/tapd/tls.cert"))?;
-    let mac = std::fs::read(root.join("devnet/data/tapd/data/regtest/admin.macaroon"))?;
-    let channel = connect("127.0.0.1:10029", &tls, &hex::encode(&mac), "localhost").await?;
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root);
+    let channel = env.tapd_channel().await?;
     let mut tap = TaprootAssetsClient::new(channel);
 
     let assets = tap

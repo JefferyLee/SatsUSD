@@ -25,7 +25,6 @@
 //! ```
 
 use std::path::PathBuf;
-use std::process::Command;
 use std::time::{SystemTime, UNIX_EPOCH};
 
 use base64::prelude::*;
@@ -42,7 +41,7 @@ use satusd_rail1::funding::{
     funding_output, keyspend_secret, refund_leaf_script, sibling_preimage,
 };
 use satusd_tapd_client::assetwalletrpc as awrpc;
-use satusd_tapd_client::{connect, taprpc, AssetWalletClient, TaprootAssetsClient};
+use satusd_tapd_client::{taprpc, AssetWalletClient, TaprootAssetsClient};
 use secp256k1::{Secp256k1, SecretKey};
 
 const FUND_UNITS: u64 = 5_000;
@@ -55,47 +54,11 @@ fn root() -> PathBuf {
 }
 
 fn bcli(args: &[&str]) -> serde_json::Value {
-    let data = root().join("devnet/data/bitcoind");
-    let mut cmd = Command::new("bitcoin-cli");
-    cmd.args([
-        "-regtest",
-        &format!("-datadir={}", data.display()),
-        "-rpcuser=satusd",
-        "-rpcpassword=satusd",
-        "-rpcport=18443",
-        "-rpcwallet=regtest",
-    ]);
-    cmd.args(args);
-    let out = cmd.output().expect("bitcoin-cli runs");
-    assert!(
-        out.status.success(),
-        "bitcoin-cli {:?}: {}",
-        args,
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let s = String::from_utf8(out.stdout).unwrap();
-    serde_json::from_str(s.trim())
-        .unwrap_or_else(|_| serde_json::Value::String(s.trim().to_string()))
+    satusd_tapd_client::env::NodeEnv::from_env(root()).bcli(args)
 }
 
 fn tapcli(args: &[&str]) -> String {
-    let r = root();
-    let out = Command::new(r.join("devnet/bin/tapcli"))
-        .args([
-            "--network=regtest",
-            "--rpcserver=127.0.0.1:10029",
-            &format!("--tapddir={}", r.join("devnet/data/tapd").display()),
-        ])
-        .args(args)
-        .output()
-        .expect("tapcli runs");
-    assert!(
-        out.status.success(),
-        "tapcli {:?}: {}",
-        args,
-        String::from_utf8_lossy(&out.stderr)
-    );
-    String::from_utf8(out.stdout).unwrap()
+    satusd_tapd_client::env::NodeEnv::from_env(root()).tapcli(args)
 }
 
 fn compressed_even(x: &[u8; 32]) -> Vec<u8> {
@@ -107,10 +70,9 @@ fn compressed_even(x: &[u8; 32]) -> Vec<u8> {
 #[tokio::test]
 #[ignore = "requires live devnet (make devnet-up)"]
 async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
-    let r = root();
-    let tls = std::fs::read(r.join("devnet/data/tapd/tls.cert"))?;
-    let mac = std::fs::read(r.join("devnet/data/tapd/data/regtest/admin.macaroon"))?;
-    let channel = connect("127.0.0.1:10029", &tls, &hex::encode(&mac), "localhost").await?;
+    let _r = root();
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    let channel = env.tapd_channel().await?;
     let mut tap = TaprootAssetsClient::new(channel.clone());
     let mut wallet = AssetWalletClient::new(channel);
     let secp = Secp256k1::new();

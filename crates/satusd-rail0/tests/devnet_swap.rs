@@ -20,7 +20,6 @@
 //! ```
 
 use std::path::PathBuf;
-use std::process::Command;
 
 use base64::prelude::*;
 use bitcoin::psbt::Psbt;
@@ -31,7 +30,7 @@ use satusd_rail0::builder::{fund, publish, sign_commit, AnchorTemplate};
 use satusd_rail0::burn_key::parse_anchor_point;
 use satusd_rail0::plan::SwapPlan;
 use satusd_rail0::rail::{rail0_manifest, Rail0Params};
-use satusd_tapd_client::{connect, taprpc, AssetWalletClient, TaprootAssetsClient};
+use satusd_tapd_client::{taprpc, AssetWalletClient, TaprootAssetsClient};
 
 const SWAP_ASSET_UNITS: u64 = 5_000;
 
@@ -40,36 +39,15 @@ fn root() -> PathBuf {
 }
 
 fn bcli(args: &[&str]) -> serde_json::Value {
-    let data = root().join("devnet/data/bitcoind");
-    let mut cmd = Command::new("bitcoin-cli");
-    cmd.args([
-        "-regtest",
-        &format!("-datadir={}", data.display()),
-        "-rpcuser=satusd",
-        "-rpcpassword=satusd",
-        "-rpcport=18443",
-        "-rpcwallet=regtest",
-    ]);
-    cmd.args(args);
-    let out = cmd.output().expect("bitcoin-cli runs");
-    assert!(
-        out.status.success(),
-        "bitcoin-cli {:?} failed: {}",
-        args,
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let s = String::from_utf8(out.stdout).unwrap();
-    serde_json::from_str(s.trim())
-        .unwrap_or_else(|_| serde_json::Value::String(s.trim().to_string()))
+    satusd_tapd_client::env::NodeEnv::from_env(root()).bcli(args)
 }
 
 #[tokio::test]
 #[ignore = "requires live devnet (make devnet-up) with a grouped asset"]
 async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
-    let r = root();
-    let tls = std::fs::read(r.join("devnet/data/tapd/tls.cert"))?;
-    let mac = std::fs::read(r.join("devnet/data/tapd/data/regtest/admin.macaroon"))?;
-    let channel = connect("127.0.0.1:10029", &tls, &hex::encode(&mac), "localhost").await?;
+    let _r = root();
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    let channel = env.tapd_channel().await?;
     let mut tap = TaprootAssetsClient::new(channel.clone());
     let mut wallet = AssetWalletClient::new(channel);
 
@@ -215,16 +193,7 @@ async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
     let b64 = |bytes: &[u8]| BASE64_STANDARD.encode(bytes);
     let processed = bcli(&["walletprocesspsbt", &b64(&committed.anchor_psbt)]);
 
-    let lnd_tls = std::fs::read(r.join("devnet/data/lnd/tls.cert"))?;
-    let lnd_mac =
-        std::fs::read(r.join("devnet/data/lnd/data/chain/bitcoin/regtest/admin.macaroon"))?;
-    let lnd_channel = connect(
-        "127.0.0.1:10009",
-        &lnd_tls,
-        &hex::encode(&lnd_mac),
-        "localhost",
-    )
-    .await?;
+    let lnd_channel = env.lnd_channel().await?;
     let mut lnd_wallet = satusd_tapd_client::WalletKitClient::new(lnd_channel);
     let lnd_signed = lnd_wallet
         .sign_psbt(satusd_tapd_client::walletrpc::SignPsbtRequest {

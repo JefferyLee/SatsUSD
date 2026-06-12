@@ -1743,6 +1743,7 @@ dependencies = [
  "satusd-lock",
  "satusd-ta-proof",
  "satusd-types",
+ "serde_json",
  "tokio",
  "tokio-rustls",
  "tonic",

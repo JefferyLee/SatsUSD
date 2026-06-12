@@ -12,13 +12,12 @@
 //! ```
 
 use std::path::PathBuf;
-use std::process::Command;
 
 use satusd_rail::encode::tagged_hash;
 use satusd_rail1::funding::{
     funding_output, keyspend_secret, refund_leaf_script, sibling_preimage,
 };
-use satusd_tapd_client::{connect, taprpc, AssetWalletClient, TaprootAssetsClient};
+use satusd_tapd_client::{taprpc, AssetWalletClient, TaprootAssetsClient};
 use secp256k1::{Secp256k1, SecretKey};
 
 const FUND_UNITS: u64 = 2_000;
@@ -28,27 +27,7 @@ fn root() -> PathBuf {
 }
 
 fn bcli(args: &[&str]) -> serde_json::Value {
-    let data = root().join("devnet/data/bitcoind");
-    let mut cmd = Command::new("bitcoin-cli");
-    cmd.args([
-        "-regtest",
-        &format!("-datadir={}", data.display()),
-        "-rpcuser=satusd",
-        "-rpcpassword=satusd",
-        "-rpcport=18443",
-        "-rpcwallet=regtest",
-    ]);
-    cmd.args(args);
-    let out = cmd.output().expect("bitcoin-cli runs");
-    assert!(
-        out.status.success(),
-        "bitcoin-cli {:?} failed: {}",
-        args,
-        String::from_utf8_lossy(&out.stderr)
-    );
-    let s = String::from_utf8(out.stdout).unwrap();
-    serde_json::from_str(s.trim())
-        .unwrap_or_else(|_| serde_json::Value::String(s.trim().to_string()))
+    satusd_tapd_client::env::NodeEnv::from_env(root()).bcli(args)
 }
 
 fn compressed_even(x: &[u8; 32]) -> Vec<u8> {
@@ -61,10 +40,9 @@ fn compressed_even(x: &[u8; 32]) -> Vec<u8> {
 #[tokio::test]
 #[ignore = "requires live devnet (make devnet-up) with a grouped asset"]
 async fn funding_output_lands_and_q_reconstructs() -> Result<(), Box<dyn std::error::Error>> {
-    let r = root();
-    let tls = std::fs::read(r.join("devnet/data/tapd/tls.cert"))?;
-    let mac = std::fs::read(r.join("devnet/data/tapd/data/regtest/admin.macaroon"))?;
-    let channel = connect("127.0.0.1:10029", &tls, &hex::encode(&mac), "localhost").await?;
+    let _r = root();
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    let channel = env.tapd_channel().await?;
     let mut tap = TaprootAssetsClient::new(channel.clone());
     let mut wallet = AssetWalletClient::new(channel);
 
