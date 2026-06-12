@@ -94,6 +94,21 @@ This design space has bodies in it, so positioning honestly:
   I don't claim better liquidity or UX — I claim a different
   product, for holders an issuer can't or won't serve.
 
+## "Your oracle is a single signer" — yes, and here is its fence
+
+Named before you name it: the oracle is the system's weakest link,
+registered as scaffolding with a removal criterion. Security rests
+on the boundedness of its dishonesty, not on its honesty:
+equivocation = key extraction by anyone (implemented, tested);
+single-sided lying is capped by a per-settlement deviation bound ×
+per-rail capacity; silence ends in a CSV refund. Above that floor,
+oracles are a free-entry market — and the market's real product is
+volume: every settlement is an implicit price attestation, and with
+enough history the price signal needs no signer at all
+(volume-gated activation, external anchor until then). The
+competing oracles aren't aggregated by that end state; they're
+metabolized by it.
+
 The three open questions I'd most value input on:
 
 1. Should BIP-tap explicitly bless "asset commitment in a

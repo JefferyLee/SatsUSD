@@ -12,6 +12,33 @@ the **reference marker** — the protocol-level price every other
 spec leans on. The mission criterion governs throughout: each class
 exists to be outcompeted by the one below it on the list.
 
+
+## 0. Oracle posture
+
+The single-signer oracle running today is this system's
+self-declared weakest link — a PRD §8 scaffolding row with a
+written removal criterion, not a foundation. The protocol's
+security does not rest on the oracle's honesty; it rests on the
+**boundedness of its dishonesty**:
+
+- equivocation surrenders the oracle's secret key to anyone (§3.3,
+  implemented and tested);
+- a single false price is bounded by `price_dev_bound` per
+  settlement and by capacity per rail (§3.3 scope note);
+- silence is bounded by the CSV refund path — users exit
+  unilaterally.
+
+Above that floor, oracles are a free-entry market: any rail brings
+its own trust model (§1 classes), users select with real money,
+and capacity bounds each entrant's blast radius. The market's true
+product is not "the best oracle" — it is **volume**. Every
+settlement is an implicit price attestation (spec 02 §4 S3); when
+the settlement history is thick enough, the price signal stops
+needing any signer at all (§5, volume-gated). The competing
+oracles are not aggregated by the end state — they are
+*metabolized* by it, having served their historical purpose of
+bootstrapping the flow.
+
 ## 1. Class registry
 
 ```

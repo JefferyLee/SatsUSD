@@ -40,6 +40,7 @@ function addAnim(id, fn) {
 window.setLang = function (lang) {
   LANG = lang;
   document.documentElement.lang = lang;
+  document.title = lang === "zh" ? "SatUSD — 文明用价格思考" : "SatUSD — Civilization thinks in prices";
   document.querySelectorAll("[data-zh]").forEach((el) => { el.innerHTML = el.dataset[lang]; });
   $("btn-zh").classList.toggle("on", lang === "zh");
   $("btn-en").classList.toggle("on", lang === "en");
@@ -772,6 +773,9 @@ const io = new IntersectionObserver((entries) => {
   });
 }, { rootMargin: "-40% 0px -50% 0px" });
 zones.forEach((z) => io.observe(z));
+
+/* default language: English */
+setLang("en");
 
 /* initial paints */
 drawTranche(); drawKill();

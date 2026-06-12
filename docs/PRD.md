@@ -131,9 +131,13 @@ milestone is a checklist; done is done when the checks pass.
 ☑ specs 00/01/03 drafted to implementable precision
 
 **M-B — It's public (signet).**
-☐ J3/J4 completed by ≥ 10 external testers · ☐ oracle daemon
-publicly consumable · ☐ ≥ 1 external LP quoting · ☐ FR-10 slash
-drill executed · ☐ informal external review received
+☐ J3/J4 completed by ≥ 10 external testers · ☑ oracle daemon
+publicly consumable (live: 207.148.98.132:9590, 3-venue median) ·
+☐ ≥ 1 external LP quoting · ☐ FR-10 slash drill executed ·
+☐ informal external review received
+*Engineering preconditions complete 2026-06-12: signet genesis
+(registry.md), founder LP daemon, holder CLI, quickstart, agent
+SDK, repo public; first real redemption confirmed (809fb8a3…).*
 
 **M-C — Real value (mainnet, founder-funded reserve).**
 ☐ capacity formula live with conservative caps · ☐ J1–J5 on
