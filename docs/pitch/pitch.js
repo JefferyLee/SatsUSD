@@ -90,11 +90,14 @@ function btcOffset(sec) {
 }
 
 // Stable random positions for the "sats inside one SatUSD" dot field.
-// Seeded so they don't shimmer between frames; we render the first N
-// of them where N is inversely proportional to BTC.
+// fx is extended past 1 — dots at fx ≤ 1 are the strip's baseline (visible
+// at btcScale=1), dots at fx > 1 are the "reservoir" beyond the gold bar
+// that flows in when BTC compresses the strip (BTC down → btcScale < 1
+// → visibility limit 1/btcScale > 1 → reservoir dots become visible at
+// the right side). Seeded so positions don't shimmer between frames.
 const SAT_DOTS = (() => {
   const r = mulberry(91);
-  return Array.from({ length: 200 }, () => ({ fx: r(), fy: r() }));
+  return Array.from({ length: 220 }, () => ({ fx: r() * 2, fy: r() }));
 })();
 
 function drawRulers(ctx, W, H, t) {
@@ -130,34 +133,31 @@ function drawRulers(ctx, W, H, t) {
       ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
     }
     // SatUSD: a dot field beneath the ruler — each dot is a sat inside one
-    // SatUSD. The dots are confined to the ruler's *current* length, so as
-    // fiat compresses the USD scale, the same sats get crowded into less
-    // space. Count is inverse-proportional to BTC: BTC up → fewer dots
-    // (sparser); BTC down → more dots (denser). Long-term BTC appreciation
-    // (trend in btcOffset) thins the field monotonically.
+    // SatUSD. The strip's natural length tracks the BTC ruler's length, but
+    // the field lives within the gold bar's bounds (the *measured object*),
+    // not within the USD ruler's compressed length. So when BTC stretches
+    // the strip past the gold bar, the excess is clipped; when BTC
+    // compresses the strip below the gold bar, reservoir dots from beyond
+    // fx=1 flow in from the right edge — visible-supply rises exactly
+    // because BTC bought more sats per dollar.
     if (l.mode === "dual") {
-      const N0 = 80;
-      const targetN = Math.max(20, Math.min(160, N0 / (1 + btcOffset(sec))));
-      const fullN = Math.floor(targetN);
-      const partialAlpha = targetN - fullN;
+      const btcScale = 1 + btcOffset(sec);
+      const fxLimit = 1 / btcScale;          // dot visible if fx ≤ fxLimit
+      const fadeBand = 0.06;                  // alpha-fade dots near the edge
       const bandY = y + 42, bandH = 18;
-      ctx.fillStyle = "rgba(247,147,26,.55)";
-      for (let i = 0; i < fullN; i++) {
-        const d = SAT_DOTS[i];
-        const x = l.x0 + d.fx * railEnd;
+      for (const d of SAT_DOTS) {
+        if (d.fx > fxLimit) continue;
+        const fromEdge = fxLimit - d.fx;
+        const alpha = fromEdge < fadeBand ? 0.55 * fromEdge / fadeBand : 0.55;
+        ctx.fillStyle = `rgba(247,147,26,${alpha})`;
+        const x = l.x0 + d.fx * btcScale * RW;
         const yy = bandY + d.fy * bandH;
         ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
       }
-      if (fullN < SAT_DOTS.length) {
-        const d = SAT_DOTS[fullN];
-        ctx.fillStyle = `rgba(247,147,26,${0.55 * partialAlpha})`;
-        const x = l.x0 + d.fx * railEnd;
-        const yy = bandY + d.fy * bandH;
-        ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
-      }
-      // bedrock under the dot band
+      // bedrock under the dot band — spans the gold bar's full width
+      // (the constant), not the USD ruler's compressed length
       ctx.fillStyle = "rgba(247,147,26,.12)";
-      ctx.fillRect(l.x0, bandY + bandH + 6, railEnd, 6);
+      ctx.fillRect(l.x0, bandY + bandH + 6, RW, 6);
     }
 
     // Label + sub-label (two lines for richer modes)
