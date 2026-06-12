@@ -18,6 +18,7 @@ use det::Det;
 use satusd_allot::plan::{AllotmentInput, AllotmentPlan, RailPosition};
 use satusd_oracle::event;
 use satusd_oracle::oracle::Oracle;
+use satusd_rail::asset_meta::AssetMeta;
 use satusd_rail::capacity::capacity_sats;
 use satusd_rail::encode::{tagged_hash, Encoder};
 use satusd_rail::manifest::{
@@ -339,6 +340,38 @@ fn main() {
             "encoding_hex": hex::encode(m.canonical_encode()),
             "rail_id": hex32(&m.rail_id()),
         }));
+    }
+
+    // ---- AssetMeta (spec 01 §2.2) ----
+    {
+        let mut metas = vec![(
+            "asset_meta_genesis_11".to_string(),
+            AssetMeta::genesis([0x11; 32]),
+        )];
+        for i in 0..3 {
+            metas.push((
+                format!("asset_meta_gen_{i}"),
+                AssetMeta {
+                    spec_version: d.u16(),
+                    name: ["SatUSD", "X", "Sat\u{4e2d}USD"][i].to_string(),
+                    decimals: d.u8(),
+                    mission_commitment: d.arr(),
+                },
+            ));
+        }
+        for (name, m) in &metas {
+            vectors.push(json!({
+                "name": name,
+                "kind": "asset_meta",
+                "fields": {
+                    "spec_version": m.spec_version,
+                    "name": m.name,
+                    "decimals": m.decimals,
+                    "mission_commitment": hex32(&m.mission_commitment),
+                },
+                "encoding_hex": hex::encode(m.canonical_encode()),
+            }));
+        }
     }
 
     // ---- Quote (spec 02 §3.1) ----

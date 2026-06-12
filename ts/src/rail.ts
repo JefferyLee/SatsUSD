@@ -199,6 +199,17 @@ export function railIdHex(f: any): string {
   return bytesToHex(taggedHash("SatUSD/rail-manifest/v1", encodeManifest(f)));
 }
 
+// ---- AssetMeta (spec 01 §2.2) ----
+
+export function encodeAssetMeta(f: any): Uint8Array {
+  const e = new RailEncoder();
+  e.u16(f.spec_version);
+  e.string(f.name);
+  e.u8(f.decimals);
+  e.bytes32(f.mission_commitment);
+  return e.bytes();
+}
+
 // ---- Quote (spec 02 §3.1) ----
 
 export function encodeQuote(f: any): Uint8Array {

@@ -1,5 +1,5 @@
 {
-  "count": 127,
+  "count": 131,
   "schema": "satusd-rail-vectors-v1",
   "vectors": [
     {
@@ -1424,144 +1424,188 @@
       "rail_id": "0e0870afb612578dc361857a31161c3b067500a427b6519cdab8cebe1ca7e76d"
     },
     {
-      "encoding_hex": "074ad94e2171aa6477709c01bc049ae2f1a6840925c15cd0c2c980f732cb3d8a00000000003b1efc00004aaff57debd8000000000ac1aff0364b5b1d55192d8d198ee23fad62c58f600951ddc3b3096901cc9d4fba6f97e5",
+      "encoding_hex": "000106536174555344061111111111111111111111111111111111111111111111111111111111111111",
       "fields": {
-        "amount_micro_usd": "82119598402520",
-        "expiry_unix_s": "180465648",
-        "lock_template_commitment": "364b5b1d55192d8d198ee23fad62c58f600951ddc3b3096901cc9d4fba6f97e5",
-        "price_msat_per_usd": "3874556",
-        "rail_id": "074ad94e2171aa6477709c01bc049ae2f1a6840925c15cd0c2c980f732cb3d8a"
+        "decimals": 6,
+        "mission_commitment": "1111111111111111111111111111111111111111111111111111111111111111",
+        "name": "SatUSD",
+        "spec_version": 1
+      },
+      "kind": "asset_meta",
+      "name": "asset_meta_genesis_11"
+    },
+    {
+      "encoding_hex": "074a065361745553448a2749504a03aaebd82025e6fe5c0ba3a59ef4c55e72f30f7b98fecb39de17159b",
+      "fields": {
+        "decimals": 138,
+        "mission_commitment": "2749504a03aaebd82025e6fe5c0ba3a59ef4c55e72f30f7b98fecb39de17159b",
+        "name": "SatUSD",
+        "spec_version": 1866
+      },
+      "kind": "asset_meta",
+      "name": "asset_meta_gen_0"
+    },
+    {
+      "encoding_hex": "a220015836f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d",
+      "fields": {
+        "decimals": 54,
+        "mission_commitment": "f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d",
+        "name": "X",
+        "spec_version": 41504
+      },
+      "kind": "asset_meta",
+      "name": "asset_meta_gen_1"
+    },
+    {
+      "encoding_hex": "916809536174e4b8ad555344bd624e1e8cd4c2f89d2e749fb3a7fe6ffed9d95411f77a178e00ce052742b5f802",
+      "fields": {
+        "decimals": 189,
+        "mission_commitment": "624e1e8cd4c2f89d2e749fb3a7fe6ffed9d95411f77a178e00ce052742b5f802",
+        "name": "Sat中USD",
+        "spec_version": 37224
+      },
+      "kind": "asset_meta",
+      "name": "asset_meta_gen_2"
+    },
+    {
+      "encoding_hex": "41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e00000000008b2f2500001516c598e2060000000064520145966574e23e8208cc7bbe6d7969cbc58a0c8d2e75825961ee0103301d6fc1cd53",
+      "fields": {
+        "amount_micro_usd": "23187548594694",
+        "expiry_unix_s": "1683095877",
+        "lock_template_commitment": "966574e23e8208cc7bbe6d7969cbc58a0c8d2e75825961ee0103301d6fc1cd53",
+        "price_msat_per_usd": "9121573",
+        "rail_id": "41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e"
       },
       "kind": "quote",
       "name": "quote_0",
-      "signing_payload": "b7e89202b59b5f3227ce7097aa3fe9b92dde7b555e2e7b97d8acf16db5332643",
-      "user_sats": "318176982708"
+      "signing_payload": "d4e5f85624127efe43851952fc48f68a3f1898c0a637305c02828dee8fea4ab7",
+      "user_sats": "211506917197"
     },
     {
-      "encoding_hex": "f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d00000000005fd58f000059e87a174d95000000007e03b09d41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e",
+      "encoding_hex": "95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca0000000000528a78000019af285251f200000000a5d83a43b05a1377b4e910e47f71cbb7850faea6a77cbdd6270146e185805c44993ec546",
       "fields": {
-        "amount_micro_usd": "98855015632277",
-        "expiry_unix_s": "2114171037",
-        "lock_template_commitment": "41cad8e72af2c21a89111dea8728fa2afc588535b7b3147015ed4592aaca4a6e",
-        "price_msat_per_usd": "6280591",
-        "rail_id": "f8a13f7ed0ad65aae483a42e44bbf671d7c2c1c7ea47beeed745a73b96d9b84d"
+        "amount_micro_usd": "28240086454770",
+        "expiry_unix_s": "2782411331",
+        "lock_template_commitment": "b05a1377b4e910e47f71cbb7850faea6a77cbdd6270146e185805c44993ec546",
+        "price_msat_per_usd": "5409400",
+        "rail_id": "95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca"
       },
       "kind": "quote",
       "name": "quote_1",
-      "signing_payload": "58f99e0f6a81043754fa946e82ab116b656c51b0eead0b69e4533c7f5d59d5fa",
-      "user_sats": "620867921484"
+      "signing_payload": "752ff5abb66e14c3788f8e71805f55631e3241a938afadf745ee3773ee8180f9",
+      "user_sats": "152761923668"
     },
     {
-      "encoding_hex": "77d7e7520e460c05bfd64243cf5885b5ab5bc5df561079fee176fe5a01a72caf000000000084aba600004e790512514500000000534628cc95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca",
+      "encoding_hex": "3d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce0000000000586f4d00005376b614e2f5000000005a2f81f7e67743edf941ddd94963d1c8c5d6b49674dec53f75b7b50888a919f2d323dc2e",
       "fields": {
-        "amount_micro_usd": "86281683095877",
-        "expiry_unix_s": "1397106892",
-        "lock_template_commitment": "95f0fa274fa02b83409968a8556ccf0c9520b387808dd00429c18532713932ca",
-        "price_msat_per_usd": "8694694",
-        "rail_id": "77d7e7520e460c05bfd64243cf5885b5ab5bc5df561079fee176fe5a01a72caf"
+        "amount_micro_usd": "91769326068469",
+        "expiry_unix_s": "1513062903",
+        "lock_template_commitment": "e67743edf941ddd94963d1c8c5d6b49674dec53f75b7b50888a919f2d323dc2e",
+        "price_msat_per_usd": "5795661",
+        "rail_id": "3d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce"
       },
       "kind": "quote",
       "name": "quote_2",
-      "signing_payload": "495e217e17d2cf2687da1540f3aa9f8680ddd717085c5cacac4734e57864af83",
-      "user_sats": "750192832323"
+      "signing_payload": "49cc0f1ddac5dddb8d8b3463924cfbb8f6193ea68ffde5e32574fd86ce20933c",
+      "user_sats": "531863904091"
     },
     {
-      "encoding_hex": "8d846327c21ea9d8b0481c09547b0adf0a39adc9de8b229dcdde00090fca8ea200000000006404920000401e46e1fa4300000000ccd498e43d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce",
+      "encoding_hex": "b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf00000000003c2f7a0000481acd002c450000000063b0e775cdc894db0c4a20719b66ae86086ed3d0b7e031c856297338d38e69a1615f2381",
       "fields": {
-        "amount_micro_usd": "70498782411331",
-        "expiry_unix_s": "3436484836",
-        "lock_template_commitment": "3d6bfe735e6273abea8d762694c7c4e6215fb751ef9df21c470cda795e3a90ce",
-        "price_msat_per_usd": "6554770",
-        "rail_id": "8d846327c21ea9d8b0481c09547b0adf0a39adc9de8b229dcdde00090fca8ea2"
+        "amount_micro_usd": "79279945690181",
+        "expiry_unix_s": "1672537973",
+        "lock_template_commitment": "cdc894db0c4a20719b66ae86086ed3d0b7e031c856297338d38e69a1615f2381",
+        "price_msat_per_usd": "3944314",
+        "rail_id": "b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf"
       },
       "kind": "quote",
       "name": "quote_3",
-      "signing_payload": "be41248f1aad231ef4e583c37bc264723c9bc64065cafe98de68e8a36f91c215",
-      "user_sats": "462103303986"
+      "signing_payload": "fa04561663d2e40ea29ab7f47e5c262c9028565030b45e37e776a18e17f89240",
+      "user_sats": "312704999705"
     },
     {
-      "encoding_hex": "c22a2bc09fddcd2d1e0a9b0965fed65213172729039205db7b2fdfb53e6a37f200000000005e1f95000038c4b5b1a1f70000000013150dd9b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf",
+      "encoding_hex": "d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd29800000000004d901d0000208b13ef9fcd000000003e8f85e9071252c40ad0e977316d8629c14b21e3788737f2c665dacbee242dd9b6e19917",
       "fields": {
-        "amount_micro_usd": "62417513062903",
-        "expiry_unix_s": "320146905",
-        "lock_template_commitment": "b3e828600eb006e7bf354dc31a51a0634df5a2da476e98f9807afaab9b3685bf",
-        "price_msat_per_usd": "6168469",
-        "rail_id": "c22a2bc09fddcd2d1e0a9b0965fed65213172729039205db7b2fdfb53e6a37f2"
+        "amount_micro_usd": "35781707014093",
+        "expiry_unix_s": "1049593321",
+        "lock_template_commitment": "071252c40ad0e977316d8629c14b21e3788737f2c665dacbee242dd9b6e19917",
+        "price_msat_per_usd": "5083165",
+        "rail_id": "d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd298"
       },
       "kind": "quote",
       "name": "quote_4",
-      "signing_payload": "5788abcd6e2bbb99eb1c24488f7879513fe14c68afdae15e1feb046df60b3b9a",
-      "user_sats": "385020494385"
+      "signing_payload": "60351c4ad8d047ac2170379f83772ae654cd4d1d05349bc8d941480b7cf2a0b6",
+      "user_sats": "181884320734"
     },
     {
-      "encoding_hex": "db1c435ed33932dad783783fef667b55d568b2fb517cf937c817a71e6e77e89500000000005859e50000318edd9357750000000061e36071d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd298",
+      "encoding_hex": "7777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e421390300000000004188dd000012697d60cb6b00000000d94fd5c74bf51c9ff0a275d917c709dd478e4a1f8132e0a8a81814b5eccff17396661f71",
       "fields": {
-        "amount_micro_usd": "54489672537973",
-        "expiry_unix_s": "1642291313",
-        "lock_template_commitment": "d97bd10302d89fa8bf0edc5f98556ef2672ee1fd486ccc5d28bdf5eeb2fcd298",
-        "price_msat_per_usd": "5790181",
-        "rail_id": "db1c435ed33932dad783783fef667b55d568b2fb517cf937c817a71e6e77e895"
+        "amount_micro_usd": "20244284361579",
+        "expiry_unix_s": "3645887943",
+        "lock_template_commitment": "4bf51c9ff0a275d917c709dd478e4a1f8132e0a8a81814b5eccff17396661f71",
+        "price_msat_per_usd": "4294877",
+        "rail_id": "7777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e4213903"
       },
       "kind": "quote",
       "name": "quote_5",
-      "signing_payload": "4c53518aceb9ecc61cd20ba5e55c1f215ca48ebf786c0e3d4df397ac0b03f533",
-      "user_sats": "315505066625"
+      "signing_payload": "71ab974498edfb92af4b1a2013b40bacf0e45fa3f222dee3a40c55b7a7ce9dbe",
+      "user_sats": "86946711286"
     },
     {
-      "encoding_hex": "a43dc9ddd0a5557d904a42c6fa4c3b1d2b7eceed3fb9ea6264bd115ed508511e00000000006c8d6d000018b3ecb675e9000000006afac1777777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e4213903",
+      "encoding_hex": "8dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e000000000004314c00004c619910e54300000000422b26c7c44dcdc4ada643cd027411e3258bfc696f3fadfa5935f4b3b9d0a03d0016d851",
       "fields": {
-        "amount_micro_usd": "27161049593321",
-        "expiry_unix_s": "1794818423",
-        "lock_template_commitment": "7777d8a216f58d277793f7c3508a2db633e31bdfea5dc184e9146201e4213903",
-        "price_msat_per_usd": "7114093",
-        "rail_id": "a43dc9ddd0a5557d904a42c6fa4c3b1d2b7eceed3fb9ea6264bd115ed508511e"
+        "amount_micro_usd": "83982063560003",
+        "expiry_unix_s": "1110124231",
+        "lock_template_commitment": "c44dcdc4ada643cd027411e3258bfc696f3fadfa5935f4b3b9d0a03d0016d851",
+        "price_msat_per_usd": "274764",
+        "rail_id": "8dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e"
       },
       "kind": "quote",
       "name": "quote_6",
-      "signing_payload": "94b405bb6f4bde07d0a5ec9b841bd7e2d2c7906b92c4968013d8e4fd0a83080d",
-      "user_sats": "193226232784"
+      "signing_payload": "1cca8da177cd09a7e50129ea94df617fd55318103edc723a3b1cb62165ca2cec",
+      "user_sats": "23075247712"
     },
     {
-      "encoding_hex": "67d497bafe3a81bd52cb354216196abfbde8bee3283c2b5ebe9535be997168b2000000000044140b0000145602c01dc700000000cabb25d98dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e",
+      "encoding_hex": "0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db700000000008a805b000015e2a32e807d000000007ddfd37d78e2b43860d6155a2bf9fc70e6482978f383af4ea03bb29be389e3002064e549",
       "fields": {
-        "amount_micro_usd": "22359645887943",
-        "expiry_unix_s": "3401262553",
-        "lock_template_commitment": "8dffe78323ec7466eb6f426a68a58b7ae4f7576514b47b8fc104181de53acd5e",
-        "price_msat_per_usd": "4461579",
-        "rail_id": "67d497bafe3a81bd52cb354216196abfbde8bee3283c2b5ebe9535be997168b2"
+        "amount_micro_usd": "24063144525949",
+        "expiry_unix_s": "2111820669",
+        "lock_template_commitment": "78e2b43860d6155a2bf9fc70e6482978f383af4ea03bb29be389e3002064e549",
+        "price_msat_per_usd": "9076827",
+        "rail_id": "0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db7"
       },
       "kind": "quote",
       "name": "quote_7",
-      "signing_payload": "84e46ebeb7886b76a0d9d0462cf8e6f3c1789f1fd3a6040681482a615209e7a8",
-      "user_sats": "99759326541"
+      "signing_payload": "5ea56b93900366b39fc11a2f6a8f872319d24df1e0a02bda0ec6ce8e570c7936",
+      "user_sats": "218416999938"
     },
     {
-      "encoding_hex": "0566aad52fc2bfacc44218de47b5724ba943574bece21c4ca9794e611d88b3c2000000000037d8e3000050694805bec7000000004a9453cd0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db7",
+      "encoding_hex": "9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda00000000009040a900000cefc6004cd60000000005e5178a769e44fa7506acd0ab12e9a0432beed2125461d0992e5cc94792ff1c04b23a1b",
       "fields": {
-        "amount_micro_usd": "88413110124231",
-        "expiry_unix_s": "1251234765",
-        "lock_template_commitment": "0535c8fdb3a2767cc4412487eb6a29cd3507ddc47581a96b1dca6f5bbb421db7",
-        "price_msat_per_usd": "3660003",
-        "rail_id": "0566aad52fc2bfacc44218de47b5724ba943574bece21c4ca9794e611d88b3c2"
+        "amount_micro_usd": "14223958625494",
+        "expiry_unix_s": "98899850",
+        "lock_template_commitment": "769e44fa7506acd0ab12e9a0432beed2125461d0992e5cc94792ff1c04b23a1b",
+        "price_msat_per_usd": "9453737",
+        "rail_id": "9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda"
       },
       "kind": "quote",
       "name": "quote_8",
-      "signing_payload": "1441a77ab1462a4095634b409c70c8bd26c22cd6913e855bf7c7f5b7fa772b48",
-      "user_sats": "323592248294"
+      "signing_payload": "6daa997e494ef06d99f25d3fca8f2b4a663dd941d8650598b46fc7ddf373d8ef",
+      "user_sats": "134469563944"
     },
     {
-      "encoding_hex": "19d85b0d4dff423bdb923bc13bc083c737b50acb2d640afffec3b1d73ba70607000000000046961d00003e520c22637d00000000d2087d5a9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda",
+      "encoding_hex": "22db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e099000000000021f536000033347050aad400000000a6f406d70b04e6a06f5b4abe7b70386348c9901c7b49b5a45702f2fb5991835d3101a811",
       "fields": {
-        "amount_micro_usd": "68522111820669",
-        "expiry_unix_s": "3523771738",
-        "lock_template_commitment": "9cb1bca32f3e4a072a51c34794addfd579e1fa1b8bdfad5265ff8c93e5893fda",
-        "price_msat_per_usd": "4625949",
-        "rail_id": "19d85b0d4dff423bdb923bc13bc083c737b50acb2d640afffec3b1d73ba70607"
+        "amount_micro_usd": "56300315650772",
+        "expiry_unix_s": "2801010391",
+        "lock_template_commitment": "0b04e6a06f5b4abe7b70386348c9901c7b49b5a45702f2fb5991835d3101a811",
+        "price_msat_per_usd": "2225462",
+        "rail_id": "22db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e099"
       },
       "kind": "quote",
       "name": "quote_9",
-      "signing_payload": "a097a1e5732a73c77facfbfa707a3dd64ba446f717c457f54bd2cad45a58dac0",
-      "user_sats": "316979794654"
+      "signing_payload": "e55acd7c67033f31d9efe9f0d03a7dac7998cd2a1282bce97734d74eca0ddb30",
+      "user_sats": "125294213068"
     },
     {
       "encoding_hex": "eeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeffffffffffffffffffffffffffffffffffffffffffffffffeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeeee",
@@ -2213,26 +2257,11 @@
       "unallocated_sats": "1000000"
     },
     {
-      "encoding_hex": "03e60961000007cd08cf8c4e31af94055afc12321448fb1345b3dd045692dc69e4f1356363305b857b4e065c0d02890e1204017e70758fd9a49cd5c0c84622a38f982ee0f8e7f5b367f3a9062100000008b78414a800000008b78414a806d68de9a0a8bb8d09116e320cccaf55be8671e0d71f92533a42de2e38937d9e0000000b895cdb600000000b895cdb6022db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e0990000000019dc9b750000000019dc9b7556b1b6cd249e9c91d4f6c7ed4f5acc808b9922bb81f1aaab870417f63175a20f000000019586ac8d000000019586ac8d5a83599e89034ed73fbd2f81f34e1e76584c378d1c1018887991c1cfb7a9fb22000000055cf54df6000000055cf54df65d92b7e2698f038743067aa8545ace55e5c787cdcd9381206c7a843904908d7b0000000899861fcf0000000899861fcf6626fcb7f94c8aa379ef0168121663effcf8fab2eef9abfb0a760148ffd37cc000000005a75a1a6300000005a75a1a636a7fb48618a4fd2d4c7a53a5ff5dfb9c77ff69b2f11143ec59cb580d3764d8b100000001661c832900000001661c8329997d2c9fbeea2fef336f7cb4e2b615f40df6aa23a33ca9dd607689011c698695000000030aee7c63000000030aee7c63d91cd5bf7b13ccd6b8b87ec541e3a99cfcb8d27d7043057b4bcaef4c3d10569300000009f0d64e2d00000009f0d64e2ddd20f07cb1d4f07a44a6ff52c7a9a9cf6bb13ea0cbbf0f7cd33e6bf096af1832000000063556ecf3000000063556ecf3e60a9432d9cb236c149c3e433d8c024b39e008aee6ef8a2535dc316d91a6fdc0000000035c47104c000000035c47104ceb1df4f4fa5e4a9b9502be037f0afb7f003f0845c55d67eee76ba4b14553f0180000000ae9957b510000000ae9957b51000007809da105d3",
-      "input_hash": "31af94055afc12321448fb1345b3dd045692dc69e4f1356363305b857b4e065c",
+      "encoding_hex": "9e5496ce0000083928a43e3af77eb4928252237ddf6a546454eaf37d080d377cb64caa0c03b5454e84ad32f20c02890e1204017e70758fd9a49cd5c0c84622a38f982ee0f8e7f5b367f3a9062100000008b78414a800000008b78414a803e60961f66dd6fa12f08eb8d4cf0ac265c0e0dea2d31f506cab25e5f56a1b8f000000059c3f1180000000059c3f118006d68de9a0a8bb8d09116e320cccaf55be8671e0d71f92533a42de2e38937d9e0000000b895cdb600000000b895cdb604c9ad7fc59263482acb83f24cec0bbc664229c844a3bbb415033db9fdb9ecad700000001ccbb05b800000001ccbb05b856b1b6cd249e9c91d4f6c7ed4f5acc808b9922bb81f1aaab870417f63175a20f000000019586ac8d000000019586ac8d5d92b7e2698f038743067aa8545ace55e5c787cdcd9381206c7a843904908d7b0000000899861fcf0000000899861fcf6626fcb7f94c8aa379ef0168121663effcf8fab2eef9abfb0a760148ffd37cc000000005a75a1a6300000005a75a1a636a7fb48618a4fd2d4c7a53a5ff5dfb9c77ff69b2f11143ec59cb580d3764d8b100000001661c832900000001661c8329997d2c9fbeea2fef336f7cb4e2b615f40df6aa23a33ca9dd607689011c698695000000030aee7c63000000030aee7c63dd20f07cb1d4f07a44a6ff52c7a9a9cf6bb13ea0cbbf0f7cd33e6bf096af1832000000063556ecf3000000063556ecf3e60a9432d9cb236c149c3e433d8c024b39e008aee6ef8a2535dc316d91a6fdc0000000035c47104c000000035c47104ceb1df4f4fa5e4a9b9502be037f0afb7f003f0845c55d67eee76ba4b14553f0180000000ae9957b510000000ae9957b51000007f4bc23d81f",
+      "input_hash": "f77eb4928252237ddf6a546454eaf37d080d377cb64caa0c03b5454e84ad32f2",
       "inputs": {
-        "epoch": 65407329,
+        "epoch": 2656343758,
         "positions": [
-          {
-            "lp_stake_sats": "85291664592",
-            "rail_id": "d91cd5bf7b13ccd6b8b87ec541e3a99cfcb8d27d7043057b4bcaef4c3d105693",
-            "retained_fees_cum_sats": "98899850"
-          },
-          {
-            "lp_stake_sats": "315650772",
-            "rail_id": "22db96c68d690a3a4459682ff69d9a05ff08bc3a0bcd1ff7b13abf4ddf59e099",
-            "retained_fees_cum_sats": "552125462"
-          },
-          {
-            "lp_stake_sats": "46007373614",
-            "rail_id": "5a83599e89034ed73fbd2f81f34e1e76584c378d1c1018887991c1cfb7a9fb22",
-            "retained_fees_cum_sats": "61459646"
-          },
           {
             "lp_stake_sats": "13257294867",
             "rail_id": "56b1b6cd249e9c91d4f6c7ed4f5acc808b9922bb81f1aaab870417f63175a20f",
@@ -2282,31 +2311,31 @@
             "lp_stake_sats": "52886060501",
             "rail_id": "dd20f07cb1d4f07a44a6ff52c7a9a9cf6bb13ea0cbbf0f7cd33e6bf096af1832",
             "retained_fees_cum_sats": "443325458"
-          }
-        ],
-        "reserve_total_sats": "8577197509710"
-      },
-      "kind": "allotment",
-      "name": "allotment_gen_0",
-      "plan_hash": "17164070f80505fa0287ddd84208855a01a819cba9d8812c6976a598b00b8366",
-      "unallocated_sats": "8248981784019"
-    },
-    {
-      "encoding_hex": "a614bc41000002b936e3e1423197199b4e4cab083c6bbed07c8bba30bdfc917694034029e7ecc0ece0721171050b0def52a2a33b9fbe482604cdcd95413a9439335f9881c0396597cc54500584000000009d82ace1000000009d82ace14c9ad7fc59263482acb83f24cec0bbc664229c844a3bbb415033db9fdb9ecad700000001ccbb05b800000001ccbb05b88cd310c992cb8e5f60f2e3f00dd1dc96b03cddca67217a183826410c96405f6d000000033468cb55000000033468cb559e5496ce8ea807094e36a4e8e05549528e188aeaba1dc6ea62e465049e27143c0000000631a3a80e0000000631a3a80ece1ddbf1ecdbc1c45ab93e1306be6f7ce13740915397294600f70bf261a3c5c60000000630cc7d4f0000000630cc7d4f000002a735cd3df7",
-      "input_hash": "3197199b4e4cab083c6bbed07c8bba30bdfc917694034029e7ecc0ece0721171",
-      "inputs": {
-        "epoch": 2786376769,
-        "positions": [
+          },
+          {
+            "lp_stake_sats": "47994921138",
+            "rail_id": "03e60961f66dd6fa12f08eb8d4cf0ac265c0e0dea2d31f506cab25e5f56a1b8f",
+            "retained_fees_cum_sats": "197509710"
+          },
           {
             "lp_stake_sats": "14682876232",
             "rail_id": "4c9ad7fc59263482acb83f24cec0bbc664229c844a3bbb415033db9fdb9ecad7",
             "retained_fees_cum_sats": "776675880"
-          },
-          {
-            "lp_stake_sats": "52617214946",
-            "rail_id": "9e5496ce8ea807094e36a4e8e05549528e188aeaba1dc6ea62e465049e27143c",
-            "retained_fees_cum_sats": "588010554"
-          },
+          }
+        ],
+        "reserve_total_sats": "9041588010554"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_0",
+      "plan_hash": "edf4ec0404c859c5380bb87ef1140bee78d4ca3e2c2ba4312fce396cedc10d6e",
+      "unallocated_sats": "8747709880351"
+    },
+    {
+      "encoding_hex": "b8a016f90000067c445fbc47315de0ec477cc02b99ccd58e2d8351747f49a4d56eeec6e90da1cd51929404480d00ed7315e792dc3b6e2c091212b775b7573e2b48aadbd9058969c32fa7bb5264000000093455b20e000000093455b20e0b0def52a2a33b9fbe482604cdcd95413a9439335f9881c0396597cc54500584000000009d82ace1000000009d82ace10c77c4353a9e734e3d00f0134947cf7982b2b255b9aece50f34a17e0bff5c74b0000000a7e52bcbb0000000a7e52bcbb1199de332e6f88accd02e720023bf2875f35f6cbfbd4a1403b51b5ab180693530000000b6e63254a0000000b6e63254a2f4f2da7b7562a28bc3effb55a7378b2d748e832ea6120978edfe4bca567e80e0000000141e386850000000141e386852f94e2ff4666d775516f828a6fb74026bb3742c55b5b6950713730166dfb586f0000000188c5a82b0000000188c5a82b5111b426aae86236b2acc7315dc5945a44e4f7bac3f4d49831cc4cf32a8345220000000aae88cbed0000000aae88cbed89e528febd7257c7d45fd79217799286eee48cb3f7f38067077f03e0249b663700000005b35b54b500000005b35b54b58cd310c992cb8e5f60f2e3f00dd1dc96b03cddca67217a183826410c96405f6d000000033468cb55000000033468cb55a614bc418bb5da57b3b3608486bbacc0d65fc14cd0d7407e1d7dfab7f3bd6d3100000003f6034c0a00000003f6034c0ace1ddbf1ecdbc1c45ab93e1306be6f7ce13740915397294600f70bf261a3c5c60000000630cc7d4f0000000630cc7d4fd41a54f33084cf11cb4719f499a8dda317e0196a5799e96db5a2bcf2134aa93b000000062961af1e000000062961af1efcd44ff62336fbe04c5b31dbe05665cc6a51f59096d2067e782adf506213f86500000005b0d7deea00000005b0d7deea0000063023d2094b",
+      "input_hash": "315de0ec477cc02b99ccd58e2d8351747f49a4d56eeec6e90da1cd5192940448",
+      "inputs": {
+        "epoch": 3097499385,
+        "positions": [
           {
             "lp_stake_sats": "27448831958",
             "rail_id": "8cd310c992cb8e5f60f2e3f00dd1dc96b03cddca67217a183826410c96405f6d",
@@ -2321,21 +2350,12 @@
             "lp_stake_sats": "52502901173",
             "rail_id": "ce1ddbf1ecdbc1c45ab93e1306be6f7ce13740915397294600f70bf261a3c5c6",
             "retained_fees_cum_sats": "674121961"
-          }
-        ],
-        "reserve_total_sats": "2994513109314"
-      },
-      "kind": "allotment",
-      "name": "allotment_gen_1",
-      "plan_hash": "4c9ea93df1b480aad04ef1321d1ed80c132aa607b2a1ebcd0c897491cb5add9c",
-      "unallocated_sats": "2917185437175"
-    },
-    {
-      "encoding_hex": "14d927ab00000400bac72c934327728a3c3f26233bfc0c99b582bd17852f6968455990910557dd89f6866f920c00ed7315e792dc3b6e2c091212b775b7573e2b48aadbd9058969c32fa7bb5264000000093455b20e000000093455b20e0c77c4353a9e734e3d00f0134947cf7982b2b255b9aece50f34a17e0bff5c74b0000000a7e52bcbb0000000a7e52bcbb1199de332e6f88accd02e720023bf2875f35f6cbfbd4a1403b51b5ab180693530000000b6e63254a0000000b6e63254a2f4f2da7b7562a28bc3effb55a7378b2d748e832ea6120978edfe4bca567e80e0000000141e386850000000141e386852f94e2ff4666d775516f828a6fb74026bb3742c55b5b6950713730166dfb586f0000000188c5a82b0000000188c5a82b5111b426aae86236b2acc7315dc5945a44e4f7bac3f4d49831cc4cf32a8345220000000aae88cbed0000000aae88cbed89e528febd7257c7d45fd79217799286eee48cb3f7f38067077f03e0249b663700000005b35b54b500000005b35b54b5b8a016f9329fb03f22663ecb01c82dc9f721beb8bddb864c742777e93c96f2fd00000008a31be8c000000008a31be8c0c2c3ff8a1d62639bf5e02d6d98c9080fd1f1b155c94d457736582e70c18aed580000000076cc7f110000000076cc7f11d41a54f33084cf11cb4719f499a8dda317e0196a5799e96db5a2bcf2134aa93b000000062961af1e000000062961af1ed8d2164a94d5fde26b303e09dd7c3336ece5f0ea209b2fe37eab1740802949be00000006095c2d1100000006095c2d11fcd44ff62336fbe04c5b31dbe05665cc6a51f59096d2067e782adf506213f86500000005b0d7deea00000005b0d7deea000003b36fb02644",
-      "input_hash": "4327728a3c3f26233bfc0c99b582bd17852f6968455990910557dd89f6866f92",
-      "inputs": {
-        "epoch": 349775787,
-        "positions": [
+          },
+          {
+            "lp_stake_sats": "33511516882",
+            "rail_id": "a614bc418bb5da57b3b3608486bbacc0d65fc14cd0d7407e1d7dfab7f3bd6d31",
+            "retained_fees_cum_sats": "513109314"
+          },
           {
             "lp_stake_sats": "91423923549",
             "rail_id": "5111b426aae86236b2acc7315dc5945a44e4f7bac3f4d49831cc4cf32a834522",
@@ -2380,12 +2400,21 @@
             "lp_stake_sats": "52000154559",
             "rail_id": "d41a54f33084cf11cb4719f499a8dda317e0196a5799e96db5a2bcf2134aa93b",
             "retained_fees_cum_sats": "927988349"
-          },
-          {
-            "lp_stake_sats": "73399671097",
-            "rail_id": "b8a016f9329fb03f22663ecb01c82dc9f721beb8bddb864c742777e93c96f2fd",
-            "retained_fees_cum_sats": "792836167"
-          },
+          }
+        ],
+        "reserve_total_sats": "7130792836167"
+      },
+      "kind": "allotment",
+      "name": "allotment_gen_1",
+      "plan_hash": "57da06d8d26fd822fe6d005e92687eeba54869d2a56228d07bc8f36f95b3879a",
+      "unallocated_sats": "6803829164363"
+    },
+    {
+      "encoding_hex": "14d927ab00000400bac72c930a246b25d7f39de4efa5b9b8ccdbd126e91b1ddc078af04c77eb07009b433d4b02c2c3ff8a1d62639bf5e02d6d98c9080fd1f1b155c94d457736582e70c18aed580000000076cc7f110000000076cc7f11d8d2164a94d5fde26b303e09dd7c3336ece5f0ea209b2fe37eab1740802949be00000006095c2d1100000006095c2d11000003fa3a9e8071",
+      "input_hash": "0a246b25d7f39de4efa5b9b8ccdbd126e91b1ddc078af04c77eb07009b433d4b",
+      "inputs": {
+        "epoch": 349775787,
+        "positions": [
           {
             "lp_stake_sats": "3938556142",
             "rail_id": "c2c3ff8a1d62639bf5e02d6d98c9080fd1f1b155c94d457736582e70c18aed58",
@@ -2401,8 +2430,8 @@
       },
       "kind": "allotment",
       "name": "allotment_gen_2",
-      "plan_hash": "0086f5d5af9c66d4974d0acef5fc7adee899cc0134a55118f9ad0d7f9fecc3fa",
-      "unallocated_sats": "4069207844420"
+      "plan_hash": "5982b45e62ef627571b648ba527f2d38e23c95aa16994a47b35ce62121a6269a",
+      "unallocated_sats": "4373260173425"
     },
     {
       "encoding_hex": "46c722f2000005689383e795f9477f7332edbc29cc98d65d32596f4fa1b769b91dbe7ddddc7a48a40793430908062a7214886078d88f48682386e688a61e39bc2ba53e9f40a029fb5a29df3e9c00000003af6c80ff00000003af6c80ff070af4c39d992319a4b51990a4f13bcdf320acccf8553ca7c38619d77d2ec094000000052654b30a000000052654b30a579c8944498c787395e66e8d02b745f6a7e4c5e8d7efdce41b04a1520fa320440000000605fc4ed90000000605fc4ed958b17a09d5edc5aceb25cbfa16612fd4e372e7d6fb2b37563386d48ab8de201600000001dc6ef63400000001dc6ef63465e57a1077c1670977205c15a72cff36997d8257912738190ff2d7657ff5a53500000005f476d57f00000005f476d57fd7222e2b6f0c615e8029fe5edbe5aa5f4ef100d1609eee99be0c3b43e3783e3d0000000ad0a6498a0000000ad0a6498aed3b323b76c1f558b92550ab38ab67bd1503a10c6c6258a0d27947aeb5010161000000014460d6e4000000014460d6e4f702674950e72e6c8abdf1a59cae0d616a9cfdacb5063f6a0d8422faca56973000000000aa1972af00000000aa1972af0000054527c005e3",

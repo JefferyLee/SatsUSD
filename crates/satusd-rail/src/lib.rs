@@ -4,6 +4,7 @@
 //! self-certifying `rail_id`, the `Quote` payload, the conversion
 //! phase machine, and the capacity formula (ADR-0002).
 
+pub mod asset_meta;
 pub mod capacity;
 pub mod encode;
 pub mod manifest;

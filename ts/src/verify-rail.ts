@@ -13,6 +13,7 @@ import {
   bigsizeHex,
   encodeManifest,
   railIdHex,
+  encodeAssetMeta,
   encodeQuote,
   quoteSigningPayloadHex,
   quoteUserSats,
@@ -74,6 +75,10 @@ for (const v of doc.vectors as any[]) {
     case "rail_manifest":
       check(v.name, bytesToHex(encodeManifest(v.fields)), v.encoding_hex, "encoding");
       check(v.name, railIdHex(v.fields), v.rail_id, "rail_id");
+      break;
+
+    case "asset_meta":
+      check(v.name, bytesToHex(encodeAssetMeta(v.fields)), v.encoding_hex, "encoding");
       break;
 
     case "quote":
