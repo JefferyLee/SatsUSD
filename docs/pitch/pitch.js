@@ -52,7 +52,7 @@ function addAnim(id, fn) {
 window.setLang = function (lang) {
   LANG = lang;
   document.documentElement.lang = lang;
-  document.title = lang === "zh" ? "SatUSD — 文明用价格思考" : "SatUSD — Civilization thinks in prices";
+  document.title = lang === "zh" ? "SatUSD — 价格是市场的语言" : "SatUSD — Prices are the language of markets";
   document.querySelectorAll("[data-zh]").forEach((el) => { el.innerHTML = el.dataset[lang]; });
   $("btn-zh").classList.toggle("on", lang === "zh");
   $("btn-en").classList.toggle("on", lang === "en");
