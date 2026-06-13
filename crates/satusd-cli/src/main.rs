@@ -228,6 +228,7 @@ async fn redeem(
     amount_micro_usd: u64,
     payout: Option<String>,
     oracle: &str,
+    force_input: Option<String>,
 ) -> Result<(), Error> {
     let payout_address = match payout {
         Some(a) => a,
@@ -250,7 +251,7 @@ async fn redeem(
         })
         .await?
         .into_inner();
-    for (op, _) in utxos.managed_utxos {
+    for (op, _) in &utxos.managed_utxos {
         let parts: Vec<&str> = op.split(':').collect();
         let mut txid = hex::decode(parts[0])?;
         txid.reverse();
@@ -263,7 +264,38 @@ async fn redeem(
             })
             .await;
     }
-    let funded = fund(&mut wallet, q["lp_ta_addr"].as_str().ok_or("lp_ta_addr")?).await?;
+
+    // Optionally pin the asset UTXO to spend (tapd otherwise prefers the
+    // largest). Looks up the asset_id + script_key from the managed UTXO
+    // set we already fetched.
+    let inputs = match &force_input {
+        Some(op_str) => {
+            let mu = utxos
+                .managed_utxos
+                .get(op_str)
+                .ok_or_else(|| format!("--input {op_str} not among managed UTXOs"))?;
+            let asset = mu.assets.first().ok_or("--input UTXO carries no asset")?;
+            let (txid_s, vout_s) = op_str.split_once(':').ok_or("bad --input outpoint")?;
+            let mut txid = hex::decode(txid_s)?;
+            txid.reverse();
+            println!("input    : pinned {op_str} ({} units)", asset.amount);
+            vec![satusd_tapd_client::assetwalletrpc::PrevId {
+                outpoint: Some(taprpc::OutPoint {
+                    txid,
+                    output_index: vout_s.parse()?,
+                }),
+                id: asset
+                    .asset_genesis
+                    .as_ref()
+                    .ok_or("input asset has no genesis")?
+                    .asset_id
+                    .clone(),
+                script_key: asset.script_key.clone(),
+            }]
+        }
+        None => vec![],
+    };
+    let funded = fund(&mut wallet, q["lp_ta_addr"].as_str().ok_or("lp_ta_addr")?, inputs).await?;
     let template = AnchorTemplate {
         lp_outpoint: OutPoint::from_str(q["lp_btc_input"]["outpoint"].as_str().ok_or("outpoint")?)?,
         lp_prev_txout: TxOut {
@@ -371,10 +403,10 @@ async fn main() -> Result<(), Error> {
                 .clone();
             let amount = parse_usd(args.get(3).ok_or("missing amount")?)?;
             let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
-            redeem(&env, &lp, amount, flag("--payout"), &oracle).await
+            redeem(&env, &lp, amount, flag("--payout"), &oracle, flag("--input")).await
         }
         _ => {
-            eprintln!("usage: satusd balance | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>]");
+            eprintln!("usage: satusd balance | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>]");
             std::process::exit(2);
         }
     }

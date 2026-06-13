@@ -171,7 +171,7 @@ async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
 
     // ---- fund FIRST; the funded vPSBT tells us which anchor
     //      outpoint tapd selected — never guess it from ListUtxos ----
-    let funded = fund(&mut wallet, &lp_addr).await?;
+    let funded = fund(&mut wallet, &lp_addr, vec![]).await?;
     println!(
         "funded; anchor outpoint = {}",
         funded.anchor_input()?.outpoint

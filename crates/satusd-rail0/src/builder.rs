@@ -342,15 +342,20 @@ impl FundedTransfer {
     }
 }
 
-/// Fund the user's virtual transfer to the LP's TA address.
+/// Fund the user's virtual transfer to the LP's TA address. `inputs`,
+/// if non-empty, pins the exact asset UTXOs to spend (tapd's coin
+/// selection otherwise picks for you, preferring larger UTXOs); use it
+/// to spend a specific UTXO.
 pub async fn fund(
     wallet: &mut AssetWalletClient<TapChannel>,
     lp_ta_addr: &str,
+    inputs: Vec<awrpc::PrevId>,
 ) -> Result<FundedTransfer, Box<dyn std::error::Error>> {
     let funded = wallet
         .fund_virtual_psbt(awrpc::FundVirtualPsbtRequest {
             template: Some(awrpc::fund_virtual_psbt_request::Template::Raw(
                 awrpc::TxTemplate {
+                    inputs,
                     recipients: [(lp_ta_addr.to_string(), 0u64)].into_iter().collect(),
                     ..Default::default()
                 },
