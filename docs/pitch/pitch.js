@@ -80,11 +80,14 @@ function fiatShrink(sec) {
 // BTC: coherent price moves (all marks scale together) — high-freq jitter
 // stacked on slow regime cycles, plus a long-term upward trend (BTC has
 // appreciated against USD over its history; SatUSD's sat-dot density is
-// the inverse of this, so the trend matters there too).
+// the inverse of this, so the trend matters there too). Volatility itself
+// decays over time — the "EKG of monetization" eventually settles as BTC
+// matures into a usable unit-of-account.
 function btcOffset(sec) {
-  const jitter = (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
+  const volDecay = Math.max(0.15, 1 - sec * 0.008);
+  const jitter = volDecay * (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
   const phase = (sec / 14) * Math.PI * 2;
-  const regime = Math.sin(phase) * 0.30 + Math.sin(phase * 0.5 + 1.7) * 0.15;
+  const regime = volDecay * (Math.sin(phase) * 0.30 + Math.sin(phase * 0.5 + 1.7) * 0.15);
   const trend = Math.min(0.30, sec * 0.005);
   return jitter + regime + trend;
 }
@@ -119,10 +122,21 @@ function drawRulers(ctx, W, H, t) {
     if (l.mode === "dual") {
       // SatUSD's USD shell: a *container*, not a ruler. No gradations —
       // the semantic is "a vessel that holds sats", not "a scale of dollars".
-      // The container compresses with fiat (its right wall walks left at
-      // fiatShrink's rate): the denomination shares fiat's fate.
-      ctx.strokeStyle = l.color; ctx.lineWidth = 1.5;
-      ctx.strokeRect(l.x0, y + 10, railEnd, 38);
+      // The container compresses with fiat AND fades away — the dollar
+      // denomination eventually retires (this is the pitch's whole thesis,
+      // now literal: solid line → dashed → invisible). When it's gone the
+      // sats remain.
+      const containerAlpha = Math.max(0, 1 - sec / 90);
+      if (containerAlpha > 0.02) {
+        const intoDashing = Math.max(0, sec - 15);
+        const dashOn = Math.max(2, 14 - intoDashing * 0.12);
+        const dashOff = Math.min(20, intoDashing * 0.18);
+        ctx.strokeStyle = `rgba(247,147,26,${containerAlpha * 0.9})`;
+        ctx.lineWidth = 1.5;
+        ctx.setLineDash(intoDashing > 0 ? [dashOn, dashOff] : []);
+        ctx.strokeRect(l.x0, y + 10, railEnd, 38);
+        ctx.setLineDash([]);
+      }
     } else {
       // Fiat and BTC: a real ruler — line + gradations.
       ctx.strokeStyle = l.color; ctx.lineWidth = 3;
@@ -137,14 +151,16 @@ function drawRulers(ctx, W, H, t) {
         ctx.beginPath(); ctx.moveTo(x, y + 10); ctx.lineTo(x, y + 10 + (i % 5 === 0 ? 26 : 16)); ctx.stroke();
       }
     }
-    // SatUSD: the sats inside the container. The strip's natural length
-    // tracks the BTC ruler, but it lives inside the container's bounds
-    // (the container *holds* the sats). BTC up → fxLimit shrinks → tail
-    // sats clip at the container's right wall. BTC down → fxLimit grows
-    // past 1 → reservoir sats (fx > 1) flow in from beyond the right wall.
+    // SatUSD: the sats. The dot strip is anchored to the *gold bar*
+    // (the measured object), not to the container — so sats that fall
+    // outside the shrinking container are still visible inside the gold
+    // bar. The strip's natural length tracks BTC: stretch past the gold
+    // bar → tail clips at the bar's right edge; compress below → reservoir
+    // dots (fx > 1) flow in from beyond. When the container fades to
+    // nothing, what remains is just sats inside the gold bar.
     if (l.mode === "dual") {
       const btcScale = 1 + btcOffset(sec);
-      const fxLimit = 1 / btcScale;
+      const fxLimit = 1 / btcScale;             // clip at the gold bar
       const fadeBand = 0.06;
       const bandY = y + 14, bandH = 30;
       for (const d of SAT_DOTS) {
@@ -152,7 +168,7 @@ function drawRulers(ctx, W, H, t) {
         const fromEdge = fxLimit - d.fx;
         const alpha = fromEdge < fadeBand ? 0.55 * fromEdge / fadeBand : 0.55;
         ctx.fillStyle = `rgba(247,147,26,${alpha})`;
-        const x = l.x0 + d.fx * btcScale * railEnd;
+        const x = l.x0 + d.fx * btcScale * RW;
         const yy = bandY + d.fy * bandH;
         ctx.beginPath(); ctx.arc(x, yy, 1.7, 0, 7); ctx.fill();
       }
@@ -166,11 +182,11 @@ function drawRulers(ctx, W, H, t) {
       ctx.fillText(T("尺子在变短", "the ruler is shortening"), l.x0, y + 108);
       ctx.fillText(T("（永不回弹）", "(never reverses)"), l.x0, y + 130);
     } else if (l.mode === "shake") {
-      ctx.fillText(T("刻度剧烈震颤", "gradations swing violently"), l.x0, y + 108);
-      ctx.fillText(T("（震幅取自 BTC 实际行情）", "(amplitude matches real BTC regimes)"), l.x0, y + 130);
+      ctx.fillText(T("剧烈震颤，渐次衰减", "violent swings, gradually settling"), l.x0, y + 108);
+      ctx.fillText(T("（货币化进程的心电图）", "(the EKG of monetization)"), l.x0, y + 130);
     } else {
-      ctx.fillText(T("容器：1 SatUSD（与法币同压）", "container: 1 SatUSD (compresses with fiat)"), l.x0, y + 130);
-      ctx.fillText(T("橙点：装在里面的 sats（与 BTC 反向）", "dots: sats inside (inverse of BTC)"), l.x0, y + 152);
+      ctx.fillText(T("容器：1 SatUSD（与法币同压；终会退役）", "container: 1 SatUSD (compresses; eventually retires)"), l.x0, y + 130);
+      ctx.fillText(T("橙点：sats — 容器消失后留下的就是它", "dots: sats — what remains when the container is gone"), l.x0, y + 152);
     }
   });
 
