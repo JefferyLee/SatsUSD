@@ -180,6 +180,8 @@ async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
     let template = AnchorTemplate {
         lp_outpoint,
         lp_prev_txout,
+        lp_internal_key: None, // single-lnd harness: LP input is local
+        lp_key_origin: None,
         user_payout: user_payout.clone(),
         extra_outputs: vec![],
     };

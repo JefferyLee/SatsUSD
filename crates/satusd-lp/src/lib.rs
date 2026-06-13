@@ -174,6 +174,16 @@ impl Lp {
         let vout = u["vout"].as_u64().unwrap() as u32;
         let value_sats = (u["amount"].as_f64().unwrap() * 1e8).round() as u64;
         let script_hex = u["scriptPubKey"].as_str().unwrap().to_string();
+        // The user co-builds an anchor tx that spends this (foreign-to-them)
+        // P2TR input; their tapd's fee estimation needs the input's taproot
+        // internal key + BIP-32 origin to size it without owning it. Read
+        // them from the address descriptor (BIP86 `tr([fp/path]key)#cksum`).
+        let lp_addr = u["address"].as_str().unwrap_or("");
+        let ai = self.cfg.env.bcli(&["getaddressinfo", lp_addr]);
+        let (lp_internal_key, lp_derivation) = ai["desc"]
+            .as_str()
+            .and_then(parse_tr_descriptor)
+            .unwrap_or_default();
         self.cfg.env.bcli(&[
             "lockunspent",
             "false",
@@ -244,6 +254,8 @@ impl Lp {
                 "outpoint": format!("{lp_outpoint}"),
                 "value_sats": value_sats.to_string(),
                 "script_pubkey": script_hex,
+                "internal_key": lp_internal_key,
+                "derivation": lp_derivation,
             },
             "lp_change": lp_change.as_ref().map(|c| serde_json::json!({
                 "value_sats": c.value.to_sat().to_string(),
@@ -368,6 +380,29 @@ impl Lp {
             "chain": self.cfg.env.chain,
         })
     }
+}
+
+/// Parse a BIP86 single-key taproot descriptor
+/// `tr([<fp>/<path>]<key>)#<cksum>` into `(internal_key_xonly_hex,
+/// "<fp>/<path>")`. Returns the x-only (32-byte) internal key hex and
+/// the origin string the user's PSBT builder needs. `None` if the
+/// descriptor isn't a plain `tr(...)` with a key-origin.
+fn parse_tr_descriptor(desc: &str) -> Option<(String, String)> {
+    let inner = desc.strip_prefix("tr(")?;
+    let inner = inner.split(')').next()?; // drop ")#checksum"
+    let rest = inner.strip_prefix('[')?;
+    let (origin, key) = rest.split_once(']')?;
+    // origin = "<fingerprint>/<path...>"; keep as-is for the builder.
+    if origin.split('/').next()?.len() != 8 {
+        return None; // not a fingerprint
+    }
+    let key = key.trim();
+    let xonly = match key.len() {
+        64 => key.to_string(),
+        66 => key[2..].to_string(), // compressed → drop the parity byte
+        _ => return None,
+    };
+    Some((xonly, origin.to_string()))
 }
 
 // ---- HTTP plumbing (std-grade, founder-LP scale) ----

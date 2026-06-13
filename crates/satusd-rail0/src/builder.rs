@@ -43,6 +43,17 @@ pub struct AnchorTemplate {
     pub lp_outpoint: OutPoint,
     /// The LP input's previous output (needed by the LP's signer).
     pub lp_prev_txout: TxOut,
+    /// The LP input's taproot internal key + BIP-32 origin, when the
+    /// LP is a *remote* party (its UTXO is foreign to our lnd). Set on
+    /// the PSBT input so tapd's CommitVirtualPsbts fee estimation can
+    /// classify it as an external P2TR key-spend (known witness size)
+    /// instead of trying to derive a signing key for it — without this
+    /// lnd errors "cannot sign for taproot input without taproot
+    /// BIP0032 derivation info". The foreign fingerprint tells lnd the
+    /// input belongs to someone else, so it estimates but never signs.
+    /// `None` in the single-lnd harness where the LP input is local.
+    pub lp_internal_key: Option<bitcoin::XOnlyPublicKey>,
+    pub lp_key_origin: Option<(bitcoin::bip32::Fingerprint, bitcoin::bip32::DerivationPath)>,
     /// The user's BTC payout (SwapPlan::user_sats).
     pub user_payout: TxOut,
     /// Additional value-bearing outputs (e.g. the LP's change in
@@ -258,6 +269,17 @@ pub fn build_anchor_template(
     }
     // The LP signer needs its witness UTXO.
     psbt.inputs[1].witness_utxo = Some(t.lp_prev_txout.clone());
+    // For a remote LP, mark the input as an external P2TR key-spend so
+    // tapd/lnd's fee estimation can size its witness without owning the
+    // key (see AnchorTemplate::lp_internal_key).
+    if let Some(ik) = t.lp_internal_key {
+        psbt.inputs[1].tap_internal_key = Some(ik);
+        if let Some((fp, path)) = &t.lp_key_origin {
+            psbt.inputs[1]
+                .tap_key_origins
+                .insert(ik, (vec![], (*fp, path.clone())));
+        }
+    }
     // Anchor slots carry the anchor internal key + both derivation
     // forms, mirroring the vPSBT's anchor data — tapd's publish-time
     // ValidateAnchorOutputs checks all three for equality.
@@ -427,6 +449,8 @@ mod tests {
                 value: Amount::from_sat(2_000_000),
                 script_pubkey: anchor_placeholder_script(),
             },
+            lp_internal_key: None,
+            lp_key_origin: None,
             user_payout: payout.clone(),
             extra_outputs: vec![],
         };

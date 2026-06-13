@@ -37,6 +37,30 @@ fn root() -> PathBuf {
         .unwrap_or_else(|_| std::env::current_dir().expect("cwd"))
 }
 
+/// Parse a quote's `lp_btc_input.derivation` ("<fp_hex>/<p1>/<p2>...",
+/// hardened components suffixed `h` or `'`) into a BIP-32 key source.
+fn parse_origin_str(
+    s: &str,
+) -> Option<(bitcoin::bip32::Fingerprint, bitcoin::bip32::DerivationPath)> {
+    use bitcoin::bip32::{ChildNumber, DerivationPath, Fingerprint};
+    let (fp, path) = s.split_once('/')?;
+    let fp_bytes: [u8; 4] = hex::decode(fp).ok()?.try_into().ok()?;
+    let mut children = Vec::new();
+    for c in path.split('/') {
+        let (num, hardened) = match c.strip_suffix(['h', '\'']) {
+            Some(n) => (n, true),
+            None => (c, false),
+        };
+        let idx: u32 = num.parse().ok()?;
+        children.push(if hardened {
+            ChildNumber::from_hardened_idx(idx).ok()?
+        } else {
+            ChildNumber::from_normal_idx(idx).ok()?
+        });
+    }
+    Some((Fingerprint::from(fp_bytes), DerivationPath::from(children)))
+}
+
 /// "12.34" → 12_340_000 µUSD, no floats.
 fn parse_usd(s: &str) -> Result<u64, Error> {
     let (int, frac) = s.split_once('.').unwrap_or((s, ""));
@@ -253,6 +277,14 @@ async fn redeem(
                 q["lp_btc_input"]["script_pubkey"].as_str().ok_or("spk")?,
             )?,
         },
+        lp_internal_key: q["lp_btc_input"]["internal_key"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .and_then(|s| bitcoin::XOnlyPublicKey::from_str(s).ok()),
+        lp_key_origin: q["lp_btc_input"]["derivation"]
+            .as_str()
+            .filter(|s| !s.is_empty())
+            .and_then(parse_origin_str),
         user_payout: TxOut {
             value: Amount::from_sat(v.user_sats),
             script_pubkey: Address::from_str(&payout_address)?
