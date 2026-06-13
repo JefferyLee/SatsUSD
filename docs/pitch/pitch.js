@@ -849,11 +849,13 @@ if (hasGsap) {
       scrollTrigger: { trigger: el, start: "top 84%" } });
   });
   // Position-driven scrubs: progress 0 at "canvas top entering viewport
-  // bottom", progress 1 at "canvas bottom entering viewport bottom" (i.e.,
-  // canvas just fully visible). Past that, progress stays at 1.
+  // bottom", progress 1 at "canvas center at viewport center". The end
+  // is pushed past "bottom bottom" so the scrub-smoothing lag (0.4s) has
+  // a half-viewport buffer to catch up — by the time the canvas is about
+  // to scroll out the top, progress has long since settled at 1.
   scrubs.forEach((s) => {
     const c = $(s.id); if (!c) return;
-    ScrollTrigger.create({ trigger: c, start: "top bottom", end: "bottom bottom", scrub: 0.4,
+    ScrollTrigger.create({ trigger: c, start: "top bottom", end: "center center", scrub: 0.4,
       onUpdate(self) { s.p = self.progress; drawScrub(s); } });
   });
   // rAF scenes activate in view.
