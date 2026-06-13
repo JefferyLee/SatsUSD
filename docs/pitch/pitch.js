@@ -73,22 +73,24 @@ function drawGoldBar(ctx, x, y, w, h) {
 
 // Fiat: monotonic compression toward a floor, then holds — inflation
 // doesn't reverse. Tiny residual jitter so the floor doesn't look frozen.
+// Reaches floor by ~15s, settled for the rest of the ~20s arc.
 function fiatShrink(sec) {
-  return Math.max(0.55, 1 - sec * 0.015) + Math.sin(sec * 0.7) * 0.005;
+  return Math.max(0.55, 1 - sec * 0.030) + Math.sin(sec * 1.4) * 0.005;
 }
 
 // BTC: coherent price moves (all marks scale together) — high-freq jitter
 // stacked on slow regime cycles, plus a long-term upward trend (BTC has
 // appreciated against USD over its history; SatUSD's sat-dot density is
 // the inverse of this, so the trend matters there too). Volatility itself
-// decays over time — the "EKG of monetization" eventually settles as BTC
-// matures into a usable unit-of-account.
+// decays over the ~20s arc — the "EKG of monetization" settles as BTC
+// matures into a usable unit-of-account. Regime cycle ~8s so a couple
+// of full crash/rally swings are visible before damping.
 function btcOffset(sec) {
-  const volDecay = Math.max(0.15, 1 - sec * 0.008);
+  const volDecay = Math.max(0.15, 1 - sec * 0.0425);
   const jitter = volDecay * (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
-  const phase = (sec / 14) * Math.PI * 2;
+  const phase = (sec / 8) * Math.PI * 2;
   const regime = volDecay * (Math.sin(phase) * 0.30 + Math.sin(phase * 0.5 + 1.7) * 0.15);
-  const trend = Math.min(0.30, sec * 0.005);
+  const trend = Math.min(0.30, sec * 0.020);
   return jitter + regime + trend;
 }
 
@@ -126,11 +128,11 @@ function drawRulers(ctx, W, H, t) {
       // denomination eventually retires (this is the pitch's whole thesis,
       // now literal: solid line → dashed → invisible). When it's gone the
       // sats remain.
-      const containerAlpha = Math.max(0, 1 - sec / 90);
+      const containerAlpha = Math.max(0, 1 - sec / 20);
       if (containerAlpha > 0.02) {
-        const intoDashing = Math.max(0, sec - 15);
-        const dashOn = Math.max(2, 14 - intoDashing * 0.12);
-        const dashOff = Math.min(20, intoDashing * 0.18);
+        const intoDashing = Math.max(0, sec - 4);
+        const dashOn = Math.max(2, 14 - intoDashing * 0.75);
+        const dashOff = Math.min(20, intoDashing * 1.2);
         ctx.strokeStyle = `rgba(247,147,26,${containerAlpha * 0.9})`;
         ctx.lineWidth = 1.5;
         ctx.setLineDash(intoDashing > 0 ? [dashOn, dashOff] : []);
