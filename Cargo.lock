@@ -1724,6 +1724,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-rfq-oracle"
+version = "0.1.0"
+dependencies = [
+ "hex",
+ "prost",
+ "satusd-oracle",
+ "tokio",
+ "tonic",
+ "tonic-build",
+ "tonic-prost",
+ "tonic-prost-build",
+]
+
+[[package]]
 name = "satusd-state"
 version = "0.1.0"
 dependencies = [

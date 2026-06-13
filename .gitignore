@@ -29,3 +29,8 @@ legacy/
 # Signet runtime (chain/wallet data, logs) — not committed
 signet/data/
 signet/logs/
+
+# LN spike + edge runtime (litd binaries, lnd seeds, macaroons, chain/wallet
+# data, logs) — local infra, contains secrets, never committed
+spike/
+edge/
