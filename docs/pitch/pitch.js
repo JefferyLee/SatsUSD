@@ -29,16 +29,22 @@ function drawScrub(s) { const c = $(s.id); if (c) s.fn(c.getContext("2d"), c.wid
 const anims = new Set(); // rAF fns(t,ctx,W,H) bound below
 function loop(t) { anims.forEach((f) => f(t)); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
-// Per-canvas scroll progress (0..1); animations that want scroll-tied arcs
-// read animProgress.get(id). High-frequency jitter still uses real time so
-// the picture stays alive when scroll is stationary. Default 0 = pre-view
-// state (so the canvas sits at its initial frame before the user reaches
-// it); the GSAP path drives it 0→1 as the canvas scrolls toward center.
-const animProgress = new Map();
+// Per-canvas wall-clock t0: set the moment the canvas's bottom edge meets
+// the viewport's bottom edge (i.e., the canvas just became fully visible
+// from below). Anim fns get arcSec = (rAF_t - t0) / 1000 as a 5th arg;
+// arcSec stays at 0 while t0 is null, so canvases sit in their initial
+// frame before the user reaches them. High-freq jitter (BTC vibration,
+// fiat residual) still uses the rAF wall clock, so the picture stays
+// alive even when scroll is stationary at the bottom of an arc.
+const animT0 = new Map();
 function addAnim(id, fn) {
   const c = $(id); if (!c) return () => {};
   const ctx = c.getContext("2d");
-  const bound = (t) => fn(ctx, c.width, c.height, t, animProgress.get(id) ?? 0);
+  const bound = (t) => {
+    const t0 = animT0.get(id);
+    const arcSec = t0 != null ? (t - t0) / 1000 : 0;
+    return fn(ctx, c.width, c.height, t, arcSec);
+  };
   return bound;
 }
 
@@ -112,12 +118,12 @@ const SAT_DOTS = (() => {
   return Array.from({ length: 220 }, () => ({ fx: r() * 2, fy: r() }));
 })();
 
-function drawRulers(ctx, W, H, t, p) {
+function drawRulers(ctx, W, H, t, arcSec) {
   ctx.clearRect(0, 0, W, H);
-  // Arc time follows scroll (0..20s as the canvas scrolls toward center);
-  // jitter time follows the wall clock so high-freq motion stays alive
-  // when the user stops scrolling.
-  const sec = (p ?? 0) * 20;
+  // Arc time = real seconds since the canvas first became fully visible
+  // (anchored to "bottom bottom" by the ScrollTrigger). Jitter time is
+  // raw wall clock, so high-freq motion runs even when arcSec is 0.
+  const sec = arcSec ?? 0;
   const jt = t / 1000;
   const lanes = [
     { x0: 40,  label: T("法币", "FIAT"),   mode: "shrink", color: RED },
@@ -842,40 +848,47 @@ if (hasGsap) {
     gsap.to(el, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out",
       scrollTrigger: { trigger: el, start: "top 84%" } });
   });
+  // Position-driven scrubs: progress 0 at "canvas top entering viewport
+  // bottom", progress 1 at "canvas bottom entering viewport bottom" (i.e.,
+  // canvas just fully visible). Past that, progress stays at 1.
   scrubs.forEach((s) => {
     const c = $(s.id); if (!c) return;
-    ScrollTrigger.create({ trigger: c, start: "top 80%", end: "bottom 35%", scrub: 0.4,
+    ScrollTrigger.create({ trigger: c, start: "top bottom", end: "bottom bottom", scrub: 0.4,
       onUpdate(self) { s.p = self.progress; drawScrub(s); } });
   });
   // rAF scenes activate in view.
-  // Canvases listed with scrollDriven=true drive their arc from scroll
-  // progress (animProgress 0→1 from "top 80%" to "center 50%"), so the
-  // story is fully revealed by the time the canvas is centered.
+  // Canvases listed with hasArc=true reset their wall-clock t0 the moment
+  // the canvas's bottom enters the viewport's bottom — animation plays in
+  // real time from there. Re-entries (scrolling back) replay from t=0.
   [["ruler-canvas", drawRulers, true],
    ["valve-canvas", drawValve, false],
    ["rug-canvas", drawRug, false],
    ["market-canvas", drawMarket, false],
-   ["loops-canvas", drawLoops, false]].forEach(([id, fn, scrollDriven]) => {
+   ["loops-canvas", drawLoops, false]].forEach(([id, fn, hasArc]) => {
     const bound = addAnim(id, fn);
     ScrollTrigger.create({ trigger: $(id), start: "top 90%", end: "bottom 5%",
       onToggle(self) {
         if (self.isActive) { anims.add(bound); if (id === "rug-canvas") { rugActive = true; rugLast = 0; } }
         else { anims.delete(bound); if (id === "rug-canvas") rugActive = false; }
       } });
-    if (scrollDriven) {
-      ScrollTrigger.create({ trigger: $(id), start: "top 80%", end: "center 50%", scrub: 0.4,
-        onUpdate(self) { animProgress.set(id, self.progress); } });
+    if (hasArc) {
+      ScrollTrigger.create({ trigger: $(id), start: "bottom bottom", end: "bottom top",
+        onEnter()      { animT0.set(id, performance.now()); },
+        onLeave()      { animT0.delete(id); },
+        onEnterBack()  { animT0.set(id, performance.now()); },
+        onLeaveBack()  { animT0.delete(id); },
+      });
     }
   });
   ScrollTrigger.create({ trigger: "#buckets", start: "top 60%", onEnter: fireBuckets, onLeaveBack: resetBuckets });
   ScrollTrigger.create({ trigger: ".counters", start: "top 78%", once: true, onEnter: runCounters });
 } else {
   // offline fallback: show everything, draw all finals, run all anims.
-  // Scroll-driven canvases get progress=1 so they sit in their end state
-  // (same degradation level as scrubs jumping to p=1).
+  // Arc-canvases get t0 set now so the animation plays in real time from
+  // the moment the page loads (without GSAP we can't anchor to scroll).
   document.querySelectorAll(".reveal").forEach((el) => { el.style.opacity = 1; el.style.transform = "none"; });
   scrubs.forEach((s) => { s.p = 1; drawScrub(s); });
-  animProgress.set("ruler-canvas", 1);
+  animT0.set("ruler-canvas", performance.now());
   [["ruler-canvas", drawRulers], ["valve-canvas", drawValve], ["rug-canvas", drawRug],
    ["market-canvas", drawMarket], ["loops-canvas", drawLoops]].forEach(([id, fn]) => anims.add(addAnim(id, fn)));
   rugActive = true;
