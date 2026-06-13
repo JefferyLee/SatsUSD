@@ -29,10 +29,16 @@ function drawScrub(s) { const c = $(s.id); if (c) s.fn(c.getContext("2d"), c.wid
 const anims = new Set(); // rAF fns(t,ctx,W,H) bound below
 function loop(t) { anims.forEach((f) => f(t)); requestAnimationFrame(loop); }
 requestAnimationFrame(loop);
+// Per-canvas scroll progress (0..1); animations that want scroll-tied arcs
+// read animProgress.get(id). High-frequency jitter still uses real time so
+// the picture stays alive when scroll is stationary. Default 0 = pre-view
+// state (so the canvas sits at its initial frame before the user reaches
+// it); the GSAP path drives it 0→1 as the canvas scrolls toward center.
+const animProgress = new Map();
 function addAnim(id, fn) {
   const c = $(id); if (!c) return () => {};
   const ctx = c.getContext("2d");
-  const bound = (t) => fn(ctx, c.width, c.height, t);
+  const bound = (t) => fn(ctx, c.width, c.height, t, animProgress.get(id) ?? 0);
   return bound;
 }
 
@@ -72,25 +78,26 @@ function drawGoldBar(ctx, x, y, w, h) {
 }
 
 // Fiat: monotonic compression toward a floor, then holds — inflation
-// doesn't reverse. Tiny residual jitter so the floor doesn't look frozen.
-// Reaches floor by ~15s, settled for the rest of the ~20s arc.
-function fiatShrink(sec) {
-  return Math.max(0.55, 1 - sec * 0.030) + Math.sin(sec * 1.4) * 0.005;
+// doesn't reverse. arcSec advances 0→20 with scroll (see drawRulers).
+// jitterT is real-time, so the floor doesn't look frozen when the user
+// stops scrolling at the bottom of the arc.
+function fiatShrink(arcSec, jitterT) {
+  return Math.max(0.55, 1 - arcSec * 0.030) + Math.sin(jitterT * 1.4) * 0.005;
 }
 
 // BTC: coherent price moves (all marks scale together) — high-freq jitter
-// stacked on slow regime cycles, plus a long-term upward trend (BTC has
-// appreciated against USD over its history; SatUSD's sat-dot density is
-// the inverse of this, so the trend matters there too). Volatility itself
-// decays over the ~20s arc — the "EKG of monetization" settles as BTC
-// matures into a usable unit-of-account. Regime cycle ~8s so a couple
-// of full crash/rally swings are visible before damping.
-function btcOffset(sec) {
-  const volDecay = Math.max(0.15, 1 - sec * 0.0425);
-  const jitter = volDecay * (Math.sin(sec * 9) + Math.sin(sec * 17 + 1.3) + Math.sin(sec * 5.3 + 2.7)) * 0.012;
-  const phase = (sec / 8) * Math.PI * 2;
+// (real-time, so the picture stays alive while scroll is stationary)
+// stacked on slow regime cycles (tied to scroll-arc, so the swings unfold
+// as the user reads), plus a long-term upward trend. Volatility itself
+// decays along the arc — the "EKG of monetization" settles as BTC matures.
+// Regime cycle ~8s of arc so a couple of crash/rally swings are visible
+// before damping.
+function btcOffset(arcSec, jitterT) {
+  const volDecay = Math.max(0.15, 1 - arcSec * 0.0425);
+  const jitter = volDecay * (Math.sin(jitterT * 9) + Math.sin(jitterT * 17 + 1.3) + Math.sin(jitterT * 5.3 + 2.7)) * 0.012;
+  const phase = (arcSec / 8) * Math.PI * 2;
   const regime = volDecay * (Math.sin(phase) * 0.30 + Math.sin(phase * 0.5 + 1.7) * 0.15);
-  const trend = Math.min(0.30, sec * 0.020);
+  const trend = Math.min(0.30, arcSec * 0.020);
   return jitter + regime + trend;
 }
 
@@ -105,9 +112,13 @@ const SAT_DOTS = (() => {
   return Array.from({ length: 220 }, () => ({ fx: r() * 2, fy: r() }));
 })();
 
-function drawRulers(ctx, W, H, t) {
+function drawRulers(ctx, W, H, t, p) {
   ctx.clearRect(0, 0, W, H);
-  const sec = t / 1000;
+  // Arc time follows scroll (0..20s as the canvas scrolls toward center);
+  // jitter time follows the wall clock so high-freq motion stays alive
+  // when the user stops scrolling.
+  const sec = (p ?? 0) * 20;
+  const jt = t / 1000;
   const lanes = [
     { x0: 40,  label: T("法币", "FIAT"),   mode: "shrink", color: RED },
     { x0: 510, label: "BTC",               mode: "shake",  color: DIM },
@@ -118,8 +129,8 @@ function drawRulers(ctx, W, H, t) {
 
   lanes.forEach((l) => {
     let railEnd = RW;
-    if (l.mode === "shrink" || l.mode === "dual") railEnd = RW * fiatShrink(sec);
-    else if (l.mode === "shake") railEnd = RW * Math.min(1.05, Math.max(0.5, 1 + btcOffset(sec)));
+    if (l.mode === "shrink" || l.mode === "dual") railEnd = RW * fiatShrink(sec, jt);
+    else if (l.mode === "shake") railEnd = RW * Math.min(1.05, Math.max(0.5, 1 + btcOffset(sec, jt)));
 
     if (l.mode === "dual") {
       // SatUSD's USD shell: a *container*, not a ruler. No gradations —
@@ -144,7 +155,7 @@ function drawRulers(ctx, W, H, t) {
       ctx.strokeStyle = l.color; ctx.lineWidth = 3;
       ctx.beginPath(); ctx.moveTo(l.x0, y + 10); ctx.lineTo(l.x0 + railEnd, y + 10); ctx.stroke();
       const n = 11;
-      const topScale = l.mode === "shrink" ? fiatShrink(sec) : (1 + btcOffset(sec));
+      const topScale = l.mode === "shrink" ? fiatShrink(sec, jt) : (1 + btcOffset(sec, jt));
       for (let i = 0; i < n; i++) {
         const fx = (i / (n - 1)) * topScale;
         const x = l.x0 + fx * RW;
@@ -161,7 +172,7 @@ function drawRulers(ctx, W, H, t) {
     // dots (fx > 1) flow in from beyond. When the container fades to
     // nothing, what remains is just sats inside the gold bar.
     if (l.mode === "dual") {
-      const btcScale = 1 + btcOffset(sec);
+      const btcScale = 1 + btcOffset(sec, jt);
       const fxLimit = 1 / btcScale;             // clip at the gold bar
       const fadeBand = 0.06;
       const bandY = y + 14, bandH = 30;
@@ -836,22 +847,35 @@ if (hasGsap) {
     ScrollTrigger.create({ trigger: c, start: "top 80%", end: "bottom 35%", scrub: 0.4,
       onUpdate(self) { s.p = self.progress; drawScrub(s); } });
   });
-  // rAF scenes activate in view
-  [["ruler-canvas", drawRulers], ["valve-canvas", drawValve], ["rug-canvas", drawRug],
-   ["market-canvas", drawMarket], ["loops-canvas", drawLoops]].forEach(([id, fn]) => {
+  // rAF scenes activate in view.
+  // Canvases listed with scrollDriven=true drive their arc from scroll
+  // progress (animProgress 0→1 from "top 80%" to "center 50%"), so the
+  // story is fully revealed by the time the canvas is centered.
+  [["ruler-canvas", drawRulers, true],
+   ["valve-canvas", drawValve, false],
+   ["rug-canvas", drawRug, false],
+   ["market-canvas", drawMarket, false],
+   ["loops-canvas", drawLoops, false]].forEach(([id, fn, scrollDriven]) => {
     const bound = addAnim(id, fn);
     ScrollTrigger.create({ trigger: $(id), start: "top 90%", end: "bottom 5%",
       onToggle(self) {
         if (self.isActive) { anims.add(bound); if (id === "rug-canvas") { rugActive = true; rugLast = 0; } }
         else { anims.delete(bound); if (id === "rug-canvas") rugActive = false; }
       } });
+    if (scrollDriven) {
+      ScrollTrigger.create({ trigger: $(id), start: "top 80%", end: "center 50%", scrub: 0.4,
+        onUpdate(self) { animProgress.set(id, self.progress); } });
+    }
   });
   ScrollTrigger.create({ trigger: "#buckets", start: "top 60%", onEnter: fireBuckets, onLeaveBack: resetBuckets });
   ScrollTrigger.create({ trigger: ".counters", start: "top 78%", once: true, onEnter: runCounters });
 } else {
-  // offline fallback: show everything, draw all finals, run all anims
+  // offline fallback: show everything, draw all finals, run all anims.
+  // Scroll-driven canvases get progress=1 so they sit in their end state
+  // (same degradation level as scrubs jumping to p=1).
   document.querySelectorAll(".reveal").forEach((el) => { el.style.opacity = 1; el.style.transform = "none"; });
   scrubs.forEach((s) => { s.p = 1; drawScrub(s); });
+  animProgress.set("ruler-canvas", 1);
   [["ruler-canvas", drawRulers], ["valve-canvas", drawValve], ["rug-canvas", drawRug],
    ["market-canvas", drawMarket], ["loops-canvas", drawLoops]].forEach(([id, fn]) => anims.add(addAnim(id, fn)));
   rugActive = true;
