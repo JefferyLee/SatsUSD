@@ -46,17 +46,25 @@ ssh -i ~/.ssh/satusd_vps root@207.148.98.132 \
    systemctl restart oracled && sleep 2 && systemctl is-active oracled'
 ```
 
-## satusd-lpd — founder Rail-0 LP daemon (live since 2026-06-12)
+## satusd-lpd — founder Rail-0 LP daemon (live since 2026-06-13)
 
 | | |
 |---|---|
 | Service | systemd `satusd-lpd.service` — depends on `tapd.service` → `lnd.service` → `bitcoind.service` |
 | Binary | `/root/satusd-src/target/release/satusd-lpd` (built on the server from rsynced source) |
 | Public surface | `http://207.148.98.132:9595` — `GET /v0/manifest`, `POST /v0/quote`, `POST /v0/settle` |
+| rail_id | `d05ecafd22811b1b1c676dd9a090a79da3bb6cd9b2bee573c23e9c3e3762af07` (recompute locally from the manifest; never trust the endpoint) |
+| LP pubkey | `93d034fec1ea8e13cc731d9b1ae63dee53141746f0f9a96253f4e6221a13c074` (BIP-340 quote-signing key) |
 | Cap | `max_size_sats=100_000` per quote (~$50) — Jeff's hot-wallet constraint |
-| Seed | `/root/satusd-node/lp.seed` (mode 600, server-only) — LP BIP-340 quote-signing key derives from it |
+| Seed | `/root/satusd-node/lp.seed` (mode 600, server-only) — LP quote-signing key derives from it |
 | Env | `/root/satusd-node/lpd.env` (LP_SEED + ASSET_ID) loaded by the unit |
-| Node set | `/root/satusd-node/signet/data/{bitcoind,lnd,tapd}` — pruned signet (prune=2000, dbcache=128, no txindex); lnd listens 127.0.0.1 only (wallet/key backend for tapd, not LN connectivity); tapd at 127.0.0.1:10030 |
+| Node set | `/root/satusd-node/signet/data/{bitcoind,lnd,tapd}` — pruned signet (prune=2000, dbcache=384, no txindex); lnd listens 127.0.0.1 only (wallet/key backend for tapd, not LN connectivity); tapd at 127.0.0.1:10030 |
+
+### Bootstrap notes (one-time, 2026-06-13)
+
+- bitcoind IBD on this 1 vCPU / 1 GB box took most of a day; `dbcache` was raised 128→384 mid-sync. lnd/tapd must not be started until bitcoind is past IBD — tapd's lnd-connection has a ~20 s timeout and will crash-loop against a still-syncing lnd. Order on a cold boot: bitcoind → wait for `initialblockdownload:false` → lnd (auto-unlocks via `wallet.pw`) → wait `synced_to_chain:true` → tapd → satusd-lpd.
+- lnd wallet was created via REST `/v1/genseed` + `/v1/initwallet`; the 24-word cipher seed is in `/root/satusd-node/lnd-seed-mnemonic.json` (mode 600).
+- The SatUSD asset genesis was synced into the VPS tapd via a one-time universe sync (`tapcli universe sync --universe_host=<host> --asset_id=d0c0fb17…`) from a tapd that already held it. Without it, `tapd NewAddr` for SatUSD fails and the LP can't quote. To re-seed after a tapd data wipe, repeat the sync from any SatUSD-holding universe.
 
 ### Funding posture (hot wallet, small amounts)
 
