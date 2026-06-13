@@ -59,6 +59,11 @@ window.setLang = function (lang) {
   scrubs.forEach(drawScrub);
   drawTranche(); drawKill();
   rugVerdict && rugVerdict();
+  // Switching languages reflows the page — text widths differ ~5×.
+  // Without refresh, ScrollTrigger keeps stale positions captured at
+  // page load, so trigger points fire at the wrong scroll Y for the
+  // current layout.
+  if (typeof ScrollTrigger !== "undefined") ScrollTrigger.refresh();
 };
 
 /* ════ S1 · three rulers (ambient) ════ */
@@ -844,18 +849,28 @@ function runCounters() {
 
 if (hasGsap) {
   gsap.registerPlugin(ScrollTrigger);
+  // Text reveals: tie opacity + y-offset to scroll position, NOT wall
+  // clock. The old gsap.to(...) had a 0.9s duration that fast scrollers
+  // (especially on the Chinese page where text is ~5× shorter than EN)
+  // could outrun: the element scrolled past the viewport before its
+  // fade-in could complete, leaving a blank screen. Scrub-driven means
+  // visibility tracks scroll exactly — fast scrolling shows full opacity
+  // immediately; slow scrolling still feels like a gentle fade.
   document.querySelectorAll(".reveal").forEach((el) => {
-    gsap.to(el, { opacity: 1, y: 0, duration: 0.9, ease: "power3.out",
-      scrollTrigger: { trigger: el, start: "top 84%" } });
+    ScrollTrigger.create({ trigger: el, start: "top bottom", end: "top 80%", scrub: 0.2,
+      onUpdate(self) {
+        const p = self.progress;
+        el.style.opacity = p;
+        el.style.transform = `translateY(${(1 - p) * 36}px)`;  // matches CSS initial
+      } });
   });
-  // Position-driven scrubs: progress 0 at "canvas top entering viewport
-  // bottom", progress 1 at "canvas center at viewport center". The end
-  // is pushed past "bottom bottom" so the scrub-smoothing lag (0.4s) has
-  // a half-viewport buffer to catch up — by the time the canvas is about
-  // to scroll out the top, progress has long since settled at 1.
+  // Position-driven canvas scrubs: progress 0 at "canvas top entering
+  // viewport bottom", progress 1 at "canvas center at viewport center".
+  // Scrub smoothing tightened (0.4 → 0.15) so the rendered progress
+  // doesn't lag scroll-position visibly on a fast read-scroll.
   scrubs.forEach((s) => {
     const c = $(s.id); if (!c) return;
-    ScrollTrigger.create({ trigger: c, start: "top bottom", end: "center center", scrub: 0.4,
+    ScrollTrigger.create({ trigger: c, start: "top bottom", end: "center center", scrub: 0.15,
       onUpdate(self) { s.p = self.progress; drawScrub(s); } });
   });
   // rAF scenes activate in view.
