@@ -3,6 +3,11 @@ debuglevel=info
 network=signet
 rpclisten=127.0.0.1:10030
 restlisten=127.0.0.1:8090
+# Serve as a universe + accept proof-courier deliveries, so this node
+# can be the proof courier for SatUSD transfers/asset-channel funding
+# to other tapd/litd nodes (LN edge work).
+allow-public-uni-proof-courier=true
+universe.public-access=rw
 
 [lnd]
 lnd.host=127.0.0.1:10010
