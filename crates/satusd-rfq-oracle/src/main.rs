@@ -21,7 +21,8 @@ use std::io::{Read, Write};
 use std::net::TcpStream;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use tonic::{transport::Server, Request, Response, Status};
+use tonic::transport::{Identity, Server, ServerTlsConfig};
+use tonic::{Request, Response, Status};
 
 pub mod pb {
     tonic::include_proto!("priceoraclerpc");
@@ -75,6 +76,10 @@ impl PriceOracle for SatusdOracle {
         req: Request<QueryAssetRatesRequest>,
     ) -> Result<Response<QueryAssetRatesResponse>, Status> {
         let r = req.into_inner();
+        eprintln!(
+            "QueryAssetRates hit: tx_type={} subject_max={} intent={}",
+            r.transaction_type, r.subject_asset_max_amount, r.intent
+        );
         let price = self
             .price_usd()
             .map_err(|e| Status::unavailable(format!("satusd oracle: {e}")))?;
@@ -144,9 +149,21 @@ async fn main() -> Result<(), Box<dyn std::error::Error>> {
         Err(e) => eprintln!("satusd-rfq-oracle: WARNING oracle {oracle_addr} unreachable at boot: {e}"),
     }
 
+    // litd dials `rfqrpc://` price oracles over TLS (it accepts a
+    // self-signed cert — the reference oracle uses a throwaway one), so
+    // serve TLS with a self-signed cert generated at boot.
+    let certified = rcgen::generate_simple_self_signed(vec![
+        "localhost".to_string(),
+        "127.0.0.1".to_string(),
+    ])?;
+    let cert_pem = certified.cert.pem();
+    let key_pem = certified.key_pair.serialize_pem();
+    let identity = Identity::from_pem(cert_pem, key_pem);
+
     let addr = listen.parse()?;
-    println!("satusd-rfq-oracle: serving priceoraclerpc on {listen}");
+    println!("satusd-rfq-oracle: serving priceoraclerpc (TLS) on {listen}");
     Server::builder()
+        .tls_config(ServerTlsConfig::new().identity(identity))?
         .add_service(PriceOracleServer::new(svc))
         .serve(addr)
         .await?;
