@@ -14,5 +14,6 @@ satusd-tapd-client = { path = "../satusd-tapd-client" }
 [dev-dependencies]
 base64 = "0.22"
 hex.workspace = true
+satusd-types = { path = "../satusd-types" }
 serde_json.workspace = true
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }
