@@ -638,6 +638,104 @@ async fn vault_open(
     Ok(())
 }
 
+/// `satusd vault-close <txid:vout> <payout> --q <hex> --collateral <sats>
+/// --ts <unix> [--execute]` — reclaim a vault's BTC collateral (the inverse
+/// of `vault-open`). Recovers the MuSig2(minter,reserve) keys (the open
+/// salted them with its unix ts, brute-forced here around `--ts`), then
+/// key-path spends Q back to `payout`. Dry-run (recover + verify Q) unless
+/// `--execute`. NOTE: a proper CDP close also burns the minted SatUSD —
+/// run that separately (`tapcli assets burn`); this returns the collateral.
+async fn vault_close(
+    env: &NodeEnv,
+    outpoint: &str,
+    payout: &str,
+    q_hex: &str,
+    collateral_sats: u64,
+    ts_hint: u64,
+    execute: bool,
+) -> Result<(), Error> {
+    use bitcoin::hashes::Hash;
+    use bitcoin::sighash::{Prevouts, SighashCache};
+    use satusd_rail::encode::tagged_hash;
+    use satusd_vault::funding::{refund_leaf_script, vault_funding_output};
+    use satusd_vault::musig::{aggregate_internal_x, cosign_keyspend};
+    use secp256k1::{Secp256k1, SecretKey, XOnlyPublicKey};
+
+    let secp = Secp256k1::new();
+    let target_q: [u8; 32] = <[u8; 32]>::try_from(hex::decode(q_hex)?.as_slice())?;
+
+    // 1. Recover the funding keys — the open salted them with its unix ts
+    //    (not persisted), so brute-force a window around the recorded time.
+    let mut recovered = None;
+    for dt in -90i64..=15 {
+        let ts = (ts_hint as i64 + dt) as u64;
+        let salt = ts.to_be_bytes();
+        let minter_sk = tagged_hash("SatUSD/pwa-vault/minter", &salt);
+        let reserve_sk = tagged_hash("SatUSD/pwa-vault/reserve", &salt);
+        let minter_x = SecretKey::from_byte_array(minter_sk)?
+            .x_only_public_key(&secp)
+            .0
+            .serialize();
+        let reserve_x = SecretKey::from_byte_array(reserve_sk)?
+            .x_only_public_key(&secp)
+            .0
+            .serialize();
+        let internal_x = aggregate_internal_x(&minter_sk, &reserve_sk);
+        let refund = refund_leaf_script(4032, &minter_x, &reserve_x);
+        let f = vault_funding_output(&internal_x, &refund);
+        if f.output_x == target_q {
+            recovered = Some((ts, minter_sk, reserve_sk, f));
+            break;
+        }
+    }
+    let (ts, minter_sk, reserve_sk, f) =
+        recovered.ok_or("could not recover vault keys (ts not in brute-force window)")?;
+    println!("recovered: open ts={ts}, Q reconstructed and matches ✓ — vault is reclaimable");
+
+    if !execute {
+        println!("(dry-run — pass --execute to broadcast the reclaim keyspend)");
+        return Ok(());
+    }
+
+    // 2. Reclaim: a 2-of-2 MuSig2(minter,reserve) key-path spend of Q → payout.
+    const FEE: u64 = 1_000;
+    let funding_outpoint = bitcoin::OutPoint::from_str(outpoint)?;
+    let payout_spk = Address::from_str(payout)?.assume_checked().script_pubkey();
+    let funding_txout = TxOut {
+        value: Amount::from_sat(collateral_sats),
+        script_pubkey: ScriptBuf::from_hex(&format!("5120{q_hex}"))?,
+    };
+    let tx = bitcoin::Transaction {
+        version: bitcoin::transaction::Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::ZERO,
+        input: vec![bitcoin::TxIn {
+            previous_output: funding_outpoint,
+            sequence: bitcoin::Sequence::ENABLE_RBF_NO_LOCKTIME,
+            ..Default::default()
+        }],
+        output: vec![TxOut {
+            value: Amount::from_sat(collateral_sats - FEE),
+            script_pubkey: payout_spk,
+        }],
+    };
+    let sighash = SighashCache::new(&tx)
+        .taproot_key_spend_signature_hash(0, &Prevouts::All(&[funding_txout]), bitcoin::TapSighashType::Default)?
+        .to_byte_array();
+    let sig = cosign_keyspend(&minter_sk, &reserve_sk, &f.merkle_root, &sighash);
+    secp.verify_schnorr(
+        &secp256k1::schnorr::Signature::from_byte_array(sig),
+        &sighash,
+        &XOnlyPublicKey::from_byte_array(target_q)?,
+    )?;
+    let mut signed = tx.clone();
+    signed.input[0].witness = bitcoin::Witness::from_slice(&[sig.to_vec()]);
+    let raw = hex::encode(bitcoin::consensus::serialize(&signed));
+    let txid = env.bcli(&["sendrawtransaction", &raw]);
+    println!("RECLAIM_BROADCAST: {}", txid.as_str().unwrap_or("?"));
+    println!("reclaimed {} sats to {payout}", collateral_sats - FEE);
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let args: Vec<String> = std::env::args().collect();
@@ -704,8 +802,20 @@ async fn main() -> Result<(), Error> {
             let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
             vault_open(&env, collateral_sats, mint_micro_usd, &oracle).await
         }
+        Some("vault-close") => {
+            let outpoint = args
+                .get(2)
+                .ok_or("usage: satusd vault-close <txid:vout> <payout> --q <hex> --collateral <sats> --ts <unix> [--execute]")?
+                .clone();
+            let payout = args.get(3).ok_or("missing payout address")?.clone();
+            let q = flag("--q").ok_or("missing --q <output_x hex>")?;
+            let collateral: u64 = flag("--collateral").ok_or("missing --collateral <sats>")?.parse()?;
+            let ts_hint: u64 = flag("--ts").ok_or("missing --ts <unix-seconds>")?.parse()?;
+            let execute = args.iter().any(|a| a == "--execute");
+            vault_close(&env, &outpoint, &payout, &q, collateral, ts_hint, execute).await
+        }
         _ => {
-            eprintln!("usage: satusd balance | address | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>] | vault-open <collateral-sats> <mint-usd> [--oracle <addr>]");
+            eprintln!("usage: satusd balance | address | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>] | vault-open <collateral-sats> <mint-usd> [--oracle <addr>] | vault-close <txid:vout> <payout> --q <hex> --collateral <sats> --ts <unix> [--execute]");
             std::process::exit(2);
         }
     }
