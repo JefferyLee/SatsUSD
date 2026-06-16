@@ -56,6 +56,17 @@ pub struct AnchorTemplate {
     pub lp_key_origin: Option<(bitcoin::bip32::Fingerprint, bitcoin::bip32::DerivationPath)>,
     /// The user's BTC payout (SwapPlan::user_sats).
     pub user_payout: TxOut,
+    /// The payout output's taproot internal key + BIP-32 origin, set
+    /// only when the payout is a P2TR address whose internal key the
+    /// redeeming party can supply (an address they control). tapd's
+    /// CommitVirtualPsbts needs it to build the asset-exclusion proof
+    /// for that P2TR output — without it tapd errors "cannot add
+    /// exclusion proof, output N is a P2TR output but is missing the
+    /// internal key in the PSBT". `None` for P2WPKH payouts (their
+    /// exclusion is trivial) and disallowed for foreign P2TR (the key
+    /// is unknowable from a bech32m address).
+    pub user_payout_internal_key: Option<bitcoin::XOnlyPublicKey>,
+    pub user_payout_key_origin: Option<(bitcoin::bip32::Fingerprint, bitcoin::bip32::DerivationPath)>,
     /// Additional value-bearing outputs (e.g. the LP's change in
     /// the two-party flow). Empty in the single-party harness.
     pub extra_outputs: Vec<TxOut>,
@@ -286,6 +297,19 @@ pub fn build_anchor_template(
     for (i, info) in anchor_keys.iter().enumerate() {
         apply_anchor_out_info(&mut psbt.outputs[i], info);
     }
+    // The user payout (right after the asset anchor slots) is a P2TR
+    // output tapd must build an exclusion proof for when the payout
+    // address is taproot; supply its internal key + origin so tapd can
+    // (see AnchorTemplate::user_payout_internal_key).
+    if let Some(ik) = t.user_payout_internal_key {
+        let payout_idx = anchor_keys.len();
+        if let Some(out) = psbt.outputs.get_mut(payout_idx) {
+            out.tap_internal_key = Some(ik);
+            if let Some((fp, path)) = &t.user_payout_key_origin {
+                out.tap_key_origins.insert(ik, (vec![], (*fp, path.clone())));
+            }
+        }
+    }
     psbt
 }
 
@@ -457,6 +481,8 @@ mod tests {
             lp_internal_key: None,
             lp_key_origin: None,
             user_payout: payout.clone(),
+            user_payout_internal_key: None,
+            user_payout_key_origin: None,
             extra_outputs: vec![],
         };
         let anchor_in = AnchorInInfo {
@@ -486,5 +512,41 @@ mod tests {
         // Round-trips through serialization for the gRPC boundary.
         let bytes = psbt.serialize();
         assert_eq!(Psbt::deserialize(&bytes).unwrap(), psbt);
+    }
+
+    #[test]
+    fn taproot_payout_gets_internal_key() {
+        let nums = bitcoin::XOnlyPublicKey::from_slice(&crate::burn_key::TAPD_NUMS_X).unwrap();
+        let t = AnchorTemplate {
+            lp_outpoint: OutPoint::new(bitcoin::Txid::all_zeros(), 1),
+            lp_prev_txout: TxOut {
+                value: Amount::from_sat(2_000_000),
+                script_pubkey: anchor_placeholder_script(),
+            },
+            lp_internal_key: None,
+            lp_key_origin: None,
+            user_payout: TxOut {
+                value: Amount::from_sat(1_363),
+                script_pubkey: anchor_placeholder_script(),
+            },
+            user_payout_internal_key: Some(nums),
+            user_payout_key_origin: None,
+            extra_outputs: vec![],
+        };
+        let anchor_in = AnchorInInfo {
+            outpoint: OutPoint::new(bitcoin::Txid::all_zeros(), 0),
+            value_sats: 1_000,
+            script: anchor_placeholder_script(),
+            internal_key: nums,
+            merkle_root: Some([0x11; 32]),
+        };
+        let info = AnchorOutInfo { internal_key: nums, bip32: None, tap_origin: None };
+        // 1 anchor slot + payout ⇒ payout is output index 1.
+        let psbt = build_anchor_template(&t, &anchor_in, &[info]);
+        assert_eq!(
+            psbt.outputs[1].tap_internal_key,
+            Some(nums),
+            "taproot payout output must carry the supplied internal key"
+        );
     }
 }

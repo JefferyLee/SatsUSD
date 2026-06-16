@@ -601,10 +601,12 @@ pub struct TxMerkleProof<'a> {
 
 impl TxMerkleProof<'_> {
     /// bit `i`: 0 ⇒ current is the right child (node on the left), 1 ⇒ current is
-    /// the left child. Packed MSB-first (tapd `packBits`), zero-extended.
+    /// the left child. Packed LSB-first (tapd `packBits` sets `1 << (i%8)`),
+    /// zero-extended. (Real multi-node signet/mainnet proofs exercise this;
+    /// trivial regtest proofs have all-zero bits, which hid the order.)
     fn bit(&self, i: usize) -> bool {
         let byte = self.bits_packed.get(i / 8).copied().unwrap_or(0);
-        (byte >> (7 - (i % 8))) & 1 == 1
+        (byte >> (i % 8)) & 1 == 1
     }
 
     /// Fold `txid` (internal byte order) up through the nodes to a merkle root.
@@ -621,7 +623,10 @@ impl TxMerkleProof<'_> {
     }
 }
 
-/// Parse a `TX_MERKLE_PROOF` value: `BigSize(numNodes) || nodes×32 || EVarBytes(bits)`.
+/// Parse a `TX_MERKLE_PROOF` value: `BigSize(numNodes) || nodes×32 ||
+/// ceil(numNodes/8) packed direction-bit bytes`. The bits are RAW (LSB-first),
+/// NOT length-prefixed — a single 0x00 byte makes a length-prefixed misread
+/// look correct, which is why trivial regtest proofs hid this.
 pub fn parse_tx_merkle_proof(value: &[u8]) -> Result<TxMerkleProof<'_>, ProofError> {
     let mut c = Cursor { b: value, i: 0 };
     let n = c.bigsize()? as usize;
@@ -629,8 +634,7 @@ pub fn parse_tx_merkle_proof(value: &[u8]) -> Result<TxMerkleProof<'_>, ProofErr
     for _ in 0..n {
         nodes.push(c.take(32)?);
     }
-    let bits_len = c.bigsize()? as usize;
-    let bits_packed = c.take(bits_len)?;
+    let bits_packed = c.take(n.div_ceil(8))?;
     if c.i != value.len() {
         return Err(ProofError::TrailingBytes);
     }
@@ -923,6 +927,11 @@ mod tests {
     // regtest devnet — see integration/lineage_vectors/.
     const GENESIS_HEX: &str = include_str!("../../../integration/lineage_vectors/genesis.hex");
     const TRANSFER_HEX: &str = include_str!("../../../integration/lineage_vectors/transfer.hex");
+    // A real *signet* canonical-SatUSD (grouped, d0c0fb17…) 3-hop lineage. Unlike
+    // the regtest vectors its blocks hold many txs, so each TxMerkleProof carries
+    // multiple sibling nodes with non-zero LSB-first direction bits — the case
+    // that exposes a length-prefixed/MSB-first merkle-proof misparse.
+    const SIGNET_HEX: &str = include_str!("../../../integration/lineage_vectors/signet_transfer.hex");
 
     fn bytes(hex_str: &str) -> Vec<u8> {
         hex::decode(hex_str.trim()).unwrap()
@@ -930,6 +939,34 @@ mod tests {
 
     fn h32(hex_str: &str) -> [u8; 32] {
         hex::decode(hex_str).unwrap().try_into().unwrap()
+    }
+
+    #[test]
+    fn signet_multinode_merkle_proof_verifies() {
+        // Regression for the TxMerkleProof bits parse + order. Real signet blocks
+        // hold many txs, so each proof's merkle path has several sibling nodes
+        // with non-zero LSB-first direction bits — a length-prefixed / MSB-first
+        // read gets it wrong (all-zero regtest bits hid it).
+        let data = bytes(SIGNET_HEX);
+        let f = parse_proof_file(&data).expect("parse signet proof file");
+        let proofs = f.parsed().expect("parse proofs");
+        assert!(proofs.len() >= 2, "expected a multi-hop lineage");
+
+        // The fixture must actually contain a multi-node merkle proof, else this
+        // test would pass even with the old (trivial-only) behaviour.
+        let any_multinode = proofs.iter().any(|p| {
+            p.get(tlv::TX_MERKLE_PROOF)
+                .and_then(|v| parse_tx_merkle_proof(v).ok())
+                .is_some_and(|mp| mp.nodes.len() > 1)
+        });
+        assert!(any_multinode, "fixture should contain a multi-node merkle proof");
+
+        // Each step's anchor tx must reconstruct its block header merkle root
+        // (directly exercises the bits fix), then the full DL-23 lineage holds.
+        for (i, p) in proofs.iter().enumerate() {
+            verify_anchor(p).unwrap_or_else(|e| panic!("anchor {i} failed: {e:?}"));
+        }
+        verify_lineage(&proofs).expect("signet canonical-SatUSD lineage verifies");
     }
 
     #[test]

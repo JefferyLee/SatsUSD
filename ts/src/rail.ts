@@ -4,7 +4,7 @@
 // Independent reimplementation: spec 00 §3 encodings, BIP-340 signing
 // with predetermined nonces, DLC anticipation points, taproot tree math.
 
-import { createHash } from "node:crypto";
+import { sha256 as nobleSha256 } from "@noble/hashes/sha2.js";
 import * as secpMod from "@noble/curves/secp256k1.js";
 import { hexToBytes, bytesToHex } from "./encoder.ts";
 
@@ -15,13 +15,11 @@ const N: bigint = (secp as any).CURVE?.n ?? Point.Fn.ORDER;
 const U64_MAX = (1n << 64n) - 1n;
 
 function sha256(...parts: Uint8Array[]): Uint8Array {
-  const h = createHash("sha256");
-  for (const p of parts) h.update(p);
-  return new Uint8Array(h.digest());
+  return nobleSha256(concat(...parts));
 }
 
 function utf8(s: string): Uint8Array {
-  return new Uint8Array(Buffer.from(s, "utf8"));
+  return new TextEncoder().encode(s);
 }
 
 export function taggedHash(tag: string, msg: Uint8Array): Uint8Array {

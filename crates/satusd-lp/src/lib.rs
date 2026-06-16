@@ -387,7 +387,7 @@ impl Lp {
 /// "<fp>/<path>")`. Returns the x-only (32-byte) internal key hex and
 /// the origin string the user's PSBT builder needs. `None` if the
 /// descriptor isn't a plain `tr(...)` with a key-origin.
-fn parse_tr_descriptor(desc: &str) -> Option<(String, String)> {
+pub fn parse_tr_descriptor(desc: &str) -> Option<(String, String)> {
     let inner = desc.strip_prefix("tr(")?;
     let inner = inner.split(')').next()?; // drop ")#checksum"
     let rest = inner.strip_prefix('[')?;
