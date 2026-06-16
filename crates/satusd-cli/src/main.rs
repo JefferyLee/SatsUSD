@@ -132,6 +132,33 @@ async fn balance(env: &NodeEnv) -> Result<(), Error> {
         total / 1_000_000,
         total % 1_000_000
     );
+    // The BTC wallet balance — what funds collateral / pays fees.
+    let bals = env.bcli(&["getbalances"]);
+    let to_sat = |v: &serde_json::Value| (v.as_f64().unwrap_or(0.0) * 1e8).round() as u64;
+    let confirmed = to_sat(&bals["mine"]["trusted"]);
+    let pending = to_sat(&bals["mine"]["untrusted_pending"]);
+    println!("BTC_SATS: {confirmed} {pending}");
+    // Pending SatUSD: amounts in broadcast-but-unconfirmed mint batches
+    // (a vault open+mint shows here until the signet block confirms it).
+    let batches: serde_json::Value =
+        serde_json::from_str(&env.tapcli(&["assets", "mint", "batches"])).unwrap_or_default();
+    let mut pending_micro: u64 = 0;
+    if let Some(bs) = batches["batches"].as_array() {
+        for b in bs {
+            if b["batch"]["state"].as_str() == Some("BATCH_STATE_BROADCAST") {
+                if let Some(assets) = b["batch"]["assets"].as_array() {
+                    for a in assets {
+                        pending_micro += a["amount"]
+                            .as_str()
+                            .and_then(|s| s.parse::<u64>().ok())
+                            .or_else(|| a["amount"].as_u64())
+                            .unwrap_or(0);
+                    }
+                }
+            }
+        }
+    }
+    println!("PENDING_MICRO: {pending_micro}");
     Ok(())
 }
 
@@ -140,12 +167,17 @@ struct VerifiedQuote {
     user_sats: u64,
 }
 
-/// Fetch + fully verify a quote. Prints the verification battery.
+/// Fetch + fully verify a quote. Prints the verification battery. If
+/// `prefetched` is given (the quote the phone already fetched + verified),
+/// it is re-verified here and reused — no second `/v0/quote` POST, so the
+/// LP's UTXO is locked exactly once (the node signs the quote the phone
+/// verified, not a fresh one).
 fn fetch_verified_quote(
     lp: &str,
     amount_micro_usd: u64,
     payout_address: &str,
     oracle: &str,
+    prefetched: Option<serde_json::Value>,
 ) -> Result<VerifiedQuote, Error> {
     let m = serde_json::from_str::<serde_json::Value>(
         &http_get(lp, "/v0/manifest").map_err(|e| e.to_string())?,
@@ -155,15 +187,21 @@ fn fetch_verified_quote(
     let rail_id = manifest.rail_id();
     println!("rail_id  : {} (recomputed locally)", hex::encode(rail_id));
 
-    let q = http_post(
-        lp,
-        "/v0/quote",
-        &serde_json::json!({
-            "amount_micro_usd": amount_micro_usd.to_string(),
-            "payout_address": payout_address,
-        }),
-    )
-    .map_err(|e| e.to_string())?;
+    let q = match prefetched {
+        Some(q) => {
+            println!("quote    : reusing the quote the phone verified (no new lock)");
+            q
+        }
+        None => http_post(
+            lp,
+            "/v0/quote",
+            &serde_json::json!({
+                "amount_micro_usd": amount_micro_usd.to_string(),
+                "payout_address": payout_address,
+            }),
+        )
+        .map_err(|e| e.to_string())?,
+    };
 
     // 1. quote binds to the manifest we verified
     let quote = Quote {
@@ -250,6 +288,7 @@ async fn redeem(
     payout: Option<String>,
     oracle: &str,
     force_input: Option<String>,
+    prefetched_quote: Option<serde_json::Value>,
 ) -> Result<(), Error> {
     let payout_address = match payout {
         Some(a) => a,
@@ -290,7 +329,7 @@ async fn redeem(
     } else {
         (None, None)
     };
-    let v = fetch_verified_quote(lp, amount_micro_usd, &payout_address, oracle)?;
+    let v = fetch_verified_quote(lp, amount_micro_usd, &payout_address, oracle, prefetched_quote)?;
     let q = &v.q;
 
     // Build + sign the asset leg with OUR tapd. Stale leases from
@@ -617,7 +656,7 @@ async fn main() -> Result<(), Error> {
             let amount = parse_usd(args.get(3).ok_or("missing amount")?)?;
             let payout = env.bcli(&["getnewaddress"]).as_str().unwrap().to_string();
             let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
-            fetch_verified_quote(lp, amount, &payout, &oracle)?;
+            fetch_verified_quote(lp, amount, &payout, &oracle, None)?;
             println!("(quote only — nothing signed, nothing spent)");
             Ok(())
         }
@@ -628,7 +667,32 @@ async fn main() -> Result<(), Error> {
                 .clone();
             let amount = parse_usd(args.get(3).ok_or("missing amount")?)?;
             let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
-            redeem(&env, &lp, amount, flag("--payout"), &oracle, flag("--input")).await
+            // Optionally reuse the quote the phone already fetched + verified
+            // (a JSON file), so redeem does not POST a second /v0/quote.
+            let prefetched = match flag("--quote-file") {
+                Some(p) => Some(serde_json::from_str(&std::fs::read_to_string(p)?)?),
+                None => None,
+            };
+            redeem(&env, &lp, amount, flag("--payout"), &oracle, flag("--input"), prefetched).await
+        }
+        Some("address") => {
+            // A STABLE deposit address: reuse the first address under the
+            // "satusd-deposit" label, creating one only on first call.
+            // bech32 (not bech32m/taproot) — signet faucets accept it.
+            let existing = env
+                .try_bcli(&["getaddressesbylabel", "satusd-deposit"])
+                .ok()
+                .and_then(|v| v.as_object().and_then(|m| m.keys().next().cloned()));
+            let addr = match existing {
+                Some(a) => a,
+                None => env
+                    .bcli(&["getnewaddress", "satusd-deposit", "bech32"])
+                    .as_str()
+                    .ok_or("getnewaddress")?
+                    .to_string(),
+            };
+            println!("ADDRESS: {addr}");
+            Ok(())
         }
         Some("vault-open") => {
             let collateral_sats: u64 = args
@@ -641,7 +705,7 @@ async fn main() -> Result<(), Error> {
             vault_open(&env, collateral_sats, mint_micro_usd, &oracle).await
         }
         _ => {
-            eprintln!("usage: satusd balance | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>] | vault-open <collateral-sats> <mint-usd> [--oracle <addr>]");
+            eprintln!("usage: satusd balance | address | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>] | vault-open <collateral-sats> <mint-usd> [--oracle <addr>]");
             std::process::exit(2);
         }
     }

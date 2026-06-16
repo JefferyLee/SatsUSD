@@ -12,7 +12,8 @@
 // there is no shell-injection surface.
 import { createServer } from "node:http";
 import { execFile } from "node:child_process";
-import { readFileSync, writeFileSync } from "node:fs";
+import { readFileSync, writeFileSync, unlinkSync } from "node:fs";
+import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
 import { dirname, resolve } from "node:path";
 
@@ -44,6 +45,15 @@ function saveVaults() {
   catch (e) { console.error("[bridge] vaults save failed:", e.message); }
 }
 
+// In-flight redeems — used to hide the UTXO change-confirmation dip. A
+// redeem spends a whole SatUSD coin and returns change; until the change
+// confirms, tapd's confirmed balance drops by the WHOLE coin, not by the
+// amount redeemed. We track the redeemed amount + a settled baseline so
+// the wallet only ever shows −$redeemed (mirrors a normal BTC wallet
+// counting its own unconfirmed change).
+let lastSettledMicro = null;
+let pendingRedeems = []; // { txid, redeemed_micro }
+
 function json(res, code, obj) {
   const body = JSON.stringify(obj);
   res.writeHead(code, { "content-type": "application/json", "content-length": Buffer.byteLength(body) });
@@ -55,21 +65,31 @@ function readBody(req) {
     let b = "";
     req.on("data", (c) => {
       b += c;
-      if (b.length > 4096) req.destroy();
+      if (b.length > 32768) req.destroy();
     });
     req.on("end", () => ok(b));
     req.on("error", err);
   });
 }
 
-function runRedeem({ amount_usd, payout_address }) {
+function runRedeem({ amount_usd, payout_address, quote }) {
   return new Promise((ok) => {
     const args = ["redeem", LP, amount_usd.toFixed(2), "--payout", payout_address, "--oracle", ORACLE];
+    // Reuse the quote the phone already verified (write to a temp file and
+    // pass --quote-file) so redeem doesn't POST a second /v0/quote that
+    // would deadlock on the LP's already-locked UTXO.
+    let quoteFile;
+    if (quote && typeof quote === "object") {
+      quoteFile = resolve(tmpdir(), `satusd-quote-${process.pid}-${reqSeq++}.json`);
+      writeFileSync(quoteFile, JSON.stringify(quote));
+      args.push("--quote-file", quoteFile);
+    }
     execFile(
       SATUSD_BIN,
       args,
       { cwd: REPO_ROOT, env: { ...process.env, SATUSD_NET: "signet", SATUSD_ROOT: REPO_ROOT }, timeout: 120_000 },
       (e, stdout, stderr) => {
+        if (quoteFile) { try { unlinkSync(quoteFile); } catch { /* best effort */ } }
         const out = (stdout || "") + (stderr || "");
         const m = out.match(/BROADCAST:\s*([0-9a-f]{64})/i);
         if (m) return ok({ ok: true, txid: m[1], log: out.trim().slice(-2000) });
@@ -78,6 +98,7 @@ function runRedeem({ amount_usd, payout_address }) {
     );
   });
 }
+let reqSeq = 0;
 
 // vault-open runs on signet (same chain as burn/transfer/balance) so the
 // minted SatUSD reissues into the canonical group the wallet reads — the
@@ -111,8 +132,34 @@ function runBalance() {
       (e, stdout, stderr) => {
         const out = (stdout || "") + (stderr || "");
         const m = out.match(/total:\s*(\d+)/);
-        if (m) return ok({ ok: true, micro: Number(m[1]) });
+        const btc = out.match(/BTC_SATS:\s*(\d+)\s+(\d+)/);
+        const pend = out.match(/PENDING_MICRO:\s*(\d+)/);
+        if (m)
+          return ok({
+            ok: true,
+            micro: Number(m[1]),
+            pending_micro: pend ? Number(pend[1]) : 0,
+            btc_sats: btc ? Number(btc[1]) : 0,
+            btc_pending_sats: btc ? Number(btc[2]) : 0,
+          });
         ok({ ok: false, error: (stderr || e?.message || "balance failed").trim().slice(-400) });
+      },
+    );
+  });
+}
+
+// A fresh signet deposit address — the wallet's Receive view.
+function runAddress() {
+  return new Promise((ok) => {
+    execFile(
+      SATUSD_BIN,
+      ["address"],
+      { cwd: REPO_ROOT, env: { ...process.env, SATUSD_NET: "signet", SATUSD_ROOT: REPO_ROOT }, timeout: 30_000 },
+      (e, stdout, stderr) => {
+        const out = (stdout || "") + (stderr || "");
+        const m = out.match(/ADDRESS:\s*(\S+)/);
+        if (m) return ok({ ok: true, address: m[1] });
+        ok({ ok: false, error: (stderr || e?.message || "address failed").trim().slice(-400) });
       },
     );
   });
@@ -121,7 +168,30 @@ function runBalance() {
 const server = createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/health") return json(res, 200, { ok: true, lp: LP });
   if (req.method === "GET" && req.url === "/vaults") return json(res, 200, { ok: true, vaults });
-  if (req.method === "GET" && req.url === "/balance") return json(res, 200, await runBalance());
+  if (req.method === "GET" && req.url === "/balance") {
+    const r = await runBalance();
+    if (r.ok) {
+      const confirmed = r.micro;
+      const redeeming = pendingRedeems.reduce((s, x) => s + x.redeemed_micro, 0);
+      if (pendingRedeems.length === 0) {
+        lastSettledMicro = confirmed; // no redeem in flight → trust tapd
+        r.display_micro = confirmed;
+        r.redeeming_micro = 0;
+      } else if (confirmed >= (lastSettledMicro ?? confirmed) - redeeming) {
+        // the change has confirmed (tapd rose back) → settle the baseline
+        pendingRedeems = [];
+        lastSettledMicro = confirmed;
+        r.display_micro = confirmed;
+        r.redeeming_micro = 0;
+      } else {
+        // change still confirming → show baseline − redeemed, not the dip
+        r.display_micro = (lastSettledMicro ?? confirmed) - redeeming;
+        r.redeeming_micro = redeeming;
+      }
+    }
+    return json(res, 200, r);
+  }
+  if (req.method === "GET" && req.url === "/address") return json(res, 200, await runAddress());
 
   if (req.method === "POST" && req.url === "/redeem") {
     let body;
@@ -134,8 +204,9 @@ const server = createServer(async (req, res) => {
     if (!ADDR_RE.test(payout_address))
       return json(res, 400, { error: "payout_address is not a signet bech32 address" });
 
-    console.log(`[bridge] redeem $${amount_usd.toFixed(2)} -> ${payout_address}`);
-    const result = await runRedeem({ amount_usd, payout_address });
+    console.log(`[bridge] redeem $${amount_usd.toFixed(2)} -> ${payout_address}${body.quote ? " (reusing verified quote)" : ""}`);
+    const result = await runRedeem({ amount_usd, payout_address, quote: body.quote });
+    if (result.ok) pendingRedeems.push({ txid: result.txid, redeemed_micro: Math.round(amount_usd * 1e6) });
     console.log(`[bridge] ${result.ok ? "BROADCAST " + result.txid : "FAIL " + result.error}`);
     return json(res, result.ok ? 200 : 502, result);
   }

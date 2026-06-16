@@ -36,10 +36,25 @@ export function renderHome(el: HTMLElement) {
       <h2>Oracle price <span class="spin"></span></h2>
       <p class="hint">The signed price every check verifies against.</p>
     </div>
-    <div class="card hero">
-      <div class="hint">Your SatUSD</div>
-      <div class="big" id="bal">···</div>
-      <p class="hint" id="bal-sub">held by your node on signet</p>
+    <div class="card balances" id="balance-card">
+      <div class="bal-grid">
+        <div class="bal-col">
+          <div class="bal-label">SatUSD</div>
+          <div class="bal-amt" id="bal">···</div>
+          <div class="bal-pending" id="sat-pending"></div>
+        </div>
+        <div class="bal-col">
+          <div class="bal-label">Bitcoin</div>
+          <div class="bal-amt" id="btc">···</div>
+          <div class="bal-pending" id="btc-pending"></div>
+        </div>
+      </div>
+      <p class="hint bal-foot" id="bal-sub">held by your node on signet</p>
+    </div>
+    <div class="card">
+      <h2>Receive</h2>
+      <p class="hint">Fund your wallet — send signet BTC to this address.</p>
+      <div class="addr mono" id="deposit" title="tap to copy">loading…</div>
     </div>
     <div class="card">
       <h2>Vault positions</h2>
@@ -47,13 +62,32 @@ export function renderHome(el: HTMLElement) {
     </div>
     <div class="actions">
       <a class="act" href="#birth"><span class="a-ico">+</span><span>Mint</span><small>vault</small></a>
-      <a class="act" href="#transfer"><span class="a-ico">→</span><span>Send</span><small>transfer</small></a>
+      <a class="act" href="#transfer"><span class="a-ico">✓</span><span>Verify</span><small>transfer</small></a>
       <a class="act" href="#burn"><span class="a-ico">⟳</span><span>Redeem</span><small>burn</small></a>
     </div>
   `;
   loadOracle(el.querySelector("#oracle-card")!);
-  loadBalance(el.querySelector<HTMLElement>("#bal")!, el.querySelector<HTMLElement>("#bal-sub")!);
+  loadBalance(el.querySelector<HTMLElement>("#balance-card")!);
+  loadAddress(el.querySelector<HTMLElement>("#deposit")!);
   loadPositions(el.querySelector<HTMLElement>("#positions")!);
+}
+
+async function loadAddress(el: HTMLElement) {
+  try {
+    const r = await fetch(`${BRIDGE}/address`);
+    const j = await r.json();
+    if (!j.ok) throw new Error(j.error || "address unavailable");
+    el.textContent = j.address;
+    el.addEventListener("click", () => {
+      navigator.clipboard?.writeText(j.address).then(() => {
+        const prev = el.textContent;
+        el.textContent = "copied ✓";
+        setTimeout(() => (el.textContent = prev), 900);
+      });
+    });
+  } catch {
+    el.textContent = "bridge offline";
+  }
 }
 
 function maybeRenderPositions() {
@@ -78,15 +112,32 @@ async function loadOracle(card: HTMLElement) {
   }
 }
 
-async function loadBalance(big: HTMLElement, sub: HTMLElement) {
+const fmtBtc8 = (sats: number) => (sats / 1e8).toFixed(8);
+
+async function loadBalance(card: HTMLElement) {
+  const bal = card.querySelector<HTMLElement>("#bal")!;
+  const satPending = card.querySelector<HTMLElement>("#sat-pending")!;
+  const btc = card.querySelector<HTMLElement>("#btc")!;
+  const btcPending = card.querySelector<HTMLElement>("#btc-pending")!;
+  const sub = card.querySelector<HTMLElement>("#bal-sub")!;
   try {
     const r = await fetch(`${BRIDGE}/balance`);
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || "balance unavailable");
-    big.textContent = fmtUsd(j.micro / 1e6);
+    bal.textContent = fmtUsd((Number(j.display_micro ?? j.micro)) / 1e6);
+    const notes: string[] = [];
+    const minting = Number(j.pending_micro) || 0; // incoming mint
+    const redeeming = Number(j.redeeming_micro) || 0; // outgoing redeem
+    if (minting > 0) notes.push(`+${fmtUsd(minting / 1e6)} confirming`);
+    if (redeeming > 0) notes.push(`−${fmtUsd(redeeming / 1e6)} redeeming`);
+    satPending.textContent = notes.join("  ·  ");
+    btc.innerHTML = `${fmtBtc8(Number(j.btc_sats) || 0)} <span class="u">BTC</span>`;
+    const pend = Number(j.btc_pending_sats) || 0;
+    btcPending.textContent = pend > 0 ? `+${fmtBtc8(pend)} pending` : "";
     sub.textContent = "held by your node on signet";
   } catch {
-    big.textContent = "—";
+    bal.textContent = "—";
+    btc.textContent = "—";
     sub.innerHTML = `bridge offline — run <span class="mono">npm run bridge</span>`;
   }
 }

@@ -2,11 +2,11 @@ import { verifiedQuote, verifiedOraclePrice } from "@satusd/sdk";
 
 const LP = location.origin + "/lp";
 const ORACLE = location.origin + "/oracle";
-// A P2WPKH (bech32) payout: its asset-exclusion proof needs no taproot
-// internal key, so the redeem broadcasts cleanly. An *external* P2TR (tb1p)
-// payout fails — tapd can't supply an internal key for a foreign taproot
-// output's exclusion proof (you can redeem to a taproot address you control).
-const DEMO_PAYOUT = "tb1q39m56ht7sjauk63uhtp6eu23jytm600jpn2h2a";
+const BRIDGE = location.origin + "/bridge";
+// The payout defaults to the wallet's own bech32 (P2WPKH) deposit address —
+// the same one the Receive view shows — so redeemed BTC returns to your
+// wallet and the BTC balance visibly grows. P2WPKH keeps the redeem's
+// asset-exclusion proof trivial (a foreign P2TR can't be redeemed to).
 
 // The exact checks verifiedQuote() runs before it returns. If it returns at
 // all, every one of these passed (refusal-on-mismatch is the API contract),
@@ -35,17 +35,29 @@ export function renderBurn(el: HTMLElement) {
         locally before anything is signed.</p>
       <label for="amt">Amount (USD)</label>
       <input id="amt" type="number" inputmode="decimal" min="0.25" step="0.25" value="1.00" />
-      <label for="addr">Payout BTC address (signet)</label>
-      <input id="addr" class="mono" value="${DEMO_PAYOUT}" />
+      <label for="addr">Payout — your wallet's BTC address</label>
+      <input id="addr" class="mono" placeholder="loading your address…" />
       <button id="go">Verify quote</button>
     </div>
     <div id="result"></div>
   `;
 
   loadOracle(el.querySelector("#oracle-card")!);
+  loadPayout(el.querySelector<HTMLInputElement>("#addr")!);
 
   const btn = el.querySelector<HTMLButtonElement>("#go")!;
   btn.addEventListener("click", () => runVerify(el, btn));
+}
+
+// Default the payout to the wallet's own deposit address (same as Receive).
+async function loadPayout(input: HTMLInputElement) {
+  try {
+    const r = await fetch(BRIDGE + "/address");
+    const j = await r.json();
+    if (j.ok && j.address) input.value = j.address;
+  } catch {
+    /* leave empty — the user can paste an address */
+  }
 }
 
 async function loadOracle(card: HTMLElement) {
@@ -65,21 +77,21 @@ async function loadOracle(card: HTMLElement) {
   }
 }
 
-const BRIDGE = location.origin + "/bridge";
-
 // Only reachable after on-device verification passed: the user taps to let the
 // node actually sign + broadcast the redemption via the signing bridge.
-function wireSign(result: HTMLElement, usd: number, addr: string) {
+function wireSign(result: HTMLElement, usd: number, addr: string, quote: any) {
   const sign = result.querySelector<HTMLButtonElement>("#sign");
   if (!sign) return;
   sign.addEventListener("click", async () => {
     sign.disabled = true;
     sign.textContent = "signing & broadcasting…";
     try {
+      // Reuse the exact quote the phone just verified — the node signs that,
+      // not a fresh one (one LP-UTXO lock; the node verifies it too).
       const r = await fetch(BRIDGE + "/redeem", {
         method: "POST",
         headers: { "content-type": "application/json" },
-        body: JSON.stringify({ amount_usd: usd, payout_address: addr }),
+        body: JSON.stringify({ amount_usd: usd, payout_address: addr, quote }),
       });
       const j = await r.json();
       if (!r.ok || !j.txid) throw new Error(j.error ?? `bridge ${r.status}`);
@@ -145,7 +157,7 @@ async function runVerify(el: HTMLElement, btn: HTMLButtonElement) {
       </div>
       <button class="secondary" id="sign">Sign &amp; broadcast — node signs</button>
     `;
-    wireSign(result, usd, addr);
+    wireSign(result, usd, addr, v.raw);
   } catch (e: any) {
     const msg = String(e?.message ?? e);
     // The SDK marks a verification refusal with "REFUSING"; anything else is an

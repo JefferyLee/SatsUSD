@@ -9,7 +9,7 @@ type Stage = "home" | "birth" | "transfer" | "burn";
 const STAGES: { id: Stage; label: string; sub: string }[] = [
   { id: "home", label: "Wallet", sub: "home" },
   { id: "birth", label: "Mint", sub: "birth" },
-  { id: "transfer", label: "Send", sub: "transfer" },
+  { id: "transfer", label: "Verify", sub: "transfer" },
   { id: "burn", label: "Redeem", sub: "burn" },
 ];
 
