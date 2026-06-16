@@ -46,7 +46,7 @@ Spec index:
 | 03 | oracle classes + the reference marker |
 | 04 | reserve, reimbursement, epoch allotment |
 | 05 | dispute hooks, evidence formats, slashing |
-| 06 | vaults: mint-as-position-opening, checkpoint-CET liquidation |
+| 06 | vaults: a DLC collateral primitive (LP-issuer sources `Q` / CDP self-mint); checkpoint-CET liquidation |
 | 07 | redemption-bearing notes: unilateral redeem, no-transfer, LP-term maturity |
 | 08 | Lightning: the BTC speed layer; redeem-to-pay, on-chain DLC backstop |
 
@@ -59,7 +59,7 @@ Spec index:
 | **epoch** | 2016 Bitcoin blocks; the cadence of capacity recomputation, reserve allotment (04), and supply commitments (01) |
 | **tranche** | a reserve UTXO pre-allocated to one rail for one epoch, sized by the capacity formula (02 §6.1) |
 | **S3 artifacts** | the txids, TA transfer proofs, and oracle attestations from which any observer reconstructs a settlement (02 §4) |
-| **reference marker** | the protocol-level BTC/USD price used for `price_dev_bound` checks and reimbursement pricing; defined in 03 §5 |
+| **reference marker** | the protocol-level BTC/USD price used for `price_dev_bound` checks, reimbursement pricing, and **redemption pricing `P`** (07 §3, via the 03 §5.7 FROST aggregate); defined in 03 §5 |
 | **retain fee** | the fee component accruing to the common reserve via reimbursement haircut; feeds the capacity formula (ADR-0002) |
 | **service fee** | the fee component paying named per-settlement service providers |
 | **burn** | destruction of SatUSD units via the TA-native unspendable script key (01 §4) |

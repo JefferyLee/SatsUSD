@@ -10,18 +10,33 @@
 
 ## 1. Role of the vault
 
-A **vault** is how SatUSD enters circulation without a founder
-balance sheet: anyone locks their own BTC in a fixed-maturity DLC
-collateral position and mints face-value SatUSD against it
-(铸造即开仓). It is the named mechanism the PRD §8 scaffolding
-ledger previously lacked for removing the founder-funded reserve
-(removal criterion: vault-minted supply ≥ 50% of circulating
-SatUSD).
+A **vault** is a **fixed-maturity DLC collateral primitive**: a party
+locks its own BTC in a co-controlled DLC funding output (§2) and
+pre-signs the paths that settle it (铸造即开仓). The vault is
+mechanism; *who opens it and what it backs* gives two distinct uses
+(ADR-0005):
 
-Three layers; the asset (spec 01) and redemption rails (spec 02) do
-not change:
+- **LP-issuer sourcing collateral `Q` (the v0 path, spec 07 §2).** An
+  LP opens a vault to lock the over-collateralised BTC that backs the
+  redemption-bearing notes it sells; each note redeems **unilaterally**
+  against that `Q` (spec 07 §3). The vault is the LP's supply-side
+  inventory — the **end holder never opens one; they buy a note**.
+- **CDP self-minter (the ADR-0004 vision; deferred).** A HODLer locks
+  own BTC and mints against it ("spend dollars without selling
+  bitcoin"), with a **common reserve** as clearing counterparty. This
+  reserve-coupled flow — the diagram below, and the founder-reserve
+  removal criterion (PRD §8, restated by ADR-0005 against *held*, not
+  "circulating", SatUSD) — belongs to the **deferred reserve / covenant
+  era** (spec 04 scope note): shared pools return with the covenant
+  capability.
+
+The reserve-coupled clearing model (the rest of this spec, §3–§9)
+describes that deferred use; the v0 LP path reuses only the §2 funding
+output + the §4 CET primitive, settling against notes rather than a
+reserve:
 
 ```
+DEFERRED (reserve / covenant era — ADR-0005, spec 04):
 mint side                clearing layer          redeem side
 vaults (anyone)   ──→     common reserve   ──→    rails (spec 02)
 lock own BTC,             receives face value     holders burn
@@ -114,7 +129,13 @@ There is no liquidation engine. At open, the parties pre-sign
 **crash-bucket-only** CETs for each checkpoint (every `N` blocks
 until maturity, §8), each an adaptor signature anticipating the
 oracle attestation at that checkpoint's event (spec 03 §3.3, spec 02
-§7).
+§7). Each CET's adaptor lock is that bucket's **`crash_adaptor_point`**
+— the oracle anticipation point `S = R + e·P` for the checkpoint event
+and price bucket (spec 03 §3); the matching attestation decrypts
+exactly that CET. (spec 07 §3.2 reuses this named point for the
+unilateral **redemption** CETs an LP-issuer pre-signs over the same
+`Q`; redemption CETs and these liquidation crash CETs coexist on one
+`Q` — their non-overlap is a spec 07 §10 integration item.)
 
 - A **healthy price** at a checkpoint corresponds to *no pre-signed
   transaction at all* — the buckets above the liquidation threshold

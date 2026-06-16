@@ -14,10 +14,22 @@
 ## 1. Product definition
 
 SatUSD is a bitcoin-collateralized, dollar-denominated Taproot Asset
-on Bitcoin L1, convertible to and from BTC at any time through an
-open standard of competing conversion rails. Holding it requires no
-permission; redeeming it requires no trusted intermediary; verifying
-it requires only Bitcoin.
+on Bitcoin L1 — a **self-custodied, unilaterally-redeemable dollar
+holding**. Every note carries a pre-signed, oracle-gated DLC
+redemption the holder broadcasts alone (spec 07): holding requires no
+permission; redeeming requires no trusted intermediary and no
+counterparty's consent; verifying requires only Bitcoin. Notes are
+**issued on demand by competing LPs** and redeemed unilaterally — they
+are not handed peer-to-peer.
+
+**Spendable, not transferable (the doctrine — ADR-0005).** A wallet
+*spends* SatUSD by *redeem-to-pay*: it redeems the note to BTC and pays
+BTC, so the payer experiences spending dollars while the counterparty
+receives BTC. SatUSD itself never changes hands as SatUSD. Three
+layers: **SatUSD is the unit of account + the spend trigger; BTC is the
+settlement medium.** ("spendable / pay" is correct; "transferable /
+circulating / P2P" is not — transferability returns in the covenant
+era, spec 07 §9.)
 
 One sentence per audience:
 
@@ -25,8 +37,9 @@ One sentence per audience:
   no company and no government can freeze, in your own keys.
 - **For a bitcoiner**: spendable dollar stability without leaving
   Bitcoin L1 or touching a fiat reserve.
-- **For an LP**: bitcoin-denominated fee income for providing
-  conversion liquidity, with risk bounded by code you can read.
+- **For an LP**: bitcoin-denominated fee income for issuing notes
+  against your own over-collateralised BTC — long bitcoin, with risk
+  bounded by code you can read.
 - **For an AI agent**: the only dollar instrument you can natively
   hold and settle — no bank account, no KYC, machine-verifiable.
 
@@ -34,8 +47,8 @@ One sentence per audience:
 
 | Actor | Job to be done | Permission |
 |---|---|---|
-| **Holder** (human or AI agent) | hold $-denominated value; pay; redeem anytime | none |
-| **LP** | quote conversions, front BTC, earn fees | stake per rail manifest |
+| **Holder** (human or AI agent) | hold $-denominated value; pay (redeem-to-pay); redeem anytime, unilaterally | none |
+| **LP / issuer** | issue notes against own over-collateralised BTC; pre-sign their redemptions; earn fees; bear BTC risk | over-collateralised `Q` per rail manifest |
 | **Rail operator** (often = LP) | run a rail implementation conforming to spec 02 | none (capacity-bounded, ADR-0002) |
 | **Oracle** | attest prices per oracle class (spec 03) | per class; market-priced |
 | **Broadcaster / Challenger** | complete settlements; submit dispute evidence | none; paid by protocol economics |
@@ -44,27 +57,34 @@ One sentence per audience:
 
 ## 3. User journeys (golden paths)
 
-- **J1 — Acquire**: mint via a mint-direction rail, or buy P2P /
-  on-market. Wallet verifies asset lineage + supply commitment
-  before displaying balance.
-- **J2 — Hold & verify**: wallet (or any client) checks reserve,
-  supply, and settlement history against Bitcoin chain data alone.
-  No API of ours needs to exist for J2 to work.
-- **J3 — Redeem via Rail-0 (RFQ)**: request quote → LPs respond →
-  user picks → one co-signed atomic transaction: the SatUSD leaves
-  the user's keys (to the LP, or straight to the burn key —
-  ADR-0003), BTC arrives. No oracle anywhere.
-- **J4 — Redeem via Rail-1 (DLC)**: quote (CET schedule) → lock →
-  oracle attests at tick → anyone broadcasts the matching CET →
-  outcome locked at attestation, confirmation on Bitcoin's clock.
-- **J5 — LP lifecycle**: post stake → publish quotes → settle →
-  claim reimbursement from epoch tranche (burn proof, minus
-  retain haircut) → fee income.
-- **J6 — Challenge**: detect a deviation (over-cap reimbursement,
-  bad proof, oracle equivocation) → submit evidence per dispute
-  hook → collect slash reward.
-- **J7 — Pay**: transfer SatUSD as a TA on L1. (Lightning rails:
-  out of scope v1, see §6.)
+- **J1 — Acquire**: buy a redemption-bearing note from an LP
+  (BTC→note, via an issuance rail; the LP locks over-collateralised
+  `Q` and pre-signs the note's redemption CETs). Wallet verifies asset
+  lineage, supply commitment, and the pre-signed redemption (spec 07
+  §3.4) before displaying balance. No P2P / secondary market — notes do
+  not circulate.
+- **J2 — Hold & verify**: wallet (or any client) checks supply, the
+  note's pre-signed redemption, and settlement history against Bitcoin
+  chain data alone. No API of ours needs to exist for J2 to work.
+- **J3 — Redeem (unilateral DLC, spec 07)**: the holder broadcasts the
+  note's pre-signed CET against the public oracle attestation — one
+  Bitcoin tx with the note as a *required input* (burn the note ⟺ claim
+  `X/P` BTC). **No LP at redeem-time, no permission, no party can refuse
+  or freeze.** Outcome locks at attestation; confirmation on Bitcoin's
+  clock. If the LP stops refreshing CETs the holder redeems against the
+  last one held (a slightly stale price), never stuck.
+- **J4 — LP lifecycle**: lock over-collateralised `Q` (open a vault,
+  spec 06) → quote + issue notes → pre-sign each note's redemption +
+  maturity CETs → roll fresh CETs per block → earn fees, bear BTC price
+  risk (long bitcoin).
+- **J5 — Challenge**: detect a deviation (oracle equivocation; in the
+  covenant-era reserve, over-cap reimbursement) → submit evidence per
+  the dispute hook → collect slash reward. The redemption path itself
+  needs no challenge (unilateral, no refusal surface — spec 07 §3.3).
+- **J6 — Pay (redeem-to-pay)**: the wallet redeems a note to BTC and
+  pays BTC; the counterparty receives BTC while the payer experiences
+  spending SatUSD. No SatUSD transfer occurs. The BTC leg MAY ride
+  Lightning (spec 08); the SatUSD note stays on L1.
 
 ## 4. Functional requirements
 
@@ -72,16 +92,17 @@ Each FR names its normative home and its acceptance check.
 
 | ID | Requirement | Spec | Acceptance |
 |---|---|---|---|
-| FR-1 | TA grouped asset with supply commitments (tapd ≥ 0.7) and burn-to-NUMS redemption semantics | 01 | mint/burn round-trip on regtest; supply commitment verifiable by independent client |
+| FR-1 | TA grouped asset with supply commitments (tapd ≥ 0.7) and the one-tx burn⟺claim redemption (spec 07 §3) | 01, 07 | mint/burn round-trip on regtest; supply commitment verifiable by independent client |
 | FR-2 | Rail standard: state machine, RailManifest, self-certifying rail_id, S1–S3+L1 properties | 02 | conformance test suite; manifest hash vectors Rust = TS |
-| FR-3 | **Rail-0 reference implementation** — RFQ atomic swap | 02 §7 | J3 end-to-end on regtest, then signet |
-| FR-4 | **Rail-1 reference implementation** — single-oracle DLC with TA-in-funding-output | 02 §7, proposal 0001 | J4 end-to-end on regtest, then signet |
+| FR-3 | **Rail-0 reference implementation** — RFQ atomic-swap **issuance** (BTC→note) | 02 §7 | J1 issuance end-to-end on regtest, then signet |
+| FR-4 | **Rail-1 reference implementation** — the oracle-gated DLC **redemption** primitive (TA-in-funding-output) | 02 §7, 07, proposal 0001 | J3 redeem end-to-end on regtest, then signet |
 | FR-5 | Oracle daemon: dlcspecs-format announcements/attestations, digit decomposition, BIP-32-derived nonces; explicitly transitional | 03 | independent DLC client can consume its attestations |
-| FR-6 | Reserve + epoch allotment Stage 1: open-source allotment script, published plans, reproducible by anyone | 04 | third party re-runs script on public data and reproduces the plan byte-for-byte |
+| FR-6 | Reserve + epoch allotment **(deferred to the covenant era — ADR-0005; v0 backs each note with its own over-collateralised `Q`)** | 04 | — (returns with the covenant-era shared pool) |
 | FR-7 | Client verification library: supply, reserve, lineage, settlement history (S3 artifacts) — embeddable by any wallet | 01/02 | verifies a full settlement history with no access to any server of ours |
 | FR-8 | Curation list format: signed, Token-Lists-style; wallet default-subscription semantics | 02 §6.4 | two independent lists, one wallet consuming both |
 | FR-9 | Rail disclosure: machine-readable history, age, volume, retained-fee total, stake, dispute record | 02 §6.4 | capacity formula computable by a third party from disclosures + chain |
 | FR-10 | Dispute hooks v0: evidence formats + slash flow (Stage 1: published evidence + manual slash per scaffolding ledger; Stage 2: optimistic) | 05 | a planted deviation is detected and slashed end-to-end on signet |
+| FR-11 | **Redemption-bearing note**: a pre-signed unilateral DLC redemption bound to each note (spec 07 §3); `committed_term` maturity with fair-value auto-settle | 07, 06, 02 | a note redeems unilaterally on regtest with no LP online; a matured note auto-settles to BTC |
 
 ## 5. Non-functional requirements
 
@@ -112,11 +133,13 @@ Per MISSION ("What SatUSD is not") and staging decisions:
 
 - yield on holdings; fiat reserves; KYC/compliance features;
   institutional custody integrations
-- Lightning rails (L1 settlement first; LN is a later rail class)
+- Lightning carrying SatUSD (LN rides the **BTC leg** of
+  redeem-to-pay only — spec 08; the SatUSD note stays on L1)
 - `internal_twap` rail (interface reserved in spec 02/03; activates
   only after internal history earns authority)
-- Stage 2/3 reserve enforcement (staged per ADR-0002; v1 ships
-  Stage 1)
+- the common reserve + reimbursement + capacity formula (deferred to
+  the covenant era — ADR-0005; v0 backs each note with its own
+  over-collateralised `Q`)
 - governance token; legal entity (permanent non-goals, not
   deferrals)
 
@@ -126,12 +149,12 @@ Per MISSION: phases are recognized by metrics, not calendars. Each
 milestone is a checklist; done is done when the checks pass.
 
 **M-A — It runs (regtest).** ✅ 2026-06-10, tag `M-A-regtest`
-☑ FR-1..FR-7 implemented · ☑ J3 + J4 E2E green on regtest ·
+☑ FR-1..FR-7 implemented · ☑ atomic-swap + DLC-settle E2E green on regtest (Rail-0 swap, Rail-1 DLC) ·
 ☑ `make check` + cross-language vectors green ·
 ☑ specs 00/01/03 drafted to implementable precision
 
 **M-B — It's public (signet).**
-☐ J3/J4 completed by ≥ 10 external testers · ☑ oracle daemon
+☐ J1 acquire + J3 redeem completed by ≥ 10 external testers · ☑ oracle daemon
 publicly consumable (live: 207.148.98.132:9590, 3-venue median) ·
 ☐ ≥ 1 external LP quoting · ☑ FR-10 slash drill executed
 (2026-06-12, [signet/SLASH_DRILL_FR10.md](../signet/SLASH_DRILL_FR10.md)) ·
@@ -141,8 +164,7 @@ publicly consumable (live: 207.148.98.132:9590, 3-venue median) ·
 SDK, repo public; first real redemption confirmed (809fb8a3…).*
 
 **M-C — Real value (mainnet, founder-funded reserve).**
-☐ capacity formula live with conservative caps · ☐ J1–J5 on
-mainnet · ☐ scaffolding ledger published with the asset ·
+☐ J1–J6 on mainnet · ☐ scaffolding ledger published with the asset ·
 ☐ security review of consensus-relevant code (form per Q5,
 still open)
 
@@ -163,7 +185,7 @@ it ships with every release.
 
 | Scaffold | Why it exists | Removal criterion |
 |---|---|---|
-| Founder-funded reserve | bootstrap without VC or entity | vault-minted supply ≥ 50% of circulating SatUSD (ADR-0004 names the mechanism) |
+| Founder-funded reserve **(deferred — ADR-0005)** | the common reserve is covenant-era; v0 backs each note with its own per-note `Q` | n/a in v0; the reserve and its removal criterion (vault-minted ≥ 50% of **held** SatUSD, ADR-0004) return with the covenant-era shared pool |
 | Founder-run epoch allotment (Stage 1) | enforcement before ceremony tooling exists | M-E: Stage-2 ceremony operational |
 | Founder-run single oracle (Rail-1) | dlcspecs oracle market is empty today | ≥ 1 independent oracle class live with market share |
 | TA group key custody (issuance authority) | grouped-asset issuance requires a signature; threshold/covenant issuance not yet built (spec 01 §3) | FROST k-of-n group key among independent parties, or covenant-gated issuance |
@@ -175,8 +197,8 @@ it ships with every release.
 ## 9. Top risks
 
 1. **LP cold start** — no liquidity, no product. Mitigation:
-   founder LPs Rail-0 at launch (one more ledger entry if used);
-   fee economics designed LP-first.
+   founder LPs the issuance rail at launch (one more ledger entry if
+   used); fee economics designed LP-first.
 2. **Thin-market manipulation of early S3 history** poisons the
    future internal price source. Mitigation: external reference
    marker as sanity anchor until volume earns authority (MISSION).

@@ -9,6 +9,19 @@
 
 ## 1. Role of the reserve
 
+> **Scope (ADR-0005, 2026-06-16).** This spec — the common reserve,
+> reimbursement, epoch allotment, and the ADR-0002 capacity formula —
+> is **deferred to the covenant era**. SatUSD v0 is a **no-transfer
+> redemption-bearing note** (spec 07): each note is backed by its
+> issuing LP's own **per-note over-collateralised `Q`** (spec 06 §2),
+> redeemed unilaterally (spec 07 §3) with **no reserve outflow and no
+> reimbursement**. Shared collateral pools — the reserve's reason to
+> exist — are the *same* covenant capability as fungibility (spec 07
+> §9) and return together. The §4 reimbursement price and §5 CR/NAV
+> tiers below describe that deferred shared-pool model; where spec 07
+> §7 prices a redemption shortfall it uses the per-note `Q` balance,
+> not the §5 `CR × face` NAV floor.
+
 The reserve is the bitcoin backing all circulating SatUSD. It has
 exactly one outflow: **reimbursement** — an LP who fronted BTC to
 a user and can prove the corresponding SatUSD burn (S3 artifacts,

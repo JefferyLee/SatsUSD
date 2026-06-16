@@ -335,10 +335,10 @@ a *sustained* move has large PfC (it triggers liquidations, skews
 reimbursement). Therefore:
 
 - trade pricing MAY consume the freshest `P_marker` tick;
-- liquidation / reimbursement / mint MUST consume a windowed,
-  manipulation-resistant form (the `internal_twap` window already is
-  one) — these transitions are block-paced anyway, so the window is
-  free.
+- liquidation / reimbursement / mint / **redemption** (spec 07 §3,
+  per-block) MUST consume a windowed, manipulation-resistant form
+  (the `internal_twap` window already is one) — these transitions are
+  block-paced anyway, so the window is free.
 
 This makes single-tick corruption low-reward and sustained
 corruption high-cost, independent of the blend weight.
@@ -378,6 +378,13 @@ goose" incentive, so the stake floor MUST exceed that external
 payoff, not merely the in-protocol one.
 
 ### 5.6 Coupling with rail competition (spec 02)
+
+> **v0 note (ADR-0005).** `settle-to-LP` is retired (no recirculation),
+> and the `retain_bps`/capacity/reserve coupling in rule A below is the
+> **deferred** reserve-era form (spec 04 scope note). In v0 the marker's
+> internal volume is **issuance + unilateral-redemption** settlements
+> (spec 07), and the §5.5 external median is the bootstrap anchor; the
+> `internal_twap` weighting here activates with that later era.
 
 The marker is built from the very settlements rail competition
 produces, and in turn bounds them via `price_dev_bound`. The two are
@@ -425,6 +432,27 @@ cost floor (`sunk cost > external manipulation payoff, incl. shorts`),
 **not** by a concentration cap, and is a named scenario the §6
 adversarial simulation MUST exercise before any non-degenerate `w`
 activates.
+
+### 5.7 Aggregating the median into one DLC attestation key (FROST)
+
+A DLC needs **one** oracle key per event; enumerated *k*-of-*n*
+multi-oracle settlement costs `C(n,k)` adaptor sets (§3.4, open
+item 2). For the **redemption** DLC (spec 07 §6), the §5.5 stake-
+weighted median is therefore aggregated into a **single attestation
+key via a FROST threshold-signing cohort**: the median-reporting set
+runs distributed key generation once, and each event a *t*-of-*n*
+quorum attesting the median emits **one** BIP-340 signature the DLC
+consumes as a lone signer. This presents the decentralised median to
+the DLC as one key — escaping the `C(n,k)` adaptor blow-up (it
+supersedes open item 2 for the marker-aggregate key) — while keeping
+the source decentralised and the §5.5 slashing economics.
+
+The bridge from a *plaintext median* (§5.5 produces a number) to a
+*threshold signature over that median* (which value the cohort signs,
+how disagreement resolves, nonce discipline for long-lived N-CET
+pre-signing) is the open sub-design — spec 07 §10.3, open item 7
+below. **Redemption consumes this key on a per-block cadence** (§5.4),
+decoupled from the §3.1 1 s trading tick.
 
 ## 6. Open items
 

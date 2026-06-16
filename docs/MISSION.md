@@ -173,8 +173,10 @@ own trade history is the most authoritative BTC/USD price on
 Bitcoin L1. For the first time, the bitcoin economy generates
 its own price signal. External sources demote to sanity checks.
 
-**Phase 3 — Denomination begins to flip.** Commerce settles in
-SatUSD channels backed by bitcoin reserves; transactional demand
+**Phase 3 — Denomination begins to flip.** Commerce is
+increasingly quoted in SatUSD and settled in bitcoin (redeem-to-pay
+— the dollar is the unit of account, bitcoin the medium that
+moves); transactional demand
 for bitcoin grows continuous and two-sided; measured volatility
 shrinks because the speculative share of flow shrinks. Prices
 start appearing in sats alongside dollars.

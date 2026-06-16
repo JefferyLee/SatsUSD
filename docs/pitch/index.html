@@ -193,8 +193,8 @@
   <div class="kicker reveal" data-zh="构造 1 · 分层定理" data-en="Step 1 · the tranche theorem">构造 1 · 分层定理</div>
   <h2 class="reveal" data-zh="稳定不需要稳定的资产。<br>只需要一份切分波动的合约。" data-en="Stability doesn’t require a stable asset.<br>Only a contract that splits volatility.">稳定不需要稳定的资产。<br>只需要一份切分波动的合约。</h2>
   <p class="lead reveal"
-     data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可按可验证净值退出</b>。CR 闸门在 140% / 120% / 100% 三道线分级介入（暂停铸造 → 加速回血 → 净值赎回）。亲手压一压它——包括压穿它："
-     data-en="One of the oldest theorems in finance: split a volatile asset’s payoff into senior and junior, and the senior tranche is flat. SatUSD is the <b>senior claim</b> on a BTC reserve: holders take the one-dollar line; all volatility is absorbed by the junior side — the overcollateralization cushion and LP spread. Stability is <b>refined from volatility itself</b>, imported from no bank. There is no promise of par — what is promised is seniority and an <b>always-open exit at verifiable NAV</b>. CR gates engage at 140% / 120% / 100% (pause minting → accelerated recapitalization → NAV redemption). Stress it yourself — including past the breaking point:">这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是 BTC 储备之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可按可验证净值退出</b>。CR 闸门在 140% / 120% / 100% 三道线分级介入（暂停铸造 → 加速回血 → 净值赎回）。亲手压一压它——包括压穿它：</p>
+     data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是它<b>自有那份超额抵押 BTC</b> 之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可单边赎回退出</b>。每枚 note 自带超额抵押缓冲；跌破抵押下限时，按其自己的 Q 余额单边赎回（spec 07 §7），没有挤兑里的「先跑补贴」。亲手压一压它——包括压穿它："
+     data-en="One of the oldest theorems in finance: split a volatile asset’s payoff into senior and junior, and the senior tranche is flat. SatUSD is the <b>senior claim</b> on its <b>own over-collateralised BTC</b>: holders take the one-dollar line; all volatility is absorbed by the junior side — the overcollateralization cushion and LP spread. Stability is <b>refined from volatility itself</b>, imported from no bank. There is no promise of par — what is promised is seniority and an <b>always-open unilateral redemption</b>. Each note carries its own over-collateralisation cushion; below the collateral floor it redeems against its <b>own Q balance</b> (spec 07 §7), with no first-mover subsidy. Stress it yourself — including past the breaking point:">这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是它<b>自有那份超额抵押 BTC</b> 之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>永远可单边赎回退出</b>。每枚 note 自带超额抵押缓冲；跌破抵押下限时，按其自己的 Q 余额单边赎回（spec 07 §7），没有挤兑里的「先跑补贴」。亲手压一压它——包括压穿它：</p>
   <div class="lab reveal">
     <div class="row">
       <label data-zh="模拟 BTC 暴跌" data-en="Simulate a BTC crash">模拟 BTC 暴跌</label>
@@ -207,7 +207,7 @@
       <div class="g"><div class="gv" id="claim-val">$1.00</div><div class="gt" data-zh="持有者的优先索取权" data-en="The holder’s senior claim">持有者的优先索取权</div></div>
       <div class="g"><div class="gv accent" id="cushion-val">50%</div><div class="gt" data-zh="次级缓冲（吸收全部波动）" data-en="Junior cushion (absorbs all volatility)">次级缓冲（吸收全部波动）</div></div>
     </div>
-    <div class="caption" data-zh="拖过 −33% 进入 NAV 地板（spec 04 §5）：每个持有者按同一净值赎回，没有挤兑里的「先跑补贴」。140/120/100 的闸门与缓冲厚度都是公开参数，任何客户端可实时复算。" data-en="Past −33% you hit the NAV floor (spec 04 §5): every holder redeems at the same net asset value — no first-mover subsidy, no run race. The 140/120/100 gates and the cushion’s depth are public parameters any client recomputes live.">拖过 −33% 进入 NAV 地板（spec 04 §5）：每个持有者按同一净值赎回，没有挤兑里的「先跑补贴」。140/120/100 的闸门与缓冲厚度都是公开参数，任何客户端可实时复算。</div>
+    <div class="caption" data-zh="拖过抵押下限：该 note 按它<b>自己的 Q 余额</b>单边赎回（spec 07 §7）——不是共享净值池，也没有挤兑里的「先跑补贴」。抵押率与缓冲厚度都是公开参数，任何客户端可实时复算。" data-en="Past the collateral floor, the note redeems against its <b>own Q balance</b> (spec 07 §7) — not a shared NAV pool, and no first-mover subsidy, no run race. The collateral ratio and the cushion’s depth are public parameters any client recomputes live.">拖过抵押下限：该 note 按它<b>自己的 Q 余额</b>单边赎回（spec 07 §7）——不是共享净值池，也没有挤兑里的「先跑补贴」。抵押率与缓冲厚度都是公开参数，任何客户端可实时复算。</div>
   </div>
 </section>
 
@@ -257,12 +257,12 @@
 <!-- ════ ACT III ════ -->
 <div class="actdiv" data-actzone="a3">
   <div class="n">ACT Ⅲ</div>
-  <h3 data-zh="市场：用机制设计取代治理" data-en="The market: mechanism design instead of governance">市场：用机制设计取代治理</h3>
-  <p data-zh="没有代币、没有投票、没有许可。选择由真金白银的揭示偏好完成——竞争是发现程序。" data-en="No token, no vote, no permission. Selection happens by revealed preference in real money — competition as a discovery procedure.">没有代币、没有投票、没有许可。选择由真金白银的揭示偏好完成——竞争是发现程序。</p>
+  <h3 data-zh="市场：用机制设计取代治理（covenant 时代的终局）" data-en="The market: mechanism design instead of governance (the covenant-era endgame)">市场：用机制设计取代治理（covenant 时代的终局）</h3>
+  <p data-zh="先说清楚分期：<b>v0 的防跑路不在市场层，而在每一枚 note 自身</b>——它出生即对自己的 BTC 超额抵押、可单边赎回（后面的「关断开关」就是它），不依赖任何共享池。本幕展示的是 <b>covenant 时代的终局</b>：当协变量（covenant）让共享抵押池成为可能，同一个竞争市场随之展开——没有代币、没有投票、没有许可，选择由真金白银的揭示偏好完成，竞争是发现程序。" data-en="Staging first: <b>v0's anti-rug doesn't live at the market layer — it lives in each note</b>: born over-collateralised against its own BTC and redeemable unilaterally (the kill-switch later is exactly that), depending on no shared pool. This act shows the <b>covenant-era endgame</b>: once covenants make a shared collateral pool possible, the same competitive market opens — no token, no vote, no permission; selection by revealed preference in real money, competition as a discovery procedure.">先说清楚分期：<b>v0 的防跑路不在市场层，而在每一枚 note 自身</b>——它出生即对自己的 BTC 超额抵押、可单边赎回（后面的「关断开关」就是它），不依赖任何共享池。本幕展示的是 <b>covenant 时代的终局</b>：当协变量（covenant）让共享抵押池成为可能，同一个竞争市场随之展开——没有代币、没有投票、没有许可，选择由真金白银的揭示偏好完成，竞争是发现程序。</p>
 </div>
 
 <section class="scene" id="rug" data-actzone="a3">
-  <div class="kicker reveal" data-zh="机制 1 · 容量即身份" data-en="Mechanism 1 · capacity is identity">机制 1 · 容量即身份</div>
+  <div class="kicker reveal" data-zh="终局机制 1 · 容量即身份（covenant 时代）" data-en="Endgame mechanism 1 · capacity is identity (covenant era)">终局机制 1 · 容量即身份（covenant 时代）</div>
   <h2 class="reveal" data-zh="在这里，声誉是一个<br>可以计算的数。" data-en="Here, reputation is<br>a number you can compute.">在这里，声誉是一个<br>可以计算的数。</h2>
   <p class="lead reveal"
      data-zh="任何人都可以匿名开一条兑换通道（rail）。协议不发牌照、不投票、不认人，只执行一个公式：<span class='mono accent'>capacity = ½ × (累计留存费 + 质押)</span>。每服务一笔兑换，留存费永久沉入公共储备——这是用真金白银写的履历，偷不走、转不了、伪造不出。可提取上限永远只有履历的一半。下面是一条 rail 的一生：它在赚钱、在积累容量——<b>请随时按下抢劫按钮，看看能不能赚到。</b>"
@@ -280,7 +280,7 @@
 </section>
 
 <section class="scene" id="market" data-actzone="a3">
-  <div class="kicker reveal" data-zh="机制 2 · 信任的市场" data-en="Mechanism 2 · a market for trust">机制 2 · 信任的市场</div>
+  <div class="kicker reveal" data-zh="终局机制 2 · 信任的市场（covenant 时代）" data-en="Endgame mechanism 2 · a market for trust (covenant era)">终局机制 2 · 信任的市场（covenant 时代）</div>
   <h2 class="reveal" data-zh="我们不挑选正确的 oracle。<br>我们让所有信任模型同台竞价。" data-en="We don’t pick the right oracle.<br>We make every trust model bid in one arena.">我们不挑选正确的 oracle。<br>我们让所有信任模型同台竞价。</h2>
   <p class="lead reveal"
      data-zh="不同的 rail 自带不同的信任模型：单签 oracle 一秒结算但要信一个签名者；optimistic 慢一些但几乎不信任何人；未来的 internal_twap 不信任何人、只需要历史。每种组合是一张「速度 × 费率 × 信任」的报价单，用户用真金白银投票，容量公式限定每条 rail 的爆炸半径。<b>正确的信任模型不是被设计出来的，是被交易量发现的</b>——哈耶克在这里第二次出场：竞争是一个发现程序。"
@@ -306,7 +306,7 @@
 </section>
 
 <section class="scene" id="window" data-actzone="a3">
-  <div class="kicker reveal" data-zh="机制 3 · 把人移出执行路径" data-en="Mechanism 3 · removing humans from execution">机制 3 · 把人移出执行路径</div>
+  <div class="kicker reveal" data-zh="终局机制 3 · 把人移出执行路径（通往 covenant）" data-en="Endgame mechanism 3 · removing humans from execution (toward covenants)">终局机制 3 · 把人移出执行路径（通往 covenant）</div>
   <h2 class="reveal" data-zh="同一个公式，三任执行者：<br>先是人，然后是仪式，最后是数学。" data-en="One formula, three executors:<br>first a human, then a ceremony, then mathematics.">同一个公式，三任执行者：<br>先是人，然后是仪式，最后是数学。</h2>
   <p class="lead reveal"
      data-zh="Stage 1：创始人手动运行公开脚本，任何人逐字节复算，偏离即公开证据——信任窗口是一整个 epoch。Stage 2：epoch 边界一次性预签下个周期的全部配额树，超额支取<b>根本未被签名</b>——窗口缩成边界上的一瞬。Stage 3：covenant / BitVM 把公式写进花费条件——窗口关闭。三个阶段跑的是同一个公式、同一个节奏，换掉的只是「谁保证执行」。每一项过渡性妥协都登记在脚手架清单上，印着自己的拆除条件，随每个版本发布。"
@@ -345,7 +345,7 @@
   <div class="evidence reveal">
     <div class="ev"><div class="k" data-zh="TA 资产进入 DLC 资金输出（链上输出键逐字节复现）" data-en="TA asset inside a DLC funding output (on-chain key reproduced byte-for-byte)">TA 资产进入 DLC 资金输出（链上输出键逐字节复现）</div><div class="v">bcabed6d…:1 · tapd v0.7.2</div></div>
     <div class="ev"><div class="k" data-zh="Oracle 门控 DLC 结算端到端（预签早于结果存在）" data-en="Oracle-gated DLC settlement end-to-end (pre-signed before the outcome existed)">Oracle 门控 DLC 结算端到端（预签早于结果存在）</div><div class="v">c23d6889…801c326 · regtest</div></div>
-    <div class="ev"><div class="k" data-zh="原子换：SatUSD 烧毁 ↔ BTC 到账，同一笔交易" data-en="Atomic swap: SatUSD burn ↔ BTC payout, one transaction">原子换：SatUSD 烧毁 ↔ BTC 到账，同一笔交易</div><div class="v">90d13a12… · regtest</div></div>
+    <div class="ev"><div class="k" data-zh="一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（赎回的绑定原语）" data-en="One-tx atomic binding: SatUSD burn ↔ BTC payout (the redemption binding)">一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（赎回的绑定原语）</div><div class="v">90d13a12… · regtest</div></div>
     <div class="ev"><div class="k" data-zh="tapd 烧毁键派生 vs 真实 BurnAsset 调用" data-en="tapd burn-key derivation vs a live BurnAsset call">tapd 烧毁键派生 vs 真实 BurnAsset 调用</div><div class="v">2ceb9ffd… byte-exact</div></div>
     <div class="ev"><div class="k" data-zh="等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器" data-en="Equivocation → key extraction → forged signature passes an independent verifier">等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器</div><div class="v">satusd-oracle::equivocation (EOTS)</div></div>
   </div>
@@ -392,14 +392,14 @@
   <h2 class="reveal" data-zh="对日期的承诺只会制造失望。<br>每个阶段是一张可检验的清单。" data-en="Date promises manufacture disappointment.<br>Each phase is a checkable list.">对日期的承诺只会制造失望。<br>每个阶段是一张可检验的清单。</h2>
   <div class="miles reveal">
     <div class="mile done"><div class="id">M-A ✓</div><div class="what"
-      data-zh="<b>它能跑（regtest）。</b>双轨赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class='mono'>M-A-regtest</span>。"
-      data-en="<b>It runs (regtest).</b> Both redemption rails end-to-end, all core requirements implemented, cross-language vectors green — done, tag <span class='mono'>M-A-regtest</span>."><b>它能跑（regtest）。</b>双轨赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class="mono">M-A-regtest</span>。</div></div>
+      data-zh="<b>它能跑（regtest）。</b>发行原子换与 oracle 门控 DLC 赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class='mono'>M-A-regtest</span>。"
+      data-en="<b>It runs (regtest).</b> The issuance atomic-swap and the oracle-gated DLC redemption end-to-end, all core requirements implemented, cross-language vectors green — done, tag <span class='mono'>M-A-regtest</span>."><b>它能跑（regtest）。</b>发行原子换与 oracle 门控 DLC 赎回端到端、核心需求全部实现、跨语言向量全绿——已完成，tag <span class="mono">M-A-regtest</span>。</div></div>
     <div class="mile"><div class="id">M-B</div><div class="what"
       data-zh="<b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口，等价见证的检测与提取已实现并测试。"
       data-en="<b>It’s public (signet).</b> External testers redeem, oracle publicly consumable, an external LP quoting, the slash drill executed. Infrastructure ready: signet node set synced, oracle daemon ships its public surface, equivocation detection &amp; extraction implemented and tested."><b>它是公开的（signet）。</b>外部测试者完成赎回、oracle 公网可消费、外部 LP 报价、惩罚演练。基础设施已就绪：signet 节点组已同步，oracle daemon 已带公网接口，等价见证的检测与提取已实现并测试。</div></div>
     <div class="mile"><div class="id">M-C</div><div class="what"
-      data-zh="<b>真实价值（mainnet）。</b>创始人自有资金注入储备；容量公式带保守上限上线；信任清单随资产一起发布。"
-      data-en="<b>Real value (mainnet).</b> Founder-funded reserve; capacity formula live with conservative caps; the trust ledger ships with the asset."><b>真实价值（mainnet）。</b>创始人自有资金注入储备；容量公式带保守上限上线；信任清单随资产一起发布。</div></div>
+      data-zh="<b>真实价值（mainnet）。</b>创始人自有资金做 LP 发行（每枚 note 自带超额抵押）；单边赎回在主网跑通；信任清单随资产一起发布。"
+      data-en="<b>Real value (mainnet).</b> Founder-funded LP issuance (each note self-over-collateralised); unilateral redemption live on mainnet; the trust ledger ships with the asset."><b>真实价值（mainnet）。</b>创始人自有资金做 LP 发行（每枚 note 自带超额抵押）；单边赎回在主网跑通；信任清单随资产一起发布。</div></div>
     <div class="mile"><div class="id">M-D</div><div class="what"
       data-zh="<b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立列表发布者、≥1 条第三方未经许可上线的 rail、服务费覆盖运行成本。"
       data-en="<b>Not just us.</b> ≥5 independent LPs, ≥2 independent list publishers, ≥1 third-party rail launched permissionlessly, fees ≥ steady-state costs."><b>不再只是我们。</b>≥5 个独立 LP、≥2 个独立列表发布者、≥1 条第三方未经许可上线的 rail、服务费覆盖运行成本。</div></div>
@@ -419,18 +419,15 @@
      data-zh="SatUSD 不和比特币竞争——它是比特币赢下「记账单位」之前的过渡层。等到世界直接用 sats 标价的那天，它的使命就完成了。<b>一个以自己的退役为成功标准的协议。</b>"
      data-en="SatUSD doesn’t compete with Bitcoin — it is the interim layer until Bitcoin wins the unit-of-account. The day the world prices in sats, its mission is complete. <b>A protocol whose success criterion is its own retirement.</b>">SatUSD 不和比特币竞争——它是比特币赢下「记账单位」之前的过渡层。等到世界直接用 sats 标价的那天，它的使命就完成了。<b>一个以自己的退役为成功标准的协议。</b></p>
   <div class="links reveal">
-    <a class="primary" href="https://github.com/JefferyLee/SatsUSD" target="_blank" rel="noopener"
-       data-zh="查看代码与全部证据 →" data-en="Read the code &amp; full evidence →">查看代码与全部证据 →</a>
-    <a href="https://github.com/JefferyLee/SatsUSD/blob/master/docs/QUICKSTART.md" target="_blank" rel="noopener"
-       data-zh="30 分钟亲手赎回一次（signet）" data-en="Redeem it yourself in 30 min (signet)">30 分钟亲手赎回一次（signet）</a>
+    <span class="cta-tag" data-zh="比特币原生 · 无实体 · 无代币 · 一切可机器验证" data-en="Bitcoin-native · no entity · no token · everything machine-verifiable">比特币原生 · 无实体 · 无代币 · 一切可机器验证</span>
   </div>
 </section>
 
 <footer>
   <span data-zh="SatUSD · 比特币原生 · 无实体 · 无代币 · 所有声明可机器验证"
         data-en="SatUSD · Bitcoin-native · no entity · no token · every claim machine-verifiable">SatUSD · 比特币原生 · 无实体 · 无代币 · 所有声明可机器验证</span><br>
-  <span data-zh="本页数据与哈希均来自公开仓库；动画为示意，算法与实现一致。"
-        data-en="All figures and hashes come from the public repo; animations are illustrative, algorithms as implemented.">本页数据与哈希均来自公开仓库；动画为示意，算法与实现一致。</span>
+  <span data-zh="本页数据与哈希均取自实际实现；动画为示意，算法与实现一致。"
+        data-en="All figures and hashes are taken from the actual implementation; animations are illustrative, algorithms as implemented.">本页数据与哈希均取自实际实现；动画为示意，算法与实现一致。</span>
 </footer>
 
 <script src="https://cdn.jsdelivr.net/npm/gsap@3.12.5/dist/gsap.min.js"></script>

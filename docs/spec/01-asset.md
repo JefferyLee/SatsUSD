@@ -57,9 +57,13 @@ AssetMeta {
 ## 3. Issuance
 
 New supply is created by a TA issuance transaction signed by the
-**group key**. Issuance MUST satisfy the reserve constraints of
-spec 04 (mint-direction rails; CR rules); the group key holder
-signs only issuances accompanied by the spec-04 evidence chain.
+**group key**. In v0, issuance is **driven by an LP-issuer selling a
+redemption-bearing note** (spec 07 §2): the LP locks over-
+collateralised BTC `Q` (spec 06 §2) and the group key signs the
+issuance against that collateral. The common-reserve constraints /
+CR rules of spec 04 are the **deferred** reserve-era backing
+(ADR-0005); the group key holder signs only issuances accompanied by
+the collateral evidence chain.
 
 **Scaffolding**: group-key custody is founder-held at launch.
 Ledger row in PRD §8; removal criterion: threshold group key
@@ -75,12 +79,14 @@ Burning destroys SatUSD via the **TA-native burn**: a transfer
 whose output asset script key is the protocol-defined provably
 unspendable key (tapd `BurnAsset` semantics; the derivation is
 replicated in `satusd-rail0::burn_key` and devnet-validated against
-a live `BurnAsset` call). Per ADR-0003, the burn obligation
-attaches to **reimbursement**, not to settle: a settle may transfer
-the SatUSD to the LP instead, and the burn happens when the LP
-draws on the reserve (spec 02 §3.3, spec 04 §1). Wherever a burn
-occurs, the TA-native mechanism is REQUIRED — no custom sink
-constructions — so that:
+a live `BurnAsset` call). Per ADR-0005 (superseding ADR-0003), the only conforming disposition
+of a note is **burn-on-redeem**: redemption is one tx with the note
+as a *required input* sent to the burn key (spec 07 §3), in the same
+tx that pays the holder BTC. There is no settle-to-LP / recirculation
+path (retired with transferability), and the reserve-reimbursement
+burn timing (spec 04 §1) is part of the deferred reserve era.
+Wherever a burn occurs, the TA-native mechanism is REQUIRED — no
+custom sink constructions — so that:
 
 1. burns appear in the supply commitment's burn subtree (§5)
    automatically, and

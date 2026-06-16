@@ -154,7 +154,7 @@ load is three-dimensional and tamed dimension-by-dimension:
 ## 5. Maturity = the LP's committed term
 
 **A note's holding period equals the term its issuing LP committed to at
-entry** (a manifest field, spec 02 §2). One parameter sets the holding
+entry** (the `committed_term` manifest field, spec 02 §2). One parameter sets the holding
 period, the LP's capital commitment, and the DLC maturity. Q being
 time-locked for the term *is* the commitment — **no separate bond.**
 
@@ -173,7 +173,8 @@ time-locked for the term *is* the commitment — **no separate bond.**
 
 The DLC needs **one** oracle key. The decentralised price market (spec 03
 §5.5 stake-weighted median) is combined into a single aggregate key via a
-**threshold signature (FROST)** — avoiding the `C(n,k)` CET blow-up of
+**threshold signature (FROST)** (spec 03 §5.7) — avoiding the `C(n,k)`
+CET blow-up of
 dlcspecs enumerated multi-oracle. The bridge from a *decentralised median*
 to *one signature* (a threshold-signing cohort attesting the median) is a
 sub-design (§10). **Redemption uses a per-block cadence** (decoupled from
@@ -228,9 +229,10 @@ non-transferable, unilateral) is complete and buildable.
    non-TA collateral `Q` in one anchor tx) through tapd's vPSBT machinery —
    related to `docs/proposals/0001-ta-in-dlc-funding-output.md`.
 2. **Maturity CET wiring** + the holder's issuance-time pre-authorisation
-   format (spec 06 §11 maturity-CET item).
+   format (spec 06 §5 maturity CET).
 3. **Oracle bridge**: decentralised stake-weighted median → one FROST
-   aggregate attestation per (per-block) event (spec 03 §6 items).
+   aggregate attestation per (per-block) event (spec 03 §5.7 + open
+   item 7).
 4. **Rolling-window parameters**: cadence, window length, bucket
    granularity vs. signing load; the LP push/refresh protocol.
 5. **Lightning support** (spec 08, pending): how far the redeem-to-pay flow

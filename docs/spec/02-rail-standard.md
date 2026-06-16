@@ -1,13 +1,15 @@
 # SatUSD Rail Standard
 
 - **Spec**: 02
-- **Version**: 0.2-draft (settle semantics per ADR-0003)
+- **Version**: 0.3-draft (note-centric restructure per ADR-0005;
+  supersedes the ADR-0003 settle-to-LP model)
 - **Status**: under construction — normative language is aspirational
   until pinned by test vectors; §3/§7 are exercised by the Rail-0
-  devnet E2E
+  devnet E2E. The §2 manifest changes (`committed_term`; `direction`
+  reframed) imply a `satusd-rail` + TS-vector update (follow-up).
 - **Authority**: derives from `docs/MISSION.md` (v2) via
-  `docs/decisions/ADR-0001-restart-from-mission-v2.md`;
-  settle/burn split per ADR-0003
+  `docs/decisions/ADR-0001-restart-from-mission-v2.md`; note-centric
+  model per ADR-0005 (which supersedes ADR-0003's settle/burn split)
 - **Mission criterion**: every design choice below is answerable to
   one question — *does it move us closer to, or further from, the
   state where the external dependency can be removed?*
@@ -17,12 +19,20 @@ in RFC 2119.
 
 ## 1. Concept
 
-A **rail** is a complete SatUSD ↔ BTC conversion channel with its
-own service terms: pricing source, settlement primitive, speed,
-size limits, fees, LP stake rules, and dispute path. Rails are the
-unit of competition: anyone may launch one; wallets verify
-conformance cryptographically; users choose; market share is the
-judgment.
+A **rail** is a competing channel by which an LP **issues** a
+redemption-bearing note: the buyer pays BTC and receives a freshly-
+minted SatUSD note whose unilateral redemption is pre-signed at
+issuance (spec 07). A rail is **not** how redemption happens —
+**redemption is the note's own unilateral, oracle-gated DLC, broadcast
+by the holder alone (spec 07 §3), with no rail and no LP at
+redeem-time.** A rail owns the *issuance* terms — pricing source,
+settlement primitive, size limits, fees, committed term — and is the
+unit of competition: anyone may launch one; wallets verify conformance
+cryptographically; buyers choose; market share is the judgment.
+
+A rail also frames the **BTC leg** of a redeem-to-pay payment (the
+holder redeems to BTC and pays BTC; spec 08), but never carries the
+SatUSD note itself — notes do not circulate (ADR-0005, spec 07 §8).
 
 The standard exists so that:
 
@@ -39,7 +49,7 @@ The standard exists so that:
 
 | Role | Definition | Permission |
 |---|---|---|
-| **User** | Holder converting SatUSD→BTC (redeem) or BTC→SatUSD (mint) | permissionless |
+| **User** | Holder buying a note (BTC→note, via a rail) or redeeming one (note→BTC, **unilaterally** — spec 07, not via a rail) | permissionless |
 | **LP** | Liquidity provider funding the BTC side of a rail | permissionless, may require stake per manifest |
 | **Oracle** | Price attestor, per the rail's `oracle_spec`; MAY be absent (Rail-0) | per oracle class (spec 03) |
 | **Broadcaster** | Anyone who relays a decryptable/pre-signed transaction | permissionless |
@@ -57,7 +67,12 @@ A rail is defined by its manifest. The manifest is immutable:
 ```
 RailManifest {
     spec_version:      u16        — this standard's version
-    direction:         enum       — redeem | mint | both
+    direction:         enum       — mint (= issue: BTC→note, the v0
+                                    rail direction) | redeem | both —
+                                    redeem/both are the deferred
+                                    reserve-era conversion directions;
+                                    v0 redemption is unilateral
+                                    (spec 07), not a rail
     asset_id:          32-bytes   — the TA asset this rail serves
     oracle_spec:       OracleSpec — none | dlcspecs(k, n, [pubkey]) |
                                     optimistic(window) |
@@ -65,6 +80,11 @@ RailManifest {
     settle_primitive:  enum       — atomic_swap | dlc_taproot |
                                     optimistic_claim | (extensible)
     max_size:          u64 sats   — per-conversion cap
+    committed_term:    u32 blocks — the LP's committed holding /
+                                    DLC-maturity term for notes issued
+                                    on this rail (spec 07 §5; maturity
+                                    = LP term; 0 = redeem-only, no
+                                    fixed maturity)
     fee_schedule:      {retain_bps: u16, service_bps: u16,
                         fixed_sats: u64}
                                   — retain: accrues to the common
@@ -104,6 +124,11 @@ rail_id = H(canonical_encode(RailManifest))
 - A conforming wallet MUST verify a rail's observed on-chain
   behaviour against its manifest and MUST refuse to render a rail
   whose behaviour deviates from it.
+- `lp_stake`, `dispute_hook`, and the §6 capacity formula belong to
+  the **deferred** reserve era (ADR-0005, spec 04 scope note): a v0
+  note's first-loss is its issuing LP's own over-collateralised `Q`
+  (spec 06/07), not a shared bond. `committed_term` and
+  `price_dev_bound` apply in v0.
 
 ## 3. The conversion state machine
 
@@ -163,24 +188,21 @@ The rail's settlement condition fires:
   (see `docs/proposals/0001-ta-in-dlc-funding-output.md`).
 - **optimistic_claim**: a challenge window elapses unchallenged.
 
-A conforming SETTLE transaction MUST, atomically:
-1. move the quoted SatUSD amount out of the user's control, and
-2. pay the user the quoted BTC amount, and
+For an **issuance** rail (`direction = mint`, the v0 case), a
+conforming SETTLE transaction MUST, atomically:
+1. take the buyer's quoted BTC, and
+2. deliver the buyer a freshly-issued SatUSD note of the quoted face,
+   carrying its pre-signed unilateral redemption (spec 07 §3) over the
+   LP's over-collateralised `Q`, and
 3. return any residual to the LP.
 
-The TA leg's destination is the LP's choice (ADR-0003):
-
-- **settle-to-LP** — the LP's own script key. A pure P2P trade;
-  the LP may recirculate the SatUSD (market making). No reserve
-  interaction occurs and no capacity is consumed.
-- **settle-to-burn** — the tapd-native burn key (spec 01 §4) in
-  the settle transaction itself; the LP claims reimbursement
-  afterwards.
-
-**The burn obligation attaches to reimbursement, not to settle**:
-the reserve reimburses only against a burn artifact (spec 04 §1).
-The user's guarantee is identical in both modes — quoted BTC
-against surrendered SatUSD, atomically.
+There is **no settle-to-LP / recirculation path** (retired with
+transferability — ADR-0005, superseding ADR-0003): a note is never
+handed peer-to-peer. The only disposition of an *existing* note is
+**burn-on-redeem** — the note as a *required input* to the burn key in
+the spec 07 `redeem_tx` — which is **not** this state machine but the
+holder's own unilateral broadcast (spec 07 §3), needing no rail, no LP,
+and no oracle-at-settle beyond the public attestation.
 
 ### 3.4 REFUND
 
@@ -198,11 +220,15 @@ simultaneously settled, so no refund machinery is reachable.
 
 ### 3.6 Mint direction
 
-The same machine runs in reverse for `direction = mint` (user
-brings BTC, receives newly issued or re-circulated SatUSD). Mint
-rails for the senior asset are additionally constrained by the
-reserve and CR rules of spec 04. This document defines the channel
-mechanics only.
+`direction = mint` (= **issue**) is the **primary v0 rail
+direction**: the buyer brings BTC and receives a newly-issued SatUSD
+note (spec 07 §2) — never re-circulated SatUSD (notes do not
+circulate). The over-collateralised backing is the LP's own `Q`
+(spec 06 §2); the reserve and CR rules of spec 04 are the deferred
+reserve-era layer (ADR-0005). This document defines the issuance
+channel mechanics; the note's **redemption is spec 07** (unilateral,
+not a rail), so the only conversion direction a v0 rail runs is
+issuance.
 
 ## 4. Required properties
 
@@ -214,16 +240,19 @@ acceptance, each party can recover assets worth at least their
 contribution minus declared fees, through transitions executable by
 themselves *or by any third party*, within a bound fixed by
 `settle_window + refund_delta`. No reachable state may require a
-specific counterparty's cooperation to avoid loss.
+specific counterparty's cooperation to avoid loss. For an issued
+note, S1 holds **by construction**: its redemption is pre-signed at
+issuance and broadcast unilaterally (spec 07 §3.3), so no counterparty
+exists to withhold cooperation.
 
-**S2 — Conservation.** Across every terminal state: the SatUSD
-moved out of the user's control equals the quoted conversion
-amount; no path increases SatUSD supply; supply decreases exactly
-by burns, and every reserve reimbursement is backed one-for-one by
-a burn artifact (ADR-0003, spec 04); BTC paid to the user equals
-the quoted amount at the settled price. (Mint direction: SatUSD
-issued equals the quoted amount against BTC received by the
-reserve, within spec-04 constraints.)
+**S2 — Conservation.** Across every terminal state: **issuance**
+mints exactly the quoted face against the LP's over-collateralised
+`Q` (no path increases supply otherwise); **redemption** decreases
+supply by exactly the note burned as a required input (spec 07 §3);
+and BTC paid equals the quoted amount at the settled / attested
+price. Reserve reimbursement is deferred (ADR-0005); in v0 every
+supply change is a direct mint-against-`Q` or a burn-on-redeem, both
+observer-verifiable (S3).
 
 **S3 — Observer verifiability.** Every terminal state yields an
 artifact chain — txids, TA transfer proofs, oracle attestations —
@@ -265,6 +294,15 @@ this rail cause?" (a quantity question answerable by formula).
 There is no admission, no graduation event, and no gatekeeper —
 only a mathematically bounded growth curve that any observer can
 recompute from public data.
+
+> **v0 scope (ADR-0005).** The capacity *formula* below (§6.1–§6.3)
+> caps a rail's draw on the **common reserve**, which is **deferred to
+> the covenant era** (spec 04 scope note). In v0 there is no shared
+> reserve to draw on: a note's harm bound is its issuing LP's **own
+> over-collateralised `Q`** (spec 06/07) — a per-note first-loss, not
+> a pooled cap. The §6.1 formula, `lp_stake`, and the Layer-4 reserve
+> return with the covenant-era shared pool. The advisory layer (§6.4
+> curation lists) and naming discipline (§6.5) apply in v0 unchanged.
 
 ### 6.1 The capacity formula
 
@@ -351,11 +389,17 @@ their suffix and asset_id.
 
 ## 7. Reference rails
 
-### Rail-0 — RFQ atomic swap (`oracle_spec = none`)
+### Rail-0 — RFQ atomic-swap issuance (`oracle_spec = none`)
 
-The degenerate base case: price truth is the two signatures.
-Reference implementation: `crates/satusd-rail0` (J3 devnet E2E:
-`tests/devnet_swap.rs`).
+The degenerate base case and the **v0 issuance rail**: a buyer pays
+BTC and receives a freshly-issued note in one co-signed atomic
+transaction; price truth is the two signatures. The atomic-swap
+construction is symmetric — the reference E2E
+(`crates/satusd-rail0`, `tests/devnet_swap.rs`) exercised the swap
+leg-roles directly; v0 uses it in the **issuance direction**
+(BTC→note), the redeem-direction swap being retired (redemption =
+spec 07, unilateral). Validating the issuance direction end-to-end
+is a follow-up.
 
 - QUOTE: RFQ board (transport unspecified); LPs respond with signed
   quotes; user picks. `lock_template_commitment` commits to the
@@ -381,13 +425,19 @@ Rail-0 is the day-one rail and the seed of the self-referencing
 price source: its settlement history is the data from which an
 `internal_twap` rail later derives authority.
 
-### Rail-1 — single-oracle DLC (`oracle_spec = dlcspecs(1,1,[pk])`)
+### Rail-1 — the oracle-gated DLC redemption primitive (`oracle_spec = dlcspecs(1,1,[pk])`)
 
-The first oracle-bearing rail; explicitly transitional. Reference
-implementation: `crates/satusd-rail1` (+ `satusd-oracle`); the J4
-settle E2E (`tests/devnet_settle.rs`) exercises the full chain on a
-live devnet, and `tests/devnet_funding.rs` live-validates the
-funding construction.
+This is **the `dlc_taproot` construction spec 07 §3 uses for a note's
+unilateral redemption**: a DLC funding output carrying the
+over-collateralised `Q`, with per-bucket adaptor CETs an oracle
+attestation decrypts. It is not a separate rail a holder "chooses" at
+redeem-time — it is how every note redeems (armed at issuance,
+broadcast unilaterally). Explicitly transitional: single oracle →
+FROST aggregate (spec 03 §5.7). Reference implementation:
+`crates/satusd-rail1` (+ `satusd-oracle`); the settle E2E
+(`tests/devnet_settle.rs`) exercises the full chain on a live devnet,
+and `tests/devnet_funding.rs` live-validates the funding
+construction.
 
 - QUOTE: as Rail-0, with price expressed as a CET bucket schedule —
   aligned binary digit-prefix wildcards, the 2^m special case of

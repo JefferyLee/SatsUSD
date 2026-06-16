@@ -59,7 +59,7 @@ This design space has bodies in it, so positioning honestly:
   engineering budget) and lack of traction — not a failure of DLC
   settlement itself. The channel problem doesn't carry over here:
   this is an on-chain L1 asset, no channels needed to hold or
-  transfer it. Two structural problems DO carry over, and I'd rather
+  redeem it. Two structural problems DO carry over, and I'd rather
   name them than be told: someone must fund the over-collateralized
   long side, and the peg-holder's carry cost reappears at every
   expiry/roll. (My answers: collateral is posted by minters opening
@@ -81,8 +81,10 @@ This design space has bodies in it, so positioning honestly:
   iBTC/[BitSafe](https://media.bitsafe.finance/p/dlc-link-to-bitsafe),
   Firefish, Lendasat): these produce bilateral credit positions;
   the novel part here is making the stable claim itself a
-  *transferable bearer asset* — the TA commitment living inside the
-  DLC funding output. Worth noting soberly: Lava quietly moved off
+  *self-custodied, unilaterally-redeemable* asset — the TA
+  commitment living inside the DLC funding output, so redemption is
+  a pre-signed on-chain spend the holder broadcasts alone, not an
+  issuer's promise. Worth noting soberly: Lava quietly moved off
   DLC custody in 2025, and iBTC pivoted to institutional custody.
   DLC ops are hard; "anyone-can-broadcast with deterministic CETs"
   is my bet on why settlement (not custody UX) is the right place

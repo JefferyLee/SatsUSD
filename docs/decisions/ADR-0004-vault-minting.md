@@ -2,7 +2,12 @@
 
 - **Date**: 2026-06-11
 - **Status**: accepted (direction; M-C/M-D-era implementation —
-  explicitly NOT on the M-B critical path, ADR only for now)
+  explicitly NOT on the M-B critical path, ADR only for now);
+  **re-scoped by [ADR-0005](ADR-0005-no-transfer-redemption-notes.md)**
+  (2026-06-16): the vault is a collateral primitive for **both** a CDP
+  self-minter **and** an LP-issuer sourcing per-note `Q`; the
+  reserve-coupled CDP flow + common-reserve clearing below are deferred
+  to the covenant era (spec 04 scope note)
 - **Authority**: `docs/MISSION.md` v2; PRD §8 scaffolding ledger;
   ADR-0002 (capacity-not-identity)
 - **Author**: Jeffery (decisions) + AI agent (drafting)

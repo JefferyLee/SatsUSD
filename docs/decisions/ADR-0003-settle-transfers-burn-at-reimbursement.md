@@ -1,7 +1,11 @@
 # ADR-0003: SETTLE moves the SatUSD out of the user's control; the burn obligation attaches to reimbursement
 
 - **Date**: 2026-06-10
-- **Status**: accepted
+- **Status**: **superseded by [ADR-0005](ADR-0005-no-transfer-redemption-notes.md)**
+  (2026-06-16) — the no-transfer model retires settle-to-LP /
+  recirculation; the only conforming disposition of a note is
+  burn-on-redeem (note as a required input to the burn key, spec 07 §3).
+  The text below is retained as historical record.
 - **Authority**: MISSION v2 via ADR-0001; amends spec 02 §3.1/§3.3/§4
 - **Evidence**: the Rail-0 J3 devnet E2E
   (`crates/satusd-rail0/tests/devnet_swap.rs`, anchor tx
