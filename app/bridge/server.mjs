@@ -45,14 +45,6 @@ function saveVaults() {
   catch (e) { console.error("[bridge] vaults save failed:", e.message); }
 }
 
-// In-flight redeems — used to hide the UTXO change-confirmation dip. A
-// redeem spends a whole SatUSD coin and returns change; until the change
-// confirms, tapd's confirmed balance drops by the WHOLE coin, not by the
-// amount redeemed. We track the redeemed amount + a settled baseline so
-// the wallet only ever shows −$redeemed (mirrors a normal BTC wallet
-// counting its own unconfirmed change).
-let lastSettledMicro = null;
-let pendingRedeems = []; // { txid, redeemed_micro }
 
 function json(res, code, obj) {
   const body = JSON.stringify(obj);
@@ -168,29 +160,7 @@ function runAddress() {
 const server = createServer(async (req, res) => {
   if (req.method === "GET" && req.url === "/health") return json(res, 200, { ok: true, lp: LP });
   if (req.method === "GET" && req.url === "/vaults") return json(res, 200, { ok: true, vaults });
-  if (req.method === "GET" && req.url === "/balance") {
-    const r = await runBalance();
-    if (r.ok) {
-      const confirmed = r.micro;
-      const redeeming = pendingRedeems.reduce((s, x) => s + x.redeemed_micro, 0);
-      if (pendingRedeems.length === 0) {
-        lastSettledMicro = confirmed; // no redeem in flight → trust tapd
-        r.display_micro = confirmed;
-        r.redeeming_micro = 0;
-      } else if (confirmed >= (lastSettledMicro ?? confirmed) - redeeming) {
-        // the change has confirmed (tapd rose back) → settle the baseline
-        pendingRedeems = [];
-        lastSettledMicro = confirmed;
-        r.display_micro = confirmed;
-        r.redeeming_micro = 0;
-      } else {
-        // change still confirming → show baseline − redeemed, not the dip
-        r.display_micro = (lastSettledMicro ?? confirmed) - redeeming;
-        r.redeeming_micro = redeeming;
-      }
-    }
-    return json(res, 200, r);
-  }
+  if (req.method === "GET" && req.url === "/balance") return json(res, 200, await runBalance());
   if (req.method === "GET" && req.url === "/address") return json(res, 200, await runAddress());
 
   if (req.method === "POST" && req.url === "/redeem") {
@@ -206,7 +176,6 @@ const server = createServer(async (req, res) => {
 
     console.log(`[bridge] redeem $${amount_usd.toFixed(2)} -> ${payout_address}${body.quote ? " (reusing verified quote)" : ""}`);
     const result = await runRedeem({ amount_usd, payout_address, quote: body.quote });
-    if (result.ok) pendingRedeems.push({ txid: result.txid, redeemed_micro: Math.round(amount_usd * 1e6) });
     console.log(`[bridge] ${result.ok ? "BROADCAST " + result.txid : "FAIL " + result.error}`);
     return json(res, result.ok ? 200 : 502, result);
   }

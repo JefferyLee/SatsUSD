@@ -124,13 +124,9 @@ async function loadBalance(card: HTMLElement) {
     const r = await fetch(`${BRIDGE}/balance`);
     const j = await r.json();
     if (!j.ok) throw new Error(j.error || "balance unavailable");
-    bal.textContent = fmtUsd((Number(j.display_micro ?? j.micro)) / 1e6);
-    const notes: string[] = [];
-    const minting = Number(j.pending_micro) || 0; // incoming mint
-    const redeeming = Number(j.redeeming_micro) || 0; // outgoing redeem
-    if (minting > 0) notes.push(`+${fmtUsd(minting / 1e6)} confirming`);
-    if (redeeming > 0) notes.push(`−${fmtUsd(redeeming / 1e6)} redeeming`);
-    satPending.textContent = notes.join("  ·  ");
+    bal.textContent = fmtUsd(Number(j.micro) / 1e6);
+    const minting = Number(j.pending_micro) || 0; // unconfirmed incoming mint
+    satPending.textContent = minting > 0 ? `+${fmtUsd(minting / 1e6)} confirming` : "";
     btc.innerHTML = `${fmtBtc8(Number(j.btc_sats) || 0)} <span class="u">BTC</span>`;
     const pend = Number(j.btc_pending_sats) || 0;
     btcPending.textContent = pend > 0 ? `+${fmtBtc8(pend)} pending` : "";
