@@ -287,6 +287,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "base16ct"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4c7f02d4ea65f2c1853089ffd8d2787bdbc63de2f0d29dedbcf8ccdfa0ccd4cf"
+
+[[package]]
 name = "base58ck"
 version = "0.1.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -528,6 +534,7 @@ checksum = "9ed9a281f7bc9b7576e61468ba615a66a5c8cfdff42420a70aa82701a3b1e292"
 dependencies = [
  "block-buffer 0.10.4",
  "crypto-common",
+ "subtle",
 ]
 
 [[package]]
@@ -816,6 +823,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3011d1213f159867b13cfd6ac92d2cd5f1345762c63be3554e84092d85a50bbd"
 
 [[package]]
+name = "hmac"
+version = "0.12.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6c49c37c09c17a53d937dfbb742eb3a961d65a994e6bcdcf37e7399d0cc8ab5e"
+dependencies = [
+ "digest 0.10.7",
+]
+
+[[package]]
 name = "http"
 version = "1.4.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1056,6 +1072,20 @@ name = "multimap"
 version = "0.10.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "1d87ecb2933e8aeadb3e3a02b828fed80a7528047e68b4f424523a0981a3a084"
+
+[[package]]
+name = "musig2"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "183312a1f782d0e27c2e9aa4d68c151301caa39b38f48ea125c1d55ab1ff29f0"
+dependencies = [
+ "base16ct",
+ "hmac",
+ "secp",
+ "secp256k1 0.31.1",
+ "sha2",
+ "subtle",
+]
 
 [[package]]
 name = "num"
@@ -1619,6 +1649,7 @@ dependencies = [
  "satusd-rail",
  "satusd-rail0",
  "satusd-tapd-client",
+ "satusd-vault",
  "secp256k1 0.31.1",
  "serde_json",
  "tokio",
@@ -1852,6 +1883,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "satusd-vault"
+version = "0.1.0"
+dependencies = [
+ "bitcoin",
+ "hex",
+ "musig2",
+ "satusd-crypto",
+ "satusd-oracle",
+ "satusd-rail",
+ "satusd-rail1",
+ "satusd-tapd-client",
+ "secp256k1 0.31.1",
+ "serde_json",
+ "tokio",
+]
+
+[[package]]
 name = "satusd-vectors"
 version = "0.1.0"
 dependencies = [
@@ -1877,6 +1925,17 @@ dependencies = [
  "hex",
  "satusd-rail",
  "satusd-rail0",
+]
+
+[[package]]
+name = "secp"
+version = "0.7.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e3ef0ffc3b1b2720b00b919f6c697b1e64aca7bba54b93e0ef4b8560fac6f946"
+dependencies = [
+ "base16ct",
+ "secp256k1 0.31.1",
+ "subtle",
 ]
 
 [[package]]

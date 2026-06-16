@@ -46,6 +46,7 @@ Spec index:
 | 03 | oracle classes + the reference marker |
 | 04 | reserve, reimbursement, epoch allotment |
 | 05 | dispute hooks, evidence formats, slashing |
+| 06 | vaults: mint-as-position-opening, checkpoint-CET liquidation |
 
 ## 2. Terminology
 

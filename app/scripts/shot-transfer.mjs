@@ -1,0 +1,12 @@
+import puppeteer from "puppeteer-core";
+const CHROME = "/Applications/Google Chrome.app/Contents/MacOS/Google Chrome";
+const URL = process.env.URL ?? "http://localhost:5173/#transfer";
+const browser = await puppeteer.launch({ executablePath: CHROME, headless: "new", args: ["--no-sandbox","--disable-gpu","--hide-scrollbars"] });
+const page = await browser.newPage();
+await page.setViewport({ width: 390, height: 900, deviceScaleFactor: 2 });
+await page.goto(URL, { waitUntil: "networkidle0", timeout: 30000 });
+await page.waitForSelector("#result .banner", { timeout: 20000 });
+await new Promise((r) => setTimeout(r, 400));
+await page.screenshot({ path: "/tmp/satusd-transfer.png", fullPage: true });
+console.log("transfer shot ok");
+await browser.close();

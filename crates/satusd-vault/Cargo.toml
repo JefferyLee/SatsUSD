@@ -1,0 +1,21 @@
+[package]
+name = "satusd-vault"
+edition.workspace = true
+version.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+bitcoin = "0.32.9"
+musig2 = { version = "0.4.1", default-features = false, features = ["secp256k1"] }
+satusd-crypto = { path = "../satusd-crypto" }
+satusd-oracle = { path = "../satusd-oracle" }
+satusd-rail = { path = "../satusd-rail" }
+satusd-rail1 = { path = "../satusd-rail1" }
+secp256k1 = "0.31.1"
+
+[dev-dependencies]
+hex.workspace = true
+satusd-tapd-client = { path = "../satusd-tapd-client" }
+serde_json.workspace = true
+tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

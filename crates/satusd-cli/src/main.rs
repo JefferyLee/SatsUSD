@@ -86,6 +86,27 @@ fn oracle_price_usd(addr: &str) -> Result<u32, Error> {
     Ok(satusd_oracle::event::price_from_digits(&digits))
 }
 
+fn asset_amount(a: &serde_json::Value) -> u64 {
+    a["amount"]
+        .as_str()
+        .and_then(|s| s.parse().ok())
+        .or_else(|| a["amount"].as_u64())
+        .unwrap_or(0)
+}
+
+/// Total supply across every asset sharing a group key (µUSD base units).
+fn group_supply(list: &serde_json::Value, gk: &str) -> u64 {
+    list["assets"]
+        .as_array()
+        .map(|v| {
+            v.iter()
+                .filter(|a| a["asset_group"]["tweaked_group_key"].as_str() == Some(gk))
+                .map(asset_amount)
+                .sum()
+        })
+        .unwrap_or(0)
+}
+
 async fn balance(env: &NodeEnv) -> Result<(), Error> {
     let channel = env.tapd_channel().await?;
     let mut tap = TaprootAssetsClient::new(channel);
@@ -235,6 +256,40 @@ async fn redeem(
         None => env.bcli(&["getnewaddress"]).as_str().unwrap().to_string(),
     };
     println!("payout   : {payout_address}");
+    let payout_script = Address::from_str(&payout_address)?
+        .assume_checked()
+        .script_pubkey();
+    // A P2TR payout output needs its taproot internal key in the PSBT so
+    // tapd can build the asset-exclusion proof for it. Derive it from our
+    // wallet (works for an address we control); a foreign taproot address
+    // can't supply it, so refuse clearly rather than fail deep in tapd.
+    let (payout_ik, payout_origin) = if payout_script.is_p2tr() {
+        let ai = env.bcli(&["getaddressinfo", &payout_address]);
+        let parsed = ai["desc"]
+            .as_str()
+            .and_then(satusd_lp::parse_tr_descriptor)
+            .and_then(|(ik, origin)| {
+                bitcoin::XOnlyPublicKey::from_str(&ik)
+                    .ok()
+                    .map(|k| (k, parse_origin_str(&origin)))
+            });
+        match parsed {
+            Some((ik, origin)) => {
+                println!("payout   : taproot internal key supplied from local wallet");
+                (Some(ik), origin)
+            }
+            None => {
+                return Err(format!(
+                    "payout {payout_address} is a taproot address whose internal key this \
+                     node can't supply (not owned by this wallet) — redeem to a taproot \
+                     address you control, or use a bech32 (tb1q…) address — REFUSING"
+                )
+                .into())
+            }
+        }
+    } else {
+        (None, None)
+    };
     let v = fetch_verified_quote(lp, amount_micro_usd, &payout_address, oracle)?;
     let q = &v.q;
 
@@ -319,10 +374,10 @@ async fn redeem(
             .and_then(parse_origin_str),
         user_payout: TxOut {
             value: Amount::from_sat(v.user_sats),
-            script_pubkey: Address::from_str(&payout_address)?
-                .assume_checked()
-                .script_pubkey(),
+            script_pubkey: payout_script,
         },
+        user_payout_internal_key: payout_ik,
+        user_payout_key_origin: payout_origin,
         extra_outputs: match &q["lp_change"] {
             serde_json::Value::Null => vec![],
             c => vec![TxOut {
@@ -374,6 +429,176 @@ async fn redeem(
     Ok(())
 }
 
+/// `satusd vault-open <collateral-sats> <mint-usd>` (J1, spec 06).
+/// Re-verifies the opening CR against the oracle, locks the BTC
+/// collateral at the MuSig2(minter, reserve) funding output Q, and
+/// reissues the minted SatUSD into the SatUSD group. Emits a single
+/// `VAULT: {json}` line the signing bridge parses — the node-side half
+/// of the PWA's "phone verifies, node signs" birth flow.
+///
+/// Works on devnet (regtest, blocks generated, fully confirmed inline)
+/// and signet (real chain: broadcast + return, mint left `pending`
+/// confirmation — the same broadcast-don't-wait model as `redeem`).
+async fn vault_open(
+    env: &NodeEnv,
+    collateral_sats: u64,
+    mint_micro_usd: u64,
+    oracle: &str,
+) -> Result<(), Error> {
+    use satusd_rail::encode::tagged_hash;
+    use satusd_vault::contract::{cr_bps, crash_price_ceiling, opening_ok, VaultTerms};
+    use satusd_vault::funding::{refund_leaf_script, vault_funding_output};
+    use satusd_vault::musig::aggregate_internal_x;
+    use secp256k1::{Secp256k1, SecretKey};
+
+    let is_signet = env.chain == "signet";
+    if env.chain != "regtest" && !is_signet {
+        return Err("vault-open supports devnet (regtest) or signet".into());
+    }
+    let secp = Secp256k1::new();
+
+    // 1. Re-verify the opening CR against the oracle — the phone already
+    //    refused an under-collateralised open; the node checks too.
+    let price = oracle_price_usd(oracle)?;
+    let terms = VaultTerms {
+        collateral_sats,
+        mint_micro_usd,
+        opening_cr_bps: 15_000,
+        liq_cr_bps: 11_000,
+        checkpoint_interval: 144,
+        maturity_height: 1_000_000,
+        m: 9,
+        penalty_bps: 500,
+        // Must byte-match the phone's DEFAULT_TERMS (ts/src/vault.ts) so the
+        // node commits to the exact vault_id the phone verified and showed.
+        oracle_event_series: [0u8; 32],
+    };
+    let cr = cr_bps(collateral_sats, mint_micro_usd, price);
+    if !opening_ok(&terms, price) {
+        return Err(format!(
+            "REFUSED: CR {cr} bps < opening {} bps at ${price}/BTC",
+            terms.opening_cr_bps
+        )
+        .into());
+    }
+    let vault_id = hex::encode(terms.vault_id());
+    let ceiling = crash_price_ceiling(&terms);
+
+    // 2. The canonical SatUSD group + its current supply. (signet: the
+    //    real "SatUSD" group d0c0fb17…/02259ce9…; devnet: "SatUSD-dev".)
+    let group_name = if is_signet { "SatUSD" } else { "SatUSD-dev" };
+    let list: serde_json::Value = serde_json::from_str(&env.tapcli(&["assets", "list"]))?;
+    let gk = list["assets"]
+        .as_array()
+        .and_then(|v| {
+            v.iter()
+                .find(|a| a["asset_genesis"]["name"].as_str() == Some(group_name))
+        })
+        .and_then(|a| a["asset_group"]["tweaked_group_key"].as_str())
+        .ok_or("canonical SatUSD group not found on this node")?
+        .to_string();
+    let supply_before = group_supply(&list, &gk);
+
+    // 3. A fresh vault: Q = taptweak(KeyAgg(minter, reserve), refund_root).
+    let ts = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)?
+        .as_secs();
+    let salt = ts.to_be_bytes();
+    let minter_sk = tagged_hash("SatUSD/pwa-vault/minter", &salt);
+    let reserve_sk = tagged_hash("SatUSD/pwa-vault/reserve", &salt);
+    let minter_x = SecretKey::from_byte_array(minter_sk)?
+        .x_only_public_key(&secp)
+        .0
+        .serialize();
+    let reserve_x = SecretKey::from_byte_array(reserve_sk)?
+        .x_only_public_key(&secp)
+        .0
+        .serialize();
+    let internal_x = aggregate_internal_x(&minter_sk, &reserve_sk);
+    let refund = refund_leaf_script(4032, &minter_x, &reserve_x);
+    let f = vault_funding_output(&internal_x, &refund);
+    let spk_hex = format!("5120{}", hex::encode(f.output_x));
+    let q_addr = env.bcli(&["decodescript", &spk_hex])["address"]
+        .as_str()
+        .ok_or("decodescript address")?
+        .to_string();
+
+    // 4. OPEN: lock the collateral at Q. On devnet we mine to confirm;
+    //    on signet we broadcast and read the vout from the mempool tx.
+    let c_btc = format!("{:.8}", collateral_sats as f64 / 1e8);
+    let open_txid = env
+        .bcli(&["sendtoaddress", &q_addr, &c_btc])
+        .as_str()
+        .ok_or("sendtoaddress")?
+        .to_string();
+    if !is_signet {
+        env.bcli(&["-generate", "2"]);
+    }
+    let raw = env.bcli(&["getrawtransaction", &open_txid, "true"]);
+    let fund_vout = raw["vout"]
+        .as_array()
+        .ok_or("vout")?
+        .iter()
+        .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(spk_hex.as_str()))
+        .ok_or("funding output (Q) not in the open tx")?["n"]
+        .as_u64()
+        .ok_or("vout n")? as u32;
+
+    // 5. ISSUE: reissue the minted SatUSD (µUSD base units) into the group.
+    //    The signet group's anchor is decimal_display 6 — the seedling must
+    //    match it; devnet's SatUSD-dev is 0 (the flag is omitted there).
+    let mint_name = format!("SatUSD-vault-mint-{ts}");
+    let mint_supply = mint_micro_usd.to_string();
+    let mut mint_args = vec!["assets", "mint", "--type", "normal", "--name", &mint_name, "--supply", &mint_supply];
+    if is_signet {
+        mint_args.extend_from_slice(&["--decimal_display", "6"]);
+    }
+    mint_args.extend_from_slice(&["--grouped_asset", "--group_key", &gk]);
+    env.tapcli(&mint_args);
+    let finalize = env.tapcli(&["assets", "mint", "finalize"]);
+
+    // On signet the mint is broadcast but unconfirmed — report it as
+    // pending with its batch txid; the group supply updates once it
+    // confirms. On devnet we mine, then read the new supply inline.
+    let (supply_after, mint_txid, pending) = if is_signet {
+        let mint_txid = serde_json::from_str::<serde_json::Value>(&finalize)
+            .ok()
+            .and_then(|j| j["batch"]["batch_txid"].as_str().map(str::to_string))
+            .unwrap_or_default();
+        (supply_before, mint_txid, true)
+    } else {
+        env.bcli(&["-generate", "2"]);
+        tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+        let list2: serde_json::Value = serde_json::from_str(&env.tapcli(&["assets", "list"]))?;
+        (group_supply(&list2, &gk), String::new(), false)
+    };
+
+    // 6. Emit the result for the bridge (one parseable line).
+    let out = serde_json::json!({
+        "ok": true,
+        "net": env.chain,
+        "pending": pending,
+        "vault_id": vault_id,
+        "q": hex::encode(f.output_x),
+        "q_address": q_addr,
+        "funding_txid": open_txid,
+        "funding_vout": fund_vout,
+        "mint_txid": mint_txid,
+        "collateral_sats": collateral_sats,
+        "mint_micro_usd": mint_micro_usd,
+        "price_usd": price,
+        "cr_bps": cr,
+        "opening_cr_bps": terms.opening_cr_bps,
+        "liq_cr_bps": terms.liq_cr_bps,
+        "crash_price_ceiling": ceiling,
+        "group_key": gk,
+        "supply_before_micro": supply_before,
+        "supply_after_micro": supply_after,
+    });
+    println!("VAULT: {out}");
+    Ok(())
+}
+
 #[tokio::main]
 async fn main() -> Result<(), Error> {
     let args: Vec<String> = std::env::args().collect();
@@ -405,8 +630,18 @@ async fn main() -> Result<(), Error> {
             let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
             redeem(&env, &lp, amount, flag("--payout"), &oracle, flag("--input")).await
         }
+        Some("vault-open") => {
+            let collateral_sats: u64 = args
+                .get(2)
+                .ok_or("usage: satusd vault-open <collateral-sats> <mint-usd>")?
+                .parse()
+                .map_err(|_| "collateral-sats must be a whole number of sats")?;
+            let mint_micro_usd = parse_usd(args.get(3).ok_or("missing mint-usd")?)?;
+            let oracle = flag("--oracle").unwrap_or_else(|| DEFAULT_ORACLE.into());
+            vault_open(&env, collateral_sats, mint_micro_usd, &oracle).await
+        }
         _ => {
-            eprintln!("usage: satusd balance | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>]");
+            eprintln!("usage: satusd balance | quote <lp> <usd> | redeem <lp> <usd> [--payout <addr>] [--oracle <addr>] [--input <txid:vout>] | vault-open <collateral-sats> <mint-usd> [--oracle <addr>]");
             std::process::exit(2);
         }
     }

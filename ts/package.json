@@ -13,10 +13,13 @@
   },
   "dependencies": {
     "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^2.2.0",
     "circomlibjs": "^0.1.7"
   },
   "exports": {
     ".": "./src/sdk.ts",
-    "./rail": "./src/rail.ts"
+    "./rail": "./src/rail.ts",
+    "./taproof": "./src/taproof.ts",
+    "./vault": "./src/vault.ts"
   }
 }

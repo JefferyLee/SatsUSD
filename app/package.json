@@ -1,0 +1,22 @@
+{
+  "name": "@satusd/app",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "description": "SatUSD PWA wallet prototype — phone verifies, node signs. Reuses @satusd/sdk's verification battery in the browser.",
+  "scripts": {
+    "dev": "vite",
+    "bridge": "node bridge/server.mjs",
+    "build": "vite build",
+    "preview": "vite preview"
+  },
+  "dependencies": {
+    "@noble/curves": "^2.2.0",
+    "@noble/hashes": "^2.2.0"
+  },
+  "devDependencies": {
+    "puppeteer-core": "^25.1.0",
+    "typescript": "^5.7.0",
+    "vite": "^6.0.0"
+  }
+}

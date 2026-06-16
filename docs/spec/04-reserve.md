@@ -124,4 +124,4 @@ disclosures alone.
 - Challenge economics for Stage-2 optimistic reimbursement
 - Reference marker interface (with spec 03)
 - Vault construction precision (checkpoint CET schedules, bounty
-  sizing, roll mechanics) — future spec 06 per ADR-0004
+  sizing, roll mechanics) — specified in spec 06 (draft) per ADR-0004

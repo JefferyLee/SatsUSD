@@ -1,0 +1,22 @@
+{
+  "compilerOptions": {
+    "target": "ES2022",
+    "module": "ESNext",
+    "moduleResolution": "bundler",
+    "allowImportingTsExtensions": true,
+    "verbatimModuleSyntax": true,
+    "strict": true,
+    "noEmit": true,
+    "skipLibCheck": true,
+    "lib": ["ES2022", "DOM", "DOM.Iterable"],
+    "types": [],
+    "baseUrl": ".",
+    "paths": {
+      "@satusd/sdk": ["../ts/src/sdk.ts"],
+      "@satusd/sdk/rail": ["../ts/src/rail.ts"],
+      "@satusd/sdk/taproof": ["../ts/src/taproof.ts"],
+      "@satusd/sdk/vault": ["../ts/src/vault.ts"]
+    }
+  },
+  "include": ["src"]
+}
