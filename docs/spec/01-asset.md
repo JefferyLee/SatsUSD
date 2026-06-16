@@ -85,13 +85,22 @@ as a *required input* sent to the burn key (spec 07 §3), in the same
 tx that pays the holder BTC. There is no settle-to-LP / recirculation
 path (retired with transferability), and the reserve-reimbursement
 burn timing (spec 04 §1) is part of the deferred reserve era.
-Wherever a burn occurs, the TA-native mechanism is REQUIRED — no
-custom sink constructions — so that:
+Two burn forms coexist (ADR-0005, decision a):
 
-1. burns appear in the supply commitment's burn subtree (§5)
-   automatically, and
-2. any tapd-compatible verifier recognizes them without SatUSD-
-   specific code.
+1. **Standalone burns** use the **tapd-native** mechanism
+   (`BurnAsset`, PrevID-derived key) — they appear in the supply
+   commitment's burn subtree (§5) automatically and any tapd-compatible
+   verifier recognizes them without SatUSD-specific code.
+2. **In-composed-anchor burns** (the `redeem_tx`, where the burn must
+   share one Bitcoin tx with the BTC payout — spec 07 §3) send the note
+   to a **deterministic, NUMS-derived, provably-unspendable burn sink**
+   (`satusd_crypto::nums::protocol_sink_script_key` over the asset
+   family), because `BurnAsset` cannot compose into an external anchor.
+   This burn is **validated client-side by the TA proof** (`satusd-verify`;
+   spec 07 §3.3) — Bitcoin only enforces that the note is consumed.
+   Devnet-validated: `satusd-rail0/tests/devnet_burn_settle`. Native
+   supply-subtree recognition of composed burns awaits a tapd enhancement
+   / the covenant era.
 
 A conforming burn output inside a settlement transaction (02 §3.3)
 MUST be constructible inside pre-signed transactions (Rail-1 CETs):

@@ -122,7 +122,12 @@ refusal surface entirely.
 The Taproot-Asset "off-chain" wall is sidestepped: **Bitcoin enforces only
 that `A` is consumed**; that it is a *burn* (sent to the burn key, supply
 reduced) is validated client-side by the TA proof (spec 01). Bitcoin never
-introspects TA state.
+introspects TA state. **In v0 (ADR-0005 decision a) the burn key is a
+deterministic, NUMS-derived, provably-unspendable sink** (`satusd_crypto::
+nums::protocol_sink_script_key`, spec 01 §4), validated client-side by
+`satusd-verify` — chosen because tapd's `BurnAsset` cannot compose into the
+`redeem_tx` external anchor. Devnet-validated end-to-end (burn ⟺ BTC payout
+in one tx): `satusd-rail0/tests/devnet_burn_settle`.
 
 ### 3.4 Buyer verification at purchase
 
