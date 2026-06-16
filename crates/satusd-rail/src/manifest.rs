@@ -12,6 +12,10 @@ pub const RAIL_ID_TAG: &str = "SatUSD/rail-manifest/v1";
 /// Spec 02 version this manifest targets.
 pub const SPEC_VERSION: u16 = 1;
 
+/// Spec 02 §2 (ADR-0005): `Mint` (= issue: BTC→note) is the v0 rail
+/// direction; v0 redemption is the unilateral DLC (spec 07 §3), not a
+/// rail. `Redeem`/`Both` are the deferred reserve-era conversion
+/// directions. Discriminants unchanged: Redeem=0, Mint=1, Both=2.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Direction {
     Redeem,
@@ -188,6 +192,10 @@ pub struct RailManifest {
     pub oracle_spec: OracleSpec,
     pub settle_primitive: SettlePrimitive,
     pub max_size_sats: u64,
+    /// The LP's committed holding / DLC-maturity term, in blocks, for
+    /// notes issued on this rail (spec 02 §2, spec 07 §5; maturity =
+    /// LP term; 0 = redeem-only, no fixed maturity).
+    pub committed_term: u32,
     pub fee_schedule: FeeSchedule,
     /// Max deviation (bps) of the settled/reimbursement price from
     /// the epoch reference marker. MUST be > 0 for rails drawing
@@ -214,6 +222,7 @@ impl RailManifest {
         self.oracle_spec.encode(&mut e);
         e.put_u8(self.settle_primitive as u8);
         e.put_u64(self.max_size_sats);
+        e.put_u32(self.committed_term);
         e.put_u16(self.fee_schedule.retain_bps);
         e.put_u16(self.fee_schedule.service_bps);
         e.put_u64(self.fee_schedule.fixed_sats);
@@ -256,6 +265,7 @@ mod tests {
             oracle_spec: OracleSpec::None,
             settle_primitive: SettlePrimitive::AtomicSwap,
             max_size_sats: 5_000_000,
+            committed_term: 4032,
             fee_schedule: FeeSchedule {
                 retain_bps: 10,
                 service_bps: 5,
@@ -291,6 +301,7 @@ mod tests {
             },
             settle_primitive: SettlePrimitive::DlcTaproot,
             max_size_sats: 2_000_000,
+            committed_term: 4032,
             fee_schedule: FeeSchedule {
                 retain_bps: 10,
                 service_bps: 30,
@@ -346,11 +357,11 @@ mod tests {
     fn pinned_rail_id_vectors() {
         assert_eq!(
             hex::encode(rail0_fixture().rail_id()),
-            "95cc8f01b5d580c9f5cad215c1494509f31a43d98fc4695770a6ea3457d126ff"
+            "a415b3e100465775b4d521f34ab53d1d6c44a1ccc4f53d0f76f75fd50c06f9bb"
         );
         assert_eq!(
             hex::encode(rail1_fixture().rail_id()),
-            "adc9a2d5b71ebfe8ab30e118d22d7839c14fd0927453f78d1980294f67d380fd"
+            "b571ed06f42eacf1326d56574221c4d1a782aa24cc9540439cf1a80965ab8dd4"
         );
     }
 }

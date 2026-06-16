@@ -12,6 +12,9 @@ use satusd_rail::manifest::{
 pub struct Rail0Params {
     pub asset_id: [u8; 32],
     pub max_size_sats: u64,
+    /// The LP's committed holding / DLC-maturity term in blocks for
+    /// notes issued on this rail (spec 02 §2, spec 07 §5).
+    pub committed_term: u32,
     pub fee_schedule: FeeSchedule,
     /// MUST be > 0: Rail-0 settlements draw reserve reimbursement,
     /// and the reimbursement price is bounded against the marker
@@ -37,11 +40,14 @@ pub fn rail0_manifest(p: Rail0Params) -> Result<RailManifest, Rail0Error> {
     }
     Ok(RailManifest {
         spec_version: SPEC_VERSION,
-        direction: Direction::Redeem,
+        // Rail-0 is the v0 issuance rail (BTC→note); redemption is the
+        // unilateral DLC (spec 07), not a rail (ADR-0005).
+        direction: Direction::Mint,
         asset_id: p.asset_id,
         oracle_spec: OracleSpec::None,
         settle_primitive: SettlePrimitive::AtomicSwap,
         max_size_sats: p.max_size_sats,
+        committed_term: p.committed_term,
         fee_schedule: p.fee_schedule,
         price_dev_bound_bps: p.price_dev_bound_bps,
         quote_validity_s: p.quote_validity_s,
@@ -67,6 +73,7 @@ mod tests {
         Rail0Params {
             asset_id: [0x11; 32],
             max_size_sats: 5_000_000,
+            committed_term: 4032,
             fee_schedule: FeeSchedule {
                 retain_bps: 10,
                 service_bps: 0,

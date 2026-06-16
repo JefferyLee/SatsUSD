@@ -100,6 +100,7 @@ async fn j3_over_http() -> Result<(), Box<dyn std::error::Error>> {
     let manifest = rail0_manifest(Rail0Params {
         asset_id,
         max_size_sats: 5_000_000,
+        committed_term: 4032,
         fee_schedule: FeeSchedule {
             retain_bps: 10,
             service_bps: 5,

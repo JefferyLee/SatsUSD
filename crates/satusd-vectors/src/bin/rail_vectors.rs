@@ -138,6 +138,7 @@ fn gen_manifest(d: &mut Det, i: usize) -> RailManifest {
             _ => SettlePrimitive::OptimisticClaim,
         },
         max_size_sats: d.u64(),
+        committed_term: d.u32(),
         fee_schedule: FeeSchedule {
             retain_bps: d.u16() % 1000,
             service_bps: d.u16() % 1000,
@@ -225,6 +226,7 @@ fn manifest_value(m: &RailManifest) -> Value {
         "oracle_spec": oracle_spec_value(&m.oracle_spec),
         "settle_primitive": m.settle_primitive as u8,
         "max_size_sats": m.max_size_sats.to_string(),
+        "committed_term": m.committed_term,
         "fee_schedule": {
             "retain_bps": m.fee_schedule.retain_bps,
             "service_bps": m.fee_schedule.service_bps,
@@ -315,6 +317,7 @@ fn main() {
     let rail0 = satusd_rail0::rail::rail0_manifest(satusd_rail0::rail::Rail0Params {
         asset_id: [0x11; 32],
         max_size_sats: 5_000_000,
+        committed_term: 4032,
         fee_schedule: FeeSchedule {
             retain_bps: 10,
             service_bps: 5,
@@ -417,6 +420,7 @@ fn main() {
             satusd_rail0::rail::rail0_manifest(satusd_rail0::rail::Rail0Params {
                 asset_id: [0x11; 32],
                 max_size_sats: max,
+                committed_term: 4032,
                 fee_schedule: FeeSchedule {
                     retain_bps: retain,
                     service_bps: service,

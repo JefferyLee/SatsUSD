@@ -172,6 +172,7 @@ export function encodeManifest(f: any): Uint8Array {
   encodeOracleSpec(e, f.oracle_spec);
   e.u8(f.settle_primitive);
   e.u64(big(f.max_size_sats));
+  e.u32(f.committed_term);
   e.u16(f.fee_schedule.retain_bps);
   e.u16(f.fee_schedule.service_bps);
   e.u64(big(f.fee_schedule.fixed_sats));

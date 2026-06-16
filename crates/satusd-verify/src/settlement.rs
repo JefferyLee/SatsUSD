@@ -79,6 +79,7 @@ mod tests {
         let manifest = rail0_manifest(Rail0Params {
             asset_id: [0x11; 32],
             max_size_sats: 5_000_000,
+            committed_term: 4032,
             fee_schedule: FeeSchedule {
                 retain_bps: 10,
                 service_bps: 0,

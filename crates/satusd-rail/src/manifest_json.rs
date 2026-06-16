@@ -53,6 +53,7 @@ pub fn to_value(m: &RailManifest) -> Value {
         },
         "settle_primitive": m.settle_primitive as u8,
         "max_size_sats": m.max_size_sats.to_string(),
+        "committed_term": m.committed_term,
         "fee_schedule": {
             "retain_bps": m.fee_schedule.retain_bps,
             "service_bps": m.fee_schedule.service_bps,
@@ -175,6 +176,7 @@ pub fn from_value(v: &Value) -> Result<RailManifest, String> {
         oracle_spec,
         settle_primitive,
         max_size_sats: parse_u64(&v["max_size_sats"], "max_size_sats")?,
+        committed_term: v["committed_term"].as_u64().ok_or("committed_term")? as u32,
         fee_schedule: FeeSchedule {
             retain_bps: v["fee_schedule"]["retain_bps"].as_u64().ok_or("retain")? as u16,
             service_bps: v["fee_schedule"]["service_bps"].as_u64().ok_or("service")? as u16,
@@ -218,6 +220,7 @@ mod tests {
             },
             settle_primitive: SettlePrimitive::DlcTaproot,
             max_size_sats: 2_000_000,
+            committed_term: 4032,
             fee_schedule: FeeSchedule {
                 retain_bps: 10,
                 service_bps: 30,
