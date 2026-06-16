@@ -184,6 +184,8 @@ async fn j3_composed_swap() -> Result<(), Box<dyn std::error::Error>> {
         lp_internal_key: None, // single-lnd harness: LP input is local
         lp_key_origin: None,
         user_payout: user_payout.clone(),
+        user_payout_internal_key: None, // P2WPKH payout in this harness
+        user_payout_key_origin: None,
         extra_outputs: vec![],
     };
     let committed = sign_commit(&mut wallet, funded, &template, 2).await?;

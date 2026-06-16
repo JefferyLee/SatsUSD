@@ -157,7 +157,7 @@ async fn j3_over_http() -> Result<(), Box<dyn std::error::Error>> {
     assert!(user_sats > 0, "payout must be positive");
 
     // ---- user: build + sign the asset leg ----
-    let funded = fund(&mut wallet, q["lp_ta_addr"].as_str().unwrap()).await?;
+    let funded = fund(&mut wallet, q["lp_ta_addr"].as_str().unwrap(), vec![]).await?;
     let lp_outpoint = OutPoint::from_str(q["lp_btc_input"]["outpoint"].as_str().unwrap())?;
     let lp_prev_txout = TxOut {
         value: Amount::from_sat(q["lp_btc_input"]["value_sats"].as_str().unwrap().parse()?),
@@ -179,7 +179,11 @@ async fn j3_over_http() -> Result<(), Box<dyn std::error::Error>> {
     let template = AnchorTemplate {
         lp_outpoint,
         lp_prev_txout,
+        lp_internal_key: None, // single-node devnet harness: LP input local
+        lp_key_origin: None,
         user_payout: user_payout.clone(),
+        user_payout_internal_key: None,
+        user_payout_key_origin: None,
         extra_outputs,
     };
     let committed = sign_commit(&mut wallet, funded, &template, 2).await?;
