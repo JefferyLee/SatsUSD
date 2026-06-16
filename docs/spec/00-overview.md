@@ -47,6 +47,8 @@ Spec index:
 | 04 | reserve, reimbursement, epoch allotment |
 | 05 | dispute hooks, evidence formats, slashing |
 | 06 | vaults: mint-as-position-opening, checkpoint-CET liquidation |
+| 07 | redemption-bearing notes: unilateral redeem, no-transfer, LP-term maturity |
+| 08 | Lightning: the BTC speed layer; redeem-to-pay, on-chain DLC backstop |
 
 ## 2. Terminology
 
