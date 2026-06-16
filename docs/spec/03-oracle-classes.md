@@ -1,16 +1,22 @@
 # SatUSD Oracle Classes & the Reference Marker
 
 - **Spec**: 03
-- **Version**: 0.1-draft
+- **Version**: 0.2-draft (adds the adaptive-blend marker evolution, §5.4–§5.5)
 - **Authority**: `docs/MISSION.md` v2 via ADR-0001
-- **Depends on**: 00 (conventions), 02 (manifest `oracle_spec`),
-  dlcspecs (Oracle.md, Messaging.md, NumericOutcome*)
+- **Depends on**: 00 (conventions), 02 (manifest `oracle_spec`,
+  capacity / `retained_fees_cum`), dlcspecs (Oracle.md, Messaging.md,
+  NumericOutcome*)
 
-Defines the four oracle classes a RailManifest may declare, the
+Defines the oracle classes a RailManifest may declare, the
 attestation formats, equivocation handling, liveness escapes, and
-the **reference marker** — the protocol-level price every other
-spec leans on. The mission criterion governs throughout: each class
-exists to be outcompeted by the one below it on the list.
+the **reference marker** — the protocol-level price every other spec
+leans on. The marker is not a fixed source but a *self-dissolving
+scaffold*: it begins by reflecting the external market and evolves —
+weighted by **cost-to-manipulate**, never by calendar or decree —
+into SatUSD's own self-referencing price (§5.4), while the external
+source demotes from a price input to a permanent catastrophe fuse.
+The mission criterion governs throughout: each class exists to be
+outcompeted by the one below it on the list.
 
 
 ## 0. Oracle posture
@@ -217,8 +223,9 @@ The marker the mission requires. Computation, normative now so
 `satusd-verify` can implement it ahead of activation:
 
 ```
-inputs:  all S3 settlement artifacts for the asset within
-         window_blocks (default 144) ending at height h
+inputs:  S3 settlement artifacts for the asset within window_blocks
+         (default 144) ending at height h, each weighted by its
+         costly-signal-backed volume (§5.6 A), not raw volume
 filter:  drop settlements whose price deviates > 5 % from the raw
          median (the lower-middle element for even counts)
 output:  volume-weighted median price of the survivors — the first
@@ -249,6 +256,176 @@ anchors demote; they do not disappear by decree) — divergence
 > 2 % between the two SHOULD trigger client-side caution states,
 and spec 04 MAY bind reimbursement pauses to it.
 
+### 5.4 Adaptive blend — the evolution mechanism
+
+§5.1–§5.3 give two marker sources and a binary switch between them.
+The mission targets a single price that *evolves continuously* from
+external to internal as the internal market earns it; the §5.3
+switchover is the conservative degenerate case (a step weight) used
+in v0.1 until the estimator below is pinned by adversarial
+simulation (§6).
+
+**Why begin external at all.** SatUSD's trades depend on the marker
+to be priced; without a trustworthy marker there is no flow, and
+without flow there is no internal price to discover. The marker is
+therefore a scaffold: a good external-reflecting marker bootstraps
+the very market whose settlements (S3) later replace it. *The marker
+is built to dissolve itself.*
+
+**Blended marker.**
+
+```
+P_marker(h) = w(h)·P_internal(h) + (1 − w(h))·P_external(h)
+clamp:        |P_marker(h) − P_external(h)| ≤ band(h)
+```
+
+with internal weight `w ∈ [0,1]`. `P_internal` is the §5.2
+`internal_twap`; `P_external` is the §5.1 marker (SHOULD be the
+decentralised aggregate of §5.5, not a single signer).
+
+**Weight by cost-to-manipulate — never by calendar or decree.**
+`w(h)` MUST be a monotone function of the internal market's realised
+**cost-to-manipulate (CtM)** relative to the external source's,
+estimated only from public, costly-to-fake data:
+
+- The driver is the rail standard's existing un-fakeable signal:
+  cumulative retained fees (`retained_fees_cum`, 02 §6.1) and
+  realised settlement depth in-window. A wash-trader inflates either
+  only by paying real 1:1 costs to all holders; raw volume, free to
+  fake, MUST NOT drive `w`.
+- **CtM cap (the reflexivity bound).** At no height may the internal
+  price carry more weight than the cost to move it can defend:
+  `w(h) ≤ CtM_int(h) / (CtM_int(h) + CtM_ext(h))`. A thin internal
+  market cannot acquire weight it cannot defend.
+- No time term: a high-volume week and a year of trickle reach the
+  same `w` iff they bought the same defensible depth.
+
+**External's two roles — a shrinking weight, a permanent fuse.** As
+`w → 1` the external *weight* `(1 − w)` vanishes, but the *clamp*
+never does:
+
+- `band(h)` MAY widen as internal earns authority (the internal
+  price is then allowed to diverge from external, being the
+  harder-to-fake number) but MUST stay finite. Its asymptote is a
+  **catastrophic-divergence circuit-breaker**: beyond it `P_marker`
+  is `invalid`, and consuming specs (04 reimbursement, 06 vault
+  liquidation) MUST halt rather than act on a number no source can
+  defend.
+- External therefore never becomes a *dependency*; it ends as a
+  *fuse* that almost never binds. This is how "remove the external
+  dependency" is reached without pretending the external world
+  vanished.
+
+**Reflexivity is the governing risk.** `P_marker` guides the very
+trades that produce `P_internal`; the handoff is a feedback loop. A
+thin internal market granted premature weight could be moved
+cheaply, dragging the marker, validating the move — reflexive
+capture. The CtM cap on `w` and the clamp together damp it: internal
+weight rises no faster than internal defensible depth, and the clamp
+stops a manipulated thin market from pulling the marker outside the
+external band. The damping parameters — how fast `band(h)` widens,
+the CtM estimator's window — are safety-critical and MUST be pinned
+by adversarial simulation before any non-degenerate `w` is activated
+(§6).
+
+**Read the marker by horizon (defence in depth, not a contradiction
+of 1 s trading).** A one-tick marker move has small
+profit-from-corruption (it mis-prices only that tick's conversion);
+a *sustained* move has large PfC (it triggers liquidations, skews
+reimbursement). Therefore:
+
+- trade pricing MAY consume the freshest `P_marker` tick;
+- liquidation / reimbursement / mint MUST consume a windowed,
+  manipulation-resistant form (the `internal_twap` window already is
+  one) — these transitions are block-paced anyway, so the window is
+  free.
+
+This makes single-tick corruption low-reward and sustained
+corruption high-cost, independent of the blend weight.
+
+### 5.5 Decentralising the external source (bootstrap anchor)
+
+While external weight dominates, `P_external` SHOULD be a
+decentralised, manipulation-resistant aggregate, not the single
+founder-run marker of §5.1. RECOMMENDED form — a free-entry
+**stake-weighted median**:
+
+- reporters post a BTC bond; each tick they commit-then-reveal a
+  price (commit-reveal prevents copying the emerging median);
+- `P_external` = the stake-weighted median of reveals (> 50 % of
+  stake required to move it);
+- "correct" = within a **volatility-adaptive band** of the median;
+  the reward (a `service_bps` fee, 02) is split **stake-
+  proportionally** among in-band reporters (flat per-reporter splits
+  are Sybil-farmable; stake-weighting is not);
+- only **gross outliers** (beyond the band) are slashed — honest
+  noise and genuine dislocations are not. Slashing settles with a
+  1–3 block deferral, and bond withdrawal is delayed past the
+  settlement window so an attacker cannot profit-and-exit.
+
+This aggregate is a **relay, not a discoverer**: every reporter
+reads the same external venues, so the median *reflects* the
+arbitrage-linked exchange price and structurally **lags** it. That
+is expected and acceptable — its product is *sovereignty and
+manipulation / censorship resistance* of the bootstrap anchor, not
+price leadership, which no relay can have (price discovery happens
+only where real capital trades — exactly what the §5.2 internal
+settlements become). Security holds while
+`total_honest_stake > value extractable within the slash window`,
+**including external short positions on SatUSD**: a captor who
+profits from SatUSD's collapse defeats the "don't kill the golden
+goose" incentive, so the stake floor MUST exceed that external
+payoff, not merely the in-protocol one.
+
+### 5.6 Coupling with rail competition (spec 02)
+
+The marker is built from the very settlements rail competition
+produces, and in turn bounds them via `price_dev_bound`. The two are
+mutually reinforcing — many independent, capacity-bounded rails make
+`internal_twap` broad and hard to corner; the marker keeps
+reserve-touching settlements honest — **but the loop becomes a
+manipulation vector unless it obeys three rules.**
+
+**A — Weight by the costly signal, not raw volume.** A settlement's
+weight in `internal_twap` (§5.2) is its conversion size **capped per
+rail at that rail's epoch capacity** (`α·(retained_fees_cum +
+lp_stake)`, 02 §6.1). Pure `settle-to-LP` volume that paid no
+`retain_bps` (02 §3.3) is self-dealable for the cost of a miner fee
+and **MUST NOT count** toward the marker; only retained-fee-backed
+(reserve-touching, capacity-bounded) volume does. One un-fakeable
+signal thus does three jobs: bound rail capacity (02 §6), weight
+`internal_twap` (§5.2), and drive the blend weight `w` (§5.4).
+
+**C — A settlement may never price itself.** The marker consumed to
+price — or to `price_dev_bound`-check — a settlement at Bitcoin
+height `H` MUST be computed over a window ending strictly before `H`
+(≥ 1 block lag). Otherwise a settlement that references
+`internal_twap` (the eventual `oracle_spec = internal_twap` rails)
+would depend on its own price. The lag breaks the self-reference.
+
+**D — The external source is itself a competitive, curated layer.**
+`P_external` (§5.1 / §5.5) is no privileged singleton: anyone may run
+a competing external marker (the §5.5 stake-weighted median being the
+RECOMMENDED form), rails name their chosen source in disclosure
+(02 §6.4), and curation lists judge it like any other choice. The
+external input obeys the same "trust priced by a market" rule as the
+rails it anchors.
+
+**On concentration — deliberately NOT a hard cap.** A single rail
+holding a large share of `internal_twap` weight is acceptable **when
+that share is costly-signal-backed** (rule A): genuine deep liquidity
+is *where the truest price forms*, and capping it would discard real
+price discovery and penalise honest depth. No-profitable-rug
+(02 §6.2, α < 1) already makes abusing such a position unprofitable
+*in-protocol*. The residual is narrow — a volume-dominant rail *sets*
+the trimmed median (§5.2) and could skew it within the
+authority-widened band to profit on **external** positions the
+in-protocol accounting misses. That residual is bounded by the §5.5
+cost floor (`sunk cost > external manipulation payoff, incl. shorts`),
+**not** by a concentration cap, and is a named scenario the §6
+adversarial simulation MUST exercise before any non-degenerate `w`
+activates.
+
 ## 6. Open items
 
 1. Exact CET wiring of the tlock escape (extend proposal 0001).
@@ -259,3 +436,21 @@ and spec 04 MAY bind reimbursement pauses to it.
 4. internal_twap manipulation analysis at low volume — the
    min_volume_usd floor and the 5 % trim need adversarial
    simulation before any rail declares the class.
+5. **The CtM estimator** (§5.4): a robust, un-gameable measure of
+   internal cost-to-manipulate from S3 + retained-fee history
+   (defensible *depth*, not volume) — the input to `w(h)`. Until it
+   is pinned, `w` is the §5.3 step (binary degenerate).
+6. **The `band(h)` widening schedule + reflexivity damping** (§5.4):
+   adversarial simulation of a thin-market capture attempt under
+   premature internal weight; the band's asymptotic circuit-breaker
+   value.
+7. **The §5.5 stake-weighted median**: bond sizing vs total
+   extractable value (incl. external SatUSD shorts), the
+   volatility-adaptive band width, commit-reveal transport, and
+   reward funding before fee volume exists (subsidy vs Sybil-farm).
+8. **Costly-backed concentration** (§5.6): the adversarial sim MUST
+   exercise a volume-dominant, capacity-backed rail *setting* the
+   trimmed median and skewing it within the widened band for
+   external-value profit — to decide whether the §5.5 cost floor
+   suffices or a soft (non-hard-cap) safeguard is warranted. A hard
+   concentration cap is rejected (it would discard real depth).
