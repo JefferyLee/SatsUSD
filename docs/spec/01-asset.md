@@ -98,7 +98,11 @@ Two burn forms coexist (ADR-0005, decision a):
    family), because `BurnAsset` cannot compose into an external anchor.
    This burn is **validated client-side by the TA proof** (`satusd-verify`;
    spec 07 §3.3) — Bitcoin only enforces that the note is consumed.
-   Devnet-validated: `satusd-rail0/tests/devnet_burn_settle`. Native
+   Devnet-validated: `satusd-rail0/tests/devnet_burn_settle`. The sink key
+   may be `protocol_sink` (a project NUMS key, fixed per asset family,
+   preconstructable — used in v0) or `derive_burn_key` (tapd's PrevID-derived
+   `BurnAsset` key — the tapd-standard form, known only after the input is
+   fixed); both are provably unspendable and client-side-validated. Native
    supply-subtree recognition of composed burns awaits a tapd enhancement
    / the covenant era.
 
