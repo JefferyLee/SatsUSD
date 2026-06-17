@@ -122,9 +122,13 @@ L1 and uses LN for the *BTC* leg.
    redemption advances so the holder verifies before accepting.
 5. **DLC channels for the Layer-2 advance**: a DLC channel's `settle`/`renew`
    flow is LN-native and is a candidate construction for the cooperative
-   advance (§2) — the in-channel DLC updates off-chain, the on-chain DLC
-   redemption is the backstop. Caveat: **10101 retreated from LN-embedded
-   DLC channels to standalone ones** (the embedding proved operationally
-   heavy), which tempers this path; standalone DLC channels are the more
-   likely vehicle (see spec 07 §10.4). Ref: Crypto Garage "Scaling DLC",
-   Suredbits "Transferring In-Channel Lightning DLCs".
+   advance (§2) — the in-channel DLC updates off-chain, with an on-chain
+   force-close as backstop. Two caveats from the 2026-06 research:
+   (i) **the channel backstop is WEAKER than v0's single-tx redeem** — it is
+   a revocation+penalty model (`buffer → CSV → CET`, safe only on the latest
+   state, watchtower required; see spec 07 §10.4 cost (c)), so a channel here
+   trades redemption strength for off-chain speed rather than adding to it;
+   (ii) **10101 retreated from LN-embedded DLC channels to standalone ones**
+   (the embedding proved operationally heavy) — standalone is the likelier
+   vehicle. Ref: Crypto Garage "Scaling DLC", `rust-dlc`, Suredbits
+   "Transferring In-Channel Lightning DLCs".

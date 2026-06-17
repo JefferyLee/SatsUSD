@@ -284,25 +284,48 @@ non-transferable, unilateral) is complete and buildable.
    aggregate attestation per (per-block) event (spec 03 §5.7 + open
    item 7).
 4. **Rolling-window parameters**: cadence, window length, bucket
-   granularity vs. signing load; the LP push/refresh protocol.
-   *Candidate (worth a near-term spike):* hold `Q` in a per-note **DLC
-   channel** (LP↔holder) so the per-block bucket refresh is an **off-chain
-   `renew`** (re-sign the ~16 prefix-compressed adaptor sigs in-channel;
-   chain touched only on unilateral redeem). Maps cleanly onto §4's "LP
-   liveness = price freshness, not redemption-ability", and LN-style
-   revocation gives the missing way to invalidate a stale-price bucket
-   without a chain tx. Cost: `renew` is 2-party/interactive + needs a
-   watchtower (redeem stays unilateral via the on-chain backstop). Ref:
-   Crypto Garage "Scaling DLC" / `rust-dlc`; note 10101 retreated from
-   LN-embedded to standalone DLC channels.
+   granularity vs. signing load; the LP push/refresh protocol. v0 keeps this
+   as **LP-unilateral per-block adaptor pre-signing** — the LP refreshes the
+   ~16 prefix-compressed sigs without the holder online.
+   *Evaluated alternative — DLC channel (PARKED behind a spike, NOT a v0
+   path):* hold `Q` in a per-note LP↔holder **DLC channel** so the per-block
+   bucket refresh is an **off-chain `renew`**. It does solve two pains — the
+   cumulative on-chain re-pricing footprint, and (via LN-style revocation)
+   the missing way to invalidate a stale-price bucket without a chain tx. But
+   the 2026-06 research (`rust-dlc`, Crypto Garage, 10101) shows the cost is
+   structural, not a footnote:
+   - (a) `renew` is **2-party/interactive every block** — a regression from
+     LP-unilateral pre-signing: the holder must now be online (or
+     watchtowered) each block to keep the price fresh.
+   - (b) it imports a **watchtower** — a new trust/liveness surface.
+   - (c) **the unilateral backstop gets WEAKER, not preserved**: the channel
+     is a revocation+penalty model, so force-closing on any non-latest
+     (revoked) state lets the counterparty sweep the whole buffer in the CSV
+     window; the safe close is `buffer → CSV → CET` (a multi-tx, timelocked
+     sequence) and only on the latest state. **Our v0 two-input `redeem_tx`
+     (one tx, broadcast alone, no timing dependence, §3) is strictly stronger
+     on the unilateral axis** — so a channel is a re-pricing optimisation
+     bought at the cost of redemption strength, not an upgrade to it.
+
+   If ever pursued: **standalone, not LN-embedded** (10101 kept DLC channels
+   but dropped the LN embedding as operationally heavy), and gate it on a
+   spike confirming the burn-sink + TA-anchor composition survives the
+   `buffer → CET` wrapping (unverified). dlcspecs has no merged channel spec —
+   this would track `rust-dlc` only.
 5. **Lightning support** (spec 08, pending): how far the redeem-to-pay flow
    and cooperative redemption can ride Lightning, and the on-chain DLC
    backstop's relationship to off-chain settlement.
 6. **Covenant prototypes** (§9): fungible-claim + shared-pool constructions
-   on a covenant signet. *Watch-item (non-covenant alternative):* **DLC
-   factories** batch many notes' `Q` into one funding output via pure
-   adaptor-sigs + multisig + timelocks — a covenant-free path to a shared
-   collateral pool. Parked, not built: Jan-2025 concept (Conduition), no
-   implementation, and N-party liveness/griefing is brutal (any holder
-   offline can stall factory-wide updates). Revisit if covenants don't land
-   first.
+   on a covenant signet. *Watch-item (non-covenant alternative) — PARKED,
+   reinforced by 2026-06 research:* **DLC factories** batch many notes' `Q`
+   into one funding output via pure adaptor-sigs + multisig + timelocks — a
+   covenant-free path to a shared collateral pool. Killed for v0 by the same
+   revocation/penalty model as DLC channels: a member's exit is unilateral
+   only in form — an **offline member's funds are at risk** (a stale
+   commitment can be punished), and a stale state with no fresh extension can
+   **deadlock** until both parties return. That breaks unilateral redemption
+   — the make-or-break for us — so it is no improvement over per-note `Q`.
+   Also concept-only: Jan-2025 sketch (Conduition), 2-party, no N-party split
+   tree, no code (TRL ~1); dlcspecs specs neither factories nor channels. One
+   unread thread (arXiv 2602.09822 "From Multi-sig to DLCs") does not change
+   the verdict. Revisit only if covenants don't land first.
