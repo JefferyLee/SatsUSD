@@ -47,10 +47,10 @@ the covenant era (§9) — the *same* capability unlocks both.
 | **Broadcaster** | Anyone may complete a redemption / maturity CET (permissionless) |
 
 ```
-issue   (buy from LP; the note IS a DLC funding output holding the $X SatUSD
-         + over-collateralised BTC; LP pre-signs its redemption CETs)
+issue   (buy from LP; LP locks the over-collateralised collateral Q + pre-signs
+         its oracle-adaptor redemption CETs; the buyer holds the note A)
   → hold (a stable dollar position + a unilateral redemption right)
-  → redeem ANYTIME  (one tx: spend the note ⟹ its SatUSD burns ⟺ its BTC pays you; §3)
+  → redeem ANYTIME  (one tx: burn the note A ⟺ claim X/P BTC from Q; §3)
   → maturity = the LP's committed term  (fair-value auto-settle to BTC; §5)
   → renew  (roll to a fresh-term LP before maturity)
 ```
@@ -60,13 +60,12 @@ issue   (buy from LP; the note IS a DLC funding output holding the $X SatUSD
 SatUSD is **minted on demand by an LP at the point of sale** — there is no
 genesis pre-supply; supply expands when bought and contracts when
 redeemed, always backed by locked BTC. The buyer pays BTC; the LP issues
-`$X` SatUSD **into a single DLC funding output that holds both the `$X`
-SatUSD (a Taproot-Asset commitment) and the over-collateralised BTC** —
-the TA-in-DLC-funding-output construction of `docs/proposals/0001`
-(a SatUSD technical proposal to dlcspecs / Delving Bitcoin, implemented +
-devnet-validated). **That output _is_ the note**: the buyer holds it; the
-LP pre-signs its redemption CETs at issuance. (The LP MAY source the
-collateral by opening its own vault, spec 06 §2.)
+`$X` SatUSD — the note **A**, a plain Taproot-Asset UTXO the buyer holds —
+and locks **over-collateralised BTC in a separate DLC funding output Q**
+(spec 06 §2; the LP MAY source Q by opening its own vault), then
+**pre-signs Q's oracle-adaptor redemption CETs** at issuance (§3.2). The
+TA×DLC composition follows `docs/proposals/0001` (a SatUSD technical
+proposal to dlcspecs / Delving Bitcoin, implemented + devnet-validated).
 
 **Risk attribution.** A BTC↔SatUSD swap does not create risk; it
 *transfers BTC exposure*. The buyer goes flat-BTC / long-USD; the LP holds
@@ -88,39 +87,38 @@ note as a required input.**
 
 ```
 redeem_tx:
-  input:   [ the note — ONE DLC funding output holding the $X SatUSD
-             (a TA commitment) AND the over-collateralised BTC ]
-  outputs: [ SatUSD → burn sink   (spec 01 §4 — the note's SatUSD is destroyed)
-             (X / P) BTC → K       (the holder's payout key)
+  inputs:  [ Q  (the LP's over-collateralised, pure-BTC DLC output)
+             A  (the holder's SatUSD note UTXO) ]
+  outputs: [ A's SatUSD → burn sink   (spec 01 §4 — the note is destroyed)
+             (X / P) BTC → K           (the holder's payout key, from Q)
              change BTC → LP ]
 ```
 
-- **Atomicity is structural, not cryptographic**: the note (a single
-  funding output) is the *one required input*; spending it — an
-  oracle-adaptor-locked key-path spend — in the *same* tx both sends its
-  SatUSD to the burn sink and pays the holder BTC from its own collateral.
-  You cannot claim without burning; you cannot double-claim (the output is
-  spent once).
-- **Unilateral by construction — no separate LP input**: the collateral
-  lives *inside the note*, so redemption needs no LP signature and no LP
-  presence at redeem-time (this is precisely why the earlier two-input form
-  was discarded — §3.5).
+- **Atomicity is structural, not cryptographic**: `A` is a *required input*
+  sent to the burn sink, in the *same* tx that claims `X/P` from `Q`. You
+  cannot claim without burning; you cannot double-claim (`A` is spent once).
+- **Unilateral**: the holder signs `A` (their own note); `Q` is spent by
+  the LP's **issuance-time oracle-adaptor pre-sign**, completed by the public
+  oracle attestation — **no LP signature and no LP presence at redeem-time**.
+  The collateral leg is oracle-adaptor, *not* a live LP-signed input — the
+  distinction from rail-1 `j4_settle` (§3.5).
 - The redemption amount `X / P` is the dollar face at the oracle price `P`;
-  the note is over-collateralised for a worst-case `P` (§7). Below that, the
-  payout is capped at the note's balance (a shortfall — partial redemption).
+  `Q` is over-collateralised for a worst-case `P` (§7). Below that, the
+  payout is capped at `Q`'s balance (a shortfall — partial redemption).
 
 ### 3.2 Authorisation
 
-- **The note's key-path spend**: the LP **pre-signs at issuance** a set of
-  CETs spending the note's funding output, one per (oracle event, price
-  bucket), as **adaptor signatures** locked to that bucket's oracle
-  anticipation point (proposal 0001 §3.2; spec 06 `crash_adaptor_point`;
-  spec 03 §3). Each commits the whole spend (a `SIGHASH_DEFAULT` key-path
-  spend of the note): SatUSD → burn sink, `X/P` → `K`, change → LP.
+- **Q leg**: the LP **pre-signs at issuance** a set of CETs spending `Q`,
+  one per (oracle event, price bucket), as **adaptor signatures** locked to
+  that bucket's oracle anticipation point (proposal 0001 §3.2; spec 06
+  `crash_adaptor_point`; spec 03 §3). Each commits the `redeem_tx` structure
+  (a `SIGHASH_DEFAULT` key-path spend of `Q`): `A` is an input, SatUSD →
+  burn sink, `X/P` → `K`, change → LP.
+- **A leg**: the holder signs `A` at redemption (authorising the burn).
 - **Completion**: the **public oracle attestation** decrypts the matching
-  bucket and completes the adaptor; the holder — or any broadcaster, since
-  the payout is fixed to the holder's `K` — broadcasts. **No LP input, no
-  LP participation at redemption, no adjudicator, no covenant.**
+  bucket and completes the LP's adaptor; the holder — or any broadcaster,
+  since the payout is fixed to `K` — broadcasts. **No LP input signed at
+  redeem-time, no adjudicator, no covenant.**
 
 ### 3.3 Why this is sound (and why no bond/challenge is needed)
 
@@ -143,23 +141,30 @@ in one tx): `satusd-rail0/tests/devnet_burn_settle`.
 
 ### 3.4 Buyer verification at purchase
 
-The buyer MUST, before paying, verify: the note is funded and
+The buyer MUST, before paying, verify: `Q` is funded and
 over-collateralised; the pre-signed CETs are valid for the announced oracle
 events + buckets and pay `K`; the maturity authorisation (§5) is correct.
 Under-funding or a bad CET is caught here, not at redemption.
 
-### 3.5 Why combined (one output), not two-input — and the burn key
+### 3.5 Why two-input is unilateral — the combined alternative, and the burn key
 
-An earlier sketch split the note into two inputs: `A` (the holder's plain
-SatUSD UTXO) + `Q` (the LP's separate collateral output). It is
-**discarded**: the collateral leg would then be a *live* input the LP must
-sign at redeem-time (exactly the rail-1 `j4_settle` E2E, whose LP BTC input
-is `bitcoind`-signed) — which breaks unilaterality. The **combined** form
-(§3.1) puts the collateral *inside the note's own DLC funding output*
-(proposal 0001's TA-in-DLC construction), so redemption spends one
-oracle-adaptor-locked output and needs no LP input and no LP presence —
-truly unilateral. Transferability stays emergently impossible: the
-pre-signed CET pays the holder's fixed `K`, useless to anyone else (§8).
+The redeem is **unilateral even though `Q` is the LP's collateral**: the
+holder signs `A` (their own note), and `Q` is spent by the **oracle-adaptor
+CET the LP pre-signed at issuance** — the LP neither signs nor appears at
+redeem-time. This is the crucial distinction from rail-1's `j4_settle`,
+whose collateral leg is a *live, `bitcoind`-signed* LP input; here that leg
+is oracle-adaptor, so the whole redeem is holder-unilateral. **Devnet-
+validated end-to-end** (burn `A` to the sink + pay `X/P` from `Q` + LP
+change, one tx, no LP at redeem-time):
+`satusd-rail1/tests/devnet_settle::redeem_two_input`. Transferability stays
+emergently impossible: the pre-signed CET pays the holder's fixed `K`,
+useless to anyone else (§8).
+
+A **"combined"** alternative — one DLC output holding *both* the SatUSD and
+the collateral — is tidier on paper, but needs a **large-value TA anchor
+output**, which tapd's fund/commit flow does not currently produce (the
+asset anchor is dust). It is deferred to a tapd enhancement / the covenant
+era; v0 builds the two-input form above.
 
 **Burn key.** The SatUSD leg pays a provably-unspendable sink. Two
 derivations are available: **`protocol_sink`** (a project NUMS key, fixed
@@ -265,15 +270,14 @@ non-transferable, unilateral) is complete and buildable.
 
 ## 10. Open items
 
-1. **`redeem_tx` (combined, §3.5)**: spend the note — one DLC funding output
-   holding the SatUSD + collateral (proposal 0001) — to [burn sink, holder,
-   LP change] via the oracle-adaptor key-path spend, through tapd's vPSBT
-   machinery. Pieces devnet-validated: settle-to-burn
-   (`satusd-rail0/tests/devnet_burn_settle`), the oracle-adaptor redeem
-   payout (`satusd-vault/tests/vault_redeem_q_to_holder`), and the composed
-   deterministic CET (`rail1 j4_settle`); the remaining work is wiring them
-   into the single combined-output redeem (its TA leg → burn sink, not a
-   transfer).
+1. **`redeem_tx` (two-input, §3) — DEVNET-VALIDATED end-to-end**: spend
+   `[Q (LP collateral) + A (note)]` in one tx → `[A→burn sink, X/P→holder,
+   change→LP]`, with `Q` unlocked by the LP's issuance-time oracle-adaptor
+   pre-sign and the public attestation (no LP at redeem-time). Proven by
+   `satusd-rail1/tests/devnet_settle::redeem_two_input`, which composes
+   `devnet_burn_settle` (burn sink) + `vault_redeem_q_to_holder` (oracle-
+   adaptor Q) + `j4_settle` (deterministic CET + keyspend injection).
+   Remaining: rolling pre-sign wiring (§4), maturity CET, productionising.
 2. **Maturity CET wiring** + the holder's issuance-time pre-authorisation
    format (spec 06 §5 maturity CET).
 3. **Oracle bridge**: decentralised stake-weighted median → one FROST
