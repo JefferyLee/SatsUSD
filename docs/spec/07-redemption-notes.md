@@ -285,8 +285,24 @@ non-transferable, unilateral) is complete and buildable.
    item 7).
 4. **Rolling-window parameters**: cadence, window length, bucket
    granularity vs. signing load; the LP push/refresh protocol.
+   *Candidate (worth a near-term spike):* hold `Q` in a per-note **DLC
+   channel** (LP↔holder) so the per-block bucket refresh is an **off-chain
+   `renew`** (re-sign the ~16 prefix-compressed adaptor sigs in-channel;
+   chain touched only on unilateral redeem). Maps cleanly onto §4's "LP
+   liveness = price freshness, not redemption-ability", and LN-style
+   revocation gives the missing way to invalidate a stale-price bucket
+   without a chain tx. Cost: `renew` is 2-party/interactive + needs a
+   watchtower (redeem stays unilateral via the on-chain backstop). Ref:
+   Crypto Garage "Scaling DLC" / `rust-dlc`; note 10101 retreated from
+   LN-embedded to standalone DLC channels.
 5. **Lightning support** (spec 08, pending): how far the redeem-to-pay flow
    and cooperative redemption can ride Lightning, and the on-chain DLC
    backstop's relationship to off-chain settlement.
 6. **Covenant prototypes** (§9): fungible-claim + shared-pool constructions
-   on a covenant signet.
+   on a covenant signet. *Watch-item (non-covenant alternative):* **DLC
+   factories** batch many notes' `Q` into one funding output via pure
+   adaptor-sigs + multisig + timelocks — a covenant-free path to a shared
+   collateral pool. Parked, not built: Jan-2025 concept (Conduition), no
+   implementation, and N-party liveness/griefing is brutal (any holder
+   offline can stall factory-wide updates). Revisit if covenants don't land
+   first.

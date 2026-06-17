@@ -120,3 +120,11 @@ L1 and uses LN for the *BTC* leg.
    sidesteps the 100k-sat carrier limit entirely.
 4. **Quote/verification reuse**: apply spec 02 `Quote` semantics to LP
    redemption advances so the holder verifies before accepting.
+5. **DLC channels for the Layer-2 advance**: a DLC channel's `settle`/`renew`
+   flow is LN-native and is a candidate construction for the cooperative
+   advance (§2) — the in-channel DLC updates off-chain, the on-chain DLC
+   redemption is the backstop. Caveat: **10101 retreated from LN-embedded
+   DLC channels to standalone ones** (the embedding proved operationally
+   heavy), which tempers this path; standalone DLC channels are the more
+   likely vehicle (see spec 07 §10.4). Ref: Crypto Garage "Scaling DLC",
+   Suredbits "Transferring In-Channel Lightning DLCs".
