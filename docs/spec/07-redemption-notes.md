@@ -129,6 +129,11 @@ no "accept" step to withhold). Therefore the bonded-LP / challenge-protocol
 **unnecessary here** — the no-transfer + pre-signed structure removes the
 refusal surface entirely.
 
+This removes the *refusal* surface, **not the *custody* surface**: in v0 the
+LP can still pre-empt a redemption by *moving* `Q` before the holder spends
+it (§7 — v0's `Q` is a single LP-held key). Redemption is unilateral; it is
+not yet trustless against the LP's *custody* of the collateral.
+
 The Taproot-Asset "off-chain" wall is sidestepped: **Bitcoin enforces only
 that `A` is consumed**; that it is a *burn* (sent to the burn key, supply
 reduced) is validated client-side by the TA proof (spec 01). Bitcoin never
@@ -235,6 +240,20 @@ any higher-frequency trading feed).
   papered over. SatUSD is not USDC.
 - Below the collateralisation floor, redemption pays Q's balance (a
   shortfall), not a guaranteed $1.
+- **LP collateral-custody (v0 trust assumption — not derivable from the
+  redeem flow alone)**: `Q`'s funding output is a **single key held by the
+  LP** in v0 (`satusd-rail1/src/funding.rs`: *"v0 single key; MuSig2
+  upgrade"*). So redemption is unilateral **only if the LP has not already
+  moved `Q`** — a malicious/compromised LP can spend `Q` elsewhere (rug /
+  front-run) before the holder redeems, and the chain does not prevent it.
+  Buyer verification (§3.4) checks `Q` is funded *at purchase*, not against a
+  later double-spend; and rolling pre-sign (§4) requires the LP to *retain*
+  the key, so "sign-then-delete" is not available. **Fix — the MuSig2
+  upgrade**: make `Q` a 2-of-2 (LP+holder), after which the LP cannot move
+  `Q` alone and the holder's adaptor path is the only pre-timeout spend.
+  Until then **v0 `Q`-custody is LP-trusted** — a third party cannot steal a
+  leaked CET (payout is fixed to `K` and `A` needs the holder's signature,
+  §3.2), but the LP itself can pre-empt the collateral.
 
 ## 8. The no-transfer property (the deliberate trade)
 
