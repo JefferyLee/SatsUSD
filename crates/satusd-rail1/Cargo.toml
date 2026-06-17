@@ -17,5 +17,6 @@ base64 = "0.22"
 hex.workspace = true
 satusd-rail0 = { path = "../satusd-rail0" }
 satusd-tapd-client = { path = "../satusd-tapd-client" }
+satusd-types = { path = "../satusd-types" }
 serde_json.workspace = true
 tokio = { version = "1", features = ["macros", "rt-multi-thread"] }

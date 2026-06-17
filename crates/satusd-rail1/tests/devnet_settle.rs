@@ -577,3 +577,214 @@ async fn j4_settle() -> Result<(), Box<dyn std::error::Error>> {
     );
     Ok(())
 }
+
+/// redeem_tx (spec 07, the two-input model — feasibility probe): a holder
+/// redeems UNILATERALLY in ONE tx that
+///   (A) burns the note (a plain SatUSD UTXO) to the deterministic NUMS
+///       burn sink (= devnet_burn_settle), and
+///   (Q) pays the holder X/P BTC + change to the LP from the LP's
+///       over-collateralised, pure-BTC DLC output, unlocked by the
+///       oracle-adaptor CET the LP pre-signed at issuance (= vault
+///       vault_redeem_q) — NO LP signature/presence at redeem-time.
+/// Reuses j4_settle's composed deterministic CET (skip_funding) + keyspend
+/// injection. The collateral leg is oracle-adaptor (not bitcoind-signed
+/// like j4's LP input), so the whole redeem is unilateral.
+#[tokio::test]
+#[ignore = "requires live devnet bitcoind (make devnet-up)"]
+async fn redeem_two_input() -> Result<(), Box<dyn std::error::Error>> {
+    const COLLATERAL_SATS: u64 = 2_000_000;
+    const MINT_MICRO_USD: u64 = 1_000_000_000; // $1,000
+    const REDEEM_PRICE: u32 = ORACLE_PRICE; // $100,000
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    assert_eq!(env.chain, "regtest", "regtest-only");
+    let channel = env.tapd_channel().await?;
+    let mut tap = TaprootAssetsClient::new(channel.clone());
+    let mut wallet = AssetWalletClient::new(channel);
+    let secp = Secp256k1::new();
+
+    // ===== A — the note: a fresh GROUPED SatUSD UTXO (grouped: the burn
+    //       sink is family-keyed) =====
+    let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+    let name = format!("SatUSD-redeem2-{ts}");
+    tapcli(&["assets", "mint", "--type", "normal", "--name", &name, "--supply",
+        &FUND_UNITS.to_string(), "--new_grouped_asset"]);
+    tapcli(&["assets", "mint", "finalize"]);
+    bcli(&["-generate", "2"]);
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    let assets = tap.list_assets(taprpc::ListAssetRequest::default()).await?.into_inner().assets;
+    let asset = assets.iter().find(|a| a.asset_genesis.as_ref().is_some_and(|g| g.name == name))
+        .ok_or("fresh asset not found")?;
+    let asset_id = asset.asset_genesis.as_ref().unwrap().asset_id.clone();
+    let group_key: [u8; 33] = asset.asset_group.as_ref().ok_or("no group")?
+        .tweaked_group_key.clone().try_into().map_err(|_| "group key len")?;
+
+    // ===== Q — the LP collateral: a pure-BTC DLC output (single-leaf
+    //       {refund}); LP pre-signs its oracle-adaptor redeem CET =====
+    let funding_sk = tagged_hash("devnet/redeem2-q", name.as_bytes());
+    let internal_x = SecretKey::from_byte_array(funding_sk).unwrap().x_only_public_key(&secp).0.serialize();
+    let refund = refund_leaf_script(144, &tagged_hash("devnet/redeem2-u", b"u"), &tagged_hash("devnet/redeem2-l", b"l"));
+    let merkle_root: [u8; 32] = bitcoin::taproot::TapLeafHash::from_script(&refund, bitcoin::taproot::LeafVersion::TapScript).to_byte_array();
+    let q_output_x = satusd_crypto::nums::tap_tweak(&internal_x, &merkle_root);
+    let tweaked = keyspend_secret(&funding_sk, &merkle_root)?;
+    assert_eq!(SecretKey::from_byte_array(tweaked)?.x_only_public_key(&secp).0.serialize(), q_output_x,
+        "keyspend secret controls Q");
+    let q_spk = format!("5120{}", hex::encode(q_output_x));
+    let q_addr = bcli(&["decodescript", &q_spk])["address"].as_str().ok_or("q addr")?.to_string();
+    let q_txid = bcli(&["sendtoaddress", &q_addr, &format!("{:.8}", COLLATERAL_SATS as f64 / 1e8)])
+        .as_str().ok_or("send q")?.to_string();
+    bcli(&["-generate", "2"]);
+    let q_raw = bcli(&["getrawtransaction", &q_txid, "true"]);
+    let q_vout = q_raw["vout"].as_array().unwrap().iter()
+        .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(q_spk.as_str())).ok_or("q vout")?;
+    let q_outpoint = OutPoint::new(q_txid.parse()?, q_vout["n"].as_u64().unwrap() as u32);
+    let q_txout = TxOut { value: Amount::from_sat(COLLATERAL_SATS), script_pubkey: bitcoin::ScriptBuf::from_hex(&q_spk)? };
+    println!("Q (LP collateral): {} sats at {}", COLLATERAL_SATS, hex::encode(q_output_x));
+
+    // ===== burn sink for A (deterministic NUMS, family-keyed) =====
+    let family = satusd_types::derive::asset_family_id(&asset_id.clone().try_into().unwrap(), &group_key, 0);
+    let sink = satusd_crypto::nums::protocol_sink_script_key(&family);
+    let burn_internal = satusd_crypto::nums::protocol_burn_internal_key(&family);
+    let burn_tweak = satusd_crypto::nums::protocol_burn_tweak(&family);
+    let burn_addr = tap.new_addr(taprpc::NewAddrRequest {
+        asset_id: asset_id.clone(),
+        amt: FUND_UNITS,
+        script_key: Some(taprpc::ScriptKey {
+            pub_key: sink.to_vec(),
+            key_desc: Some(taprpc::KeyDescriptor { raw_key_bytes: compressed_even(&burn_internal), key_loc: None }),
+            tap_tweak: burn_tweak.to_vec(),
+            r#type: taprpc::ScriptKeyType::ScriptKeyScriptPathExternal as i32,
+        }),
+        internal_key: Some(taprpc::KeyDescriptor { raw_key_bytes: compressed_even(&burn_internal), key_loc: None }),
+        skip_proof_courier_conn_check: true,
+        ..Default::default()
+    }).await?.into_inner();
+
+    // ===== redeem CET: fund A → burn sink; anchor [A, Q] → [burn, holder, change] =====
+    let funded = wallet.fund_virtual_psbt(awrpc::FundVirtualPsbtRequest {
+        template: Some(awrpc::fund_virtual_psbt_request::Template::Raw(awrpc::TxTemplate {
+            recipients: [(burn_addr.encoded.clone(), 0u64)].into_iter().collect(),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }).await?.into_inner();
+    let anchor_in = vpsbt_anchor_input(&funded.funded_psbt)?; // A's anchor (the note UTXO)
+    let anchor_outs = vpsbt_anchor_info(&funded.funded_psbt)?; // burn sink anchor info
+    let signed = wallet.sign_virtual_psbt(awrpc::SignVirtualPsbtRequest {
+        funded_psbt: funded.funded_psbt.clone(),
+    }).await?.into_inner();
+
+    let face = MINT_MICRO_USD * 100_000_000 / (u64::from(REDEEM_PRICE) * 1_000_000); // X/P sats
+    let holder_spk = { let a = bcli(&["getnewaddress", "redeem2-holder", "bech32"]);
+        bcli(&["getaddressinfo", a.as_str().unwrap()])["scriptPubKey"].as_str().unwrap().to_string() };
+    let lp_spk = { let a = bcli(&["getnewaddress", "redeem2-lp-change", "bech32"]);
+        bcli(&["getaddressinfo", a.as_str().unwrap()])["scriptPubKey"].as_str().unwrap().to_string() };
+
+    let a_txout = TxOut { value: Amount::from_sat(anchor_in.value_sats), script_pubkey: anchor_in.script.clone() };
+    let n_slots = anchor_outs.len() as u64;
+    let total_in = anchor_in.value_sats + COLLATERAL_SATS;
+    let change = total_in - ANCHOR_DUST_SATS * n_slots - face - FEE_SATS;
+
+    let mut tx_outs: Vec<TxOut> = anchor_outs.iter().map(|_| TxOut {
+        value: Amount::from_sat(ANCHOR_DUST_SATS),
+        script_pubkey: anchor_in.script.clone(), // placeholder P2TR; tapd rewrites from anchor info
+    }).collect();
+    tx_outs.push(TxOut { value: Amount::from_sat(face), script_pubkey: bitcoin::ScriptBuf::from_hex(&holder_spk)? });
+    let change_index = tx_outs.len() as i32;
+    tx_outs.push(TxOut { value: Amount::from_sat(change), script_pubkey: bitcoin::ScriptBuf::from_hex(&lp_spk)? });
+
+    let tx = bitcoin::Transaction {
+        version: bitcoin::transaction::Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::ZERO,
+        input: vec![
+            bitcoin::TxIn { previous_output: anchor_in.outpoint, sequence: bitcoin::Sequence::ENABLE_RBF_NO_LOCKTIME, ..Default::default() },
+            bitcoin::TxIn { previous_output: q_outpoint, sequence: bitcoin::Sequence::ENABLE_RBF_NO_LOCKTIME, ..Default::default() },
+        ],
+        output: tx_outs,
+    };
+    let mut template = Psbt::from_unsigned_tx(tx)?;
+    // input 0 = A's TA anchor (asset source → burn sink); lnd signs it
+    template.inputs[0].witness_utxo = Some(a_txout.clone());
+    template.inputs[0].tap_internal_key = Some(anchor_in.internal_key);
+    if let Some(root) = anchor_in.merkle_root {
+        template.inputs[0].tap_merkle_root = Some(bitcoin::TapNodeHash::from_byte_array(root));
+    }
+    // input 1 = Q (pure-BTC collateral); oracle-adaptor keyspend injected later
+    template.inputs[1].witness_utxo = Some(q_txout.clone());
+    for (i, info) in anchor_outs.iter().enumerate() {
+        satusd_rail0::builder::apply_anchor_out_info(&mut template.outputs[i], info);
+    }
+
+    let committed = wallet.commit_virtual_psbts(awrpc::CommitVirtualPsbtsRequest {
+        virtual_psbts: vec![signed.signed_psbt],
+        passive_asset_psbts: funded.passive_asset_psbts.clone(),
+        anchor_psbt: template.serialize(),
+        anchor_change_output: Some(awrpc::commit_virtual_psbts_request::AnchorChangeOutput::ExistingOutputIndex(change_index)),
+        skip_funding: true,
+        ..Default::default()
+    }).await?.into_inner();
+
+    // ===== LP pre-signs Q's redeem CET (oracle-adaptor), before the outcome =====
+    let oracle = Oracle::from_seed(&tagged_hash("devnet/redeem2-oracle", b"seed"))?;
+    let tick = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() + 60;
+    let ann = oracle.announce(tick)?;
+    let bucket = bucket_of(REDEEM_PRICE, M);
+    let committed_psbt = Psbt::deserialize(&committed.anchor_psbt)?;
+    let sighash = SighashCache::new(&committed_psbt.unsigned_tx).taproot_key_spend_signature_hash(
+        1, // Q is input 1
+        &Prevouts::All(&[a_txout.clone(), q_txout.clone()]),
+        TapSighashType::Default,
+    )?.to_byte_array();
+    let point = bucket_adaptor_point(&ann, &oracle.pubkey, M, bucket)?;
+    let presig = presign(&tweaked, &tagged_hash("devnet/redeem2-nonce", &bucket.to_be_bytes()), &sighash, &point)?;
+    assert!(verify_presig(&presig, &q_output_x, &sighash, &point)?, "Q redeem CET adaptor pre-sig valid");
+    println!("PRESIGN: Q redeem CET pre-signed at issuance (bucket {bucket}; holder {face} + LP change {change})");
+
+    // ===== redeem: oracle attests → holder decrypts Q's keyspend, signs A,
+    //       broadcasts; NO LP at redeem-time =====
+    let att = oracle.attest(tick, REDEEM_PRICE)?;
+    let secret = bucket_secret(&att, M, bucket)?;
+    let q_sig = decrypt(&presig, &secret)?;
+    secp.verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(q_sig),
+        &sighash, &secp256k1::XOnlyPublicKey::from_byte_array(q_output_x)?)?;
+
+    let mut final_psbt = committed_psbt.clone();
+    final_psbt.inputs[1].tap_key_sig = Some(bitcoin::taproot::Signature {
+        signature: bitcoin::secp256k1::schnorr::Signature::from_slice(&q_sig)?,
+        sighash_type: TapSighashType::Default,
+    });
+    // input 0 (A's TA anchor): the holder's lnd signs the merkle-tweaked keyspend
+    let processed = bcli(&["walletprocesspsbt", &BASE64_STANDARD.encode(final_psbt.serialize())]);
+    let lnd_channel = env.lnd_channel().await?;
+    let mut lnd_wallet = satusd_tapd_client::WalletKitClient::new(lnd_channel);
+    let lnd_signed = lnd_wallet.sign_psbt(satusd_tapd_client::walletrpc::SignPsbtRequest {
+        funded_psbt: BASE64_STANDARD.decode(processed["psbt"].as_str().unwrap())?,
+    }).await?.into_inner();
+    let finalized = bcli(&["finalizepsbt", &BASE64_STANDARD.encode(&lnd_signed.signed_psbt), "false"]);
+    assert_eq!(finalized["complete"].as_bool(), Some(true), "both inputs finalize: {finalized}");
+    let final_bytes = BASE64_STANDARD.decode(finalized["psbt"].as_str().unwrap())?;
+
+    let resp = wallet.publish_and_log_transfer(awrpc::PublishAndLogRequest {
+        anchor_psbt: final_bytes,
+        virtual_psbts: committed.virtual_psbts.clone(),
+        passive_asset_psbts: committed.passive_asset_psbts.clone(),
+        change_output_index: committed.change_output_index,
+        lnd_locked_utxos: committed.lnd_locked_utxos.clone(),
+        ..Default::default()
+    }).await?.into_inner();
+    let transfer = resp.transfer.ok_or("no transfer")?;
+    let burned = transfer.outputs.iter().any(|o| o.script_key.ends_with(&sink));
+    assert!(burned, "the note's SatUSD must land on the burn sink");
+    bcli(&["-generate", "2"]);
+
+    // ===== assertions: burn + holder payout + LP change in ONE tx =====
+    let tx = committed_psbt.unsigned_tx.clone();
+    let has = |spk: &str, v: u64| tx.output.iter().any(|o|
+        o.script_pubkey == bitcoin::ScriptBuf::from_hex(spk).unwrap() && o.value.to_sat() == v);
+    assert!(has(&holder_spk, face), "holder gets X/P BTC");
+    assert!(has(&lp_spk, change), "LP gets the change");
+    println!(
+        "REDEEM (two-input) CONFIRMED: note burned to sink + holder paid {face} sats (X/P @ ${REDEEM_PRICE}) \
+         + LP change {change} sats, in ONE tx, unlocked by the oracle-adaptor CET — unilateral, no LP at redeem-time."
+    );
+    Ok(())
+}
