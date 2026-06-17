@@ -33,6 +33,15 @@ decryption, key-path spend — has executed end-to-end (§8). We ask
 the community to weigh in on three specific open questions before
 this becomes a real spec.
 
+**Scope.** This proposes the *primitive* — a TA commitment co-resident in a
+DLC funding output — independent of how any product redeems with it. For the
+record: SatUSD (the project behind this) uses the primitive in a **two-input**
+redemption — the note (a plain TA UTXO) + the LP's *separate*, pure-BTC,
+oracle-adaptor-pre-signed collateral output — rather than the single-UTXO
+*combined* form (which would need a large-value TA anchor tapd's funding flow
+does not yet produce; a future optimisation). The primitive below stands on
+its own either way.
+
 ## 1. Motivation
 
 Taproot Assets (BIP-tap, formerly Taro) makes it practical to issue

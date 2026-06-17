@@ -48,6 +48,18 @@ field appendix, evidence table, and reproduction commands
 (`make devnet-up` + one `cargo test`):
 https://github.com/JefferyLee/SatsUSD/blob/master/docs/proposals/0001-ta-in-dlc-funding-output.md
 
+**Scope note.** This post is about the *primitive* — a TA commitment
+co-resident in a DLC funding output — which the settlement above
+validates end-to-end. How the *product* (SatUSD) redeems is a separate
+question: its v0 redemption composes a **two-input** transaction — the
+holder's note (a plain TA UTXO) + the LP's *separate*,
+over-collateralised, pure-BTC DLC output, the latter unlocked by the
+LP's issuance-time oracle-adaptor pre-sign + the public attestation, so
+redemption stays holder-unilateral. The single-UTXO *combined* form
+(note and collateral in one output) is a future optimisation — it needs
+a large-value TA anchor tapd's funding flow does not yet produce. The
+primitive below stands on its own either way.
+
 ## Prior art (and why this isn't 10101)
 
 This design space has bodies in it, so positioning honestly:
@@ -80,11 +92,11 @@ This design space has bodies in it, so positioning honestly:
 - **DLC custody/loans** ([Lava](https://stacker.news/items/1279809),
   iBTC/[BitSafe](https://media.bitsafe.finance/p/dlc-link-to-bitsafe),
   Firefish, Lendasat): these produce bilateral credit positions;
-  the novel part here is making the stable claim itself a
-  *self-custodied, unilaterally-redeemable* asset — the TA
-  commitment living inside the DLC funding output, so redemption is
-  a pre-signed on-chain spend the holder broadcasts alone, not an
-  issuer's promise. Worth noting soberly: Lava quietly moved off
+  the novel part here is a stablecoin claim that is *self-custodied
+  and unilaterally redeemable* — its redemption is a pre-signed,
+  oracle-gated on-chain spend the holder broadcasts alone, not an
+  issuer's promise (the TA-in-DLC construction is the enabling
+  primitive; see the scope note above on the two-input redeem form). Worth noting soberly: Lava quietly moved off
   DLC custody in 2025, and iBTC pivoted to institutional custody.
   DLC ops are hard; "anyone-can-broadcast with deterministic CETs"
   is my bet on why settlement (not custody UX) is the right place
