@@ -46,6 +46,23 @@ pub fn refund_leaf_script(csv_delta: u16, user_x: &[u8; 32], lp_x: &[u8; 32]) ->
         .into_script()
 }
 
+/// The **holder-only** refund leaf — the offline maturity-floor CSV
+/// fallback (spec 07 §6): after `csv_delta` blocks the **holder alone**
+/// recovers `Q`, with no LP. This is the unconditional safety net behind
+/// the unilateral maturity settlement; the LP is incentivised to broadcast
+/// the maturity CET (claiming its change) before this opens.
+///
+/// `<delta> OP_CSV OP_DROP <holder_x> OP_CHECKSIG`
+pub fn refund_leaf_holder_only(csv_delta: u16, holder_x: &[u8; 32]) -> ScriptBuf {
+    bitcoin::script::Builder::new()
+        .push_int(i64::from(csv_delta))
+        .push_opcode(bitcoin::opcodes::all::OP_CSV)
+        .push_opcode(bitcoin::opcodes::all::OP_DROP)
+        .push_slice(holder_x)
+        .push_opcode(bitcoin::opcodes::all::OP_CHECKSIG)
+        .into_script()
+}
+
 /// The funding output's tree facts, reconstructable by any verifier
 /// from (internal key, TA leaf hash, refund script).
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -228,6 +245,26 @@ mod tests {
         let q = XOnlyPublicKey::from_byte_array(f.output_x).unwrap();
         secp.verify_schnorr(&Signature::from_byte_array(sig), &msg, &q)
             .expect("CET keyspend signature verifies under the funding output key");
+    }
+
+    #[test]
+    fn holder_only_refund_leaf_has_a_valid_control_block() {
+        // The offline maturity-floor CSV fallback: a holder-only refund
+        // leaf must sit in Q's tree with a verifiable control block, so the
+        // holder can spend Q via the script path after the CSV.
+        let (_, px, ta_leaf, _) = fixture();
+        let holder = tagged_hash("test/holder-x", b"h");
+        let refund = refund_leaf_holder_only(144, &holder);
+        let info = spend_info(&px, &ta_leaf, &refund).unwrap();
+        let cb = info
+            .control_block(&(refund.clone(), LeafVersion::TapScript))
+            .expect("holder-only refund leaf is in the tree");
+        let secp = BtcSecp::verification_only();
+        assert!(cb.verify_taproot_commitment(
+            &secp,
+            info.output_key().to_x_only_public_key(),
+            &refund
+        ));
     }
 
     #[test]
