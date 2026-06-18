@@ -47,7 +47,7 @@ Spec index:
 | 04 | reserve, reimbursement, epoch allotment |
 | 05 | dispute hooks, evidence formats, slashing |
 | 06 | vaults: a DLC collateral primitive (LP-issuer sources `Q` / CDP self-mint); checkpoint-CET liquidation |
-| 07 | redemption-bearing notes: unilateral redeem, no-transfer, LP-term maturity |
+| 07 | the BTC/USD option: P/N legs (no liquidation), 2-of-2 MuSig2 `Q`, unilateral maturity settlement, offline floor (ADR-0006) |
 | 08 | Lightning: the BTC speed layer; redeem-to-pay, on-chain DLC backstop |
 
 ## 2. Terminology
@@ -59,7 +59,7 @@ Spec index:
 | **epoch** | 2016 Bitcoin blocks; the cadence of capacity recomputation, reserve allotment (04), and supply commitments (01) |
 | **tranche** | a reserve UTXO pre-allocated to one rail for one epoch, sized by the capacity formula (02 §6.1) |
 | **S3 artifacts** | the txids, TA transfer proofs, and oracle attestations from which any observer reconstructs a settlement (02 §4) |
-| **reference marker** | the protocol-level BTC/USD price used for `price_dev_bound` checks, reimbursement pricing, and **redemption pricing `P`** (07 §3, via the 03 §5.7 FROST aggregate); defined in 03 §5 |
+| **reference marker** | the protocol-level BTC/USD price used for `price_dev_bound` checks, reimbursement pricing, and the option's **maturity-settlement price** (07 §4/§8, attested by the 03 §5.7 FROST aggregate); defined in 03 §5 |
 | **retain fee** | the fee component accruing to the common reserve via reimbursement haircut; feeds the capacity formula (ADR-0002) |
 | **service fee** | the fee component paying named per-settlement service providers |
 | **burn** | destruction of SatUSD units via the TA-native unspendable script key (01 §4) |
@@ -126,15 +126,17 @@ dependency can be removed?*
 | Rail state machine + manifest | `satusd-rail` | 02 | new |
 | Rail-0 (RFQ swap) | `satusd-rail0` | 02 §7 | new |
 | Rail-1 (DLC) | `satusd-rail1` | 02 §7, proposal 0001 | new |
-| Oracle daemon | `satusd-oracle` | 03 | new |
+| Vault: collateral primitive + option settle (MuSig2 `Q`, MuSig2-adaptor CET) | `satusd-vault` | 06, 07 | new |
+| Oracle: tick attest + decentralised-median FROST cohort (`cohortd`) + tlock | `satusd-oracle` | 03 | new |
 | Epoch allotment script | `satusd-allot` | 04 §2–3 | new |
-| Client verifier library | `satusd-verify` | 01 §6, 02 §4 (S3) | new |
+| Client verifier library (incl. option position backing) | `satusd-verify` | 01 §6, 02 §4 (S3), 07 §4.4 | new |
 | Cross-language reference | `ts/` + `satusd-vectors` | all encodings | **kept** culture |
 | Old-world crates | `satusd-state`, `-reserve`, `-operator`, `-challenger`, `-state-node`, `-dispute`, `-lock`, `-tapd-client` | archived architecture | keep building until replaced (ADR-0001) |
 
-All six new crates exist and are tested as of milestone M-A; the
-devnet E2Es (J3 swap, J4 settle, burn-key equivalence, funding
-landing) are their in-environment proofs.
+The new crates exist and are tested; the Phase-1 (M-1) trustless core is
+validated end-to-end on devnet — option-pair mint + two-input MuSig2
+maturity settlement, the offline maturity floor, the decentralised FROST
+oracle, and client-side position verification (PRD M-1).
 
 ## 6. Networks
 

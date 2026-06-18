@@ -125,6 +125,14 @@ by any observer, and counts in `face_supply` for System CR (spec 04
 
 ## 4. Checkpoint CETs and liquidation
 
+> **Scope (ADR-0005/0006).** "Liquidation" here is the **CDP/minter
+> supply-side**: a self-minter's own over-collateralised vault whose CR can
+> fall to the liquidation CR, costing *the minter* its cushion. This is a
+> different actor from the **holder's option position**, which has **no
+> liquidation** — its `P + N = Q` legs always partition the collateral
+> (spec 07 §3). An LP-issuer may source its per-position `Q` from such a
+> vault, but the holder it sells to never faces liquidation.
+
 There is no liquidation engine. At open, the parties pre-sign
 **crash-bucket-only** CETs for each checkpoint (every `N` blocks
 until maturity, §8), each an adaptor signature anticipating the
@@ -132,8 +140,8 @@ oracle attestation at that checkpoint's event (spec 03 §3.3, spec 02
 §7). Each CET's adaptor lock is that bucket's **`crash_adaptor_point`**
 — the oracle anticipation point `S = R + e·P` for the checkpoint event
 and price bucket (spec 03 §3); the matching attestation decrypts
-exactly that CET. (spec 07 §3.2 reuses this named point for the
-unilateral **redemption** CETs an LP-issuer pre-signs over the same
+exactly that CET. (spec 07 §4.2 reuses this named point for the
+unilateral **maturity-settlement** CETs an LP-issuer pre-signs over the same
 `Q`; redemption CETs and these liquidation crash CETs coexist on one
 `Q` — their non-overlap is a spec 07 §10 integration item.)
 

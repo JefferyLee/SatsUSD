@@ -55,6 +55,11 @@ pub fn bucket_adaptor_point(
     bucket_index: u32,
 ) -> Result<PublicKey, secp256k1::Error> {
     let px = XOnlyPublicKey::from_byte_array(*oracle_pubkey)?;
+    // A buyer runs this on an LP-supplied announcement (satusd-verify); a
+    // truncated nonce-point vector must error, not panic.
+    if announcement.nonce_points.len() < m as usize {
+        return Err(secp256k1::Error::InvalidPublicKey);
+    }
     let mut acc: Option<PublicKey> = None;
     for i in 0..m {
         // Digit i of the prefix, MSB first.
@@ -85,6 +90,9 @@ pub fn bucket_secret(
     bucket_index: u32,
 ) -> Result<[u8; 32], secp256k1::Error> {
     if bucket_of(attestation.price_usd, m) != bucket_index {
+        return Err(secp256k1::Error::InvalidTweak);
+    }
+    if attestation.signatures.len() < m as usize {
         return Err(secp256k1::Error::InvalidTweak);
     }
     let ds = digits(attestation.price_usd);
@@ -161,6 +169,20 @@ mod tests {
         // And a different bucket's point does NOT match this secret.
         let other = bucket_adaptor_point(&ann, &o.pubkey, M, b + 1).unwrap();
         assert!(!secret_matches_point(&t, &other));
+    }
+
+    #[test]
+    fn truncated_announcement_errors_not_panics() {
+        // The buyer-side path (satusd-verify) runs this on LP-supplied data;
+        // a short nonce-point vector must Err, never panic.
+        use satusd_oracle::oracle::Announcement;
+        let ann = Announcement {
+            event_id: "x".into(),
+            nonce_points: vec![[1u8; 32]], // only 1 point, but m = 4
+            tlv_bytes: vec![],
+        };
+        let o = Oracle::from_seed(&[3u8; 32]).unwrap();
+        assert!(bucket_adaptor_point(&ann, &o.pubkey, M, 0).is_err());
     }
 
     #[test]

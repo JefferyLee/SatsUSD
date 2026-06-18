@@ -82,7 +82,7 @@ RailManifest {
     max_size:          u64 sats   — per-conversion cap
     committed_term:    u32 blocks — the LP's committed holding /
                                     DLC-maturity term for notes issued
-                                    on this rail (spec 07 §5; maturity
+                                    on this rail (spec 07 §6; maturity
                                     = LP term; 0 = redeem-only, no
                                     fixed maturity)
     fee_schedule:      {retain_bps: u16, service_bps: u16,

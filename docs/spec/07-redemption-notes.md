@@ -249,9 +249,11 @@ dependence on anyone's liveness**:
    **holder-only** script-path and recovers `Q`'s BTC alone — no LP, no
    keeper, no oracle-at-that-moment.
 
-This is the **only** unconditional guarantee in the system and **has
-never been E2E tested** (an open item, §12) — proving it is the Phase-1
-hard gate.
+This is the **only** unconditional guarantee in the system — the Phase-1
+hard gate — and it is now **devnet-validated both ways** (2026-06-17):
+`rail1` `devnet_settle::offline_maturity_floor` (anyone-broadcasts) and
+`offline_maturity_floor_csv_fallback` (holder-only CSV) both pass with no
+LP and no keeper (§12, PRD FR-4).
 
 ## 7. The secondary market — single-hop transfer (Phase 2)
 
