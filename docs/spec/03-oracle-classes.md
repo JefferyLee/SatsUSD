@@ -183,6 +183,13 @@ only (02 §3.4, proposal pending for the exact CET wiring). Oracle
 silence is thereby a bounded delay, never a fund loss (Tier-3
 automation, 02 §5).
 
+> **Implemented (structure, 2026-06-18).** `satusd-oracle::tlock`:
+> `TlockEscape` + drand quicknet round arithmetic + a `Timelock` trait
+> abstracting the timelock primitive; `seal`/`open` model the
+> silence→bounded-delay→release flow (tested with a beacon-gated mock).
+> Pending (spec §6 item 1): real drand-IBE behind the trait, the on-chain
+> refund-CET wiring, and the threshold-cohort sealed-secret semantics.
+
 ## 4. Class `optimistic` (reserved)
 
 Interface reserved for UMA-style assert-challenge resolution of
@@ -467,9 +474,17 @@ decoupled from the §3.1 1 s trading tick.
 > binding factor omits the *message*, by design: the DLC commits the nonce
 > at announce and reuses it for whichever digit realises — signing two
 > values for one digit is equivocation, which leaks the key (EOTS, §3.3),
-> not a forgery. Still open: the over-the-wire DKG transport (the daemon),
-> the threshold-signed dlcspecs announcement, and the §3.5
-> "don't-publish-early" (tlock) escape.
+> not a forgery. The protocol is **distributed** — each participant holds
+> only its own secret and exchanges explicit, verifiable messages
+> (`Dealer`/`Signer` + a pure aggregator; `Cohort` is just a single-process
+> simulator) — and runs as a daemon over a directory transport
+> (`satusd-oracle::cohortd`, `bin/cohortd`): each node does `round1` /
+> `finalize` (DKG) then per-event `announce` / `attest`, and any node
+> `aggregate`s the public messages into the exact `ann-`/`att-` TLVs
+> `oracled` serves. The §3.5 escape structure is implemented too
+> ([`satusd-oracle::tlock`]). Still open (spec §6): real drand-IBE (BLS
+> pairing) behind the `Timelock` trait, the escape's on-chain refund-CET
+> wiring, and real peer-to-peer transport (vs the directory).
 
 ## 6. Open items
 

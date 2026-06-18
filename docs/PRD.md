@@ -185,13 +185,13 @@ The two-input DLC burn⟺claim settlement, oracle daemon, client
 verification, and Rail-0/Rail-1 references are E2E green on regtest —
 the cryptographic core the option settlement reuses.
 
-**M-1 — The trustless core (Phase 1, dev signet).**
+**M-1 — The trustless core (Phase 1, dev signet). ✅ COMPLETE (2026-06-18)** — all of FR-1…FR-6 land; the pre-covenant trustless core is validated end-to-end (unit + on-chain devnet). Post-M-1 hardening items are noted per-FR and in spec §6.
 ☑ FR-1 option-pair mint (mint + settle round-trip, devnet-validated 2026-06-17) ·
 ☑ FR-2 unilateral maturity settlement (two-input burn⟺claim, both min(S,x) regimes, devnet-validated 2026-06-17) ·
 ☑ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** (devnet-validated 2026-06-17) ·
 ☑ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
 holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-17) ·
-◑ FR-5 maturity-event oracle — **core + crypto hardening done**: stake-weighted median + binding-factor-hardened FROST threshold attestation present the decentralised median as one DLC key (`satusd-oracle::{median, frost}`, 2026-06-18); over-the-wire DKG daemon + tlock escape pending ·
+☑ FR-5 maturity-event oracle — stake-weighted median + binding-factor-hardened **distributed** FROST cohort (Pedersen DKG, each party isolated) presents the decentralised median as one DLC key, run as a directory-transport daemon (`satusd-oracle::{median, frost, cohortd, tlock}` + `bin/cohortd`, 2026-06-18); a DLC client consumes its `ann-/att-` TLVs as one oracle. Post-M-1 (spec §6): real drand-IBE, on-chain tlock-CET wiring, p2p transport ·
 ☑ FR-6 client verification — a position is backed by its own locked `Q`, P+N=`Q`, CET armed for the announced event (`satusd-verify::position`, 2026-06-17).
 
 **M-2 — The market (Phase 2, dev signet).**
