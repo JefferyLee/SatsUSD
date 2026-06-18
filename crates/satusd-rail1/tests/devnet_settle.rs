@@ -41,7 +41,7 @@ use satusd_rail0::builder::{vpsbt_anchor_info, vpsbt_anchor_input, ANCHOR_DUST_S
 use satusd_rail1::adaptor::{decrypt, presign, verify_presig, AdaptorSig};
 use satusd_rail1::cet::{bucket_adaptor_point, bucket_of, bucket_secret};
 use satusd_rail1::funding::{
-    funding_output, keyspend_secret, refund_leaf_script, sibling_preimage,
+    funding_output, keyspend_secret, refund_leaf_holder_only, refund_leaf_script, sibling_preimage,
 };
 use satusd_tapd_client::assetwalletrpc as awrpc;
 use satusd_tapd_client::{taprpc, AssetWalletClient, TaprootAssetsClient};
@@ -785,6 +785,291 @@ async fn redeem_two_input() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "REDEEM (two-input) CONFIRMED: note burned to sink + holder paid {face} sats (X/P @ ${REDEEM_PRICE}) \
          + LP change {change} sats, in ONE tx, unlocked by the oracle-adaptor CET — unilateral, no LP at redeem-time."
+    );
+    Ok(())
+}
+
+/// Offline maturity-floor — **path (a): "anyone broadcasts"** (PRD FR-4,
+/// spec 07 §6). The holder pre-signs `A` at ISSUANCE and goes permanently
+/// offline. At maturity a third party (not the holder, not the LP)
+/// decrypts `Q`'s oracle-adaptor maturity CET against the public
+/// attestation and broadcasts the fully-formed tx — the offline holder is
+/// paid, with NO signature from the holder after issuance, NO LP, NO
+/// keeper key. The only difference from `redeem_two_input` is the timing:
+/// `A` is signed at issuance, and the maturity broadcast needs no holder.
+#[tokio::test]
+#[ignore = "requires live devnet bitcoind (make devnet-up)"]
+async fn offline_maturity_floor() -> Result<(), Box<dyn std::error::Error>> {
+    const COLLATERAL_SATS: u64 = 2_000_000;
+    const MINT_MICRO_USD: u64 = 1_000_000_000; // $1,000
+    const MATURITY_PRICE: u32 = ORACLE_PRICE; // $100,000 attested at maturity
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    assert_eq!(env.chain, "regtest", "regtest-only");
+    let channel = env.tapd_channel().await?;
+    let mut tap = TaprootAssetsClient::new(channel.clone());
+    let mut wallet = AssetWalletClient::new(channel);
+    let secp = Secp256k1::new();
+
+    // ===== A — the note: a fresh GROUPED SatUSD UTXO =====
+    let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+    let name = format!("SatUSD-floor-{ts}");
+    tapcli(&["assets", "mint", "--type", "normal", "--name", &name, "--supply",
+        &FUND_UNITS.to_string(), "--new_grouped_asset"]);
+    tapcli(&["assets", "mint", "finalize"]);
+    bcli(&["-generate", "2"]);
+    tokio::time::sleep(std::time::Duration::from_secs(2)).await;
+    let assets = tap.list_assets(taprpc::ListAssetRequest::default()).await?.into_inner().assets;
+    let asset = assets.iter().find(|a| a.asset_genesis.as_ref().is_some_and(|g| g.name == name))
+        .ok_or("fresh asset not found")?;
+    let asset_id = asset.asset_genesis.as_ref().unwrap().asset_id.clone();
+    let group_key: [u8; 33] = asset.asset_group.as_ref().ok_or("no group")?
+        .tweaked_group_key.clone().try_into().map_err(|_| "group key len")?;
+
+    // ===== Q — LP collateral; tree carries the HOLDER-ONLY refund leaf
+    //       (the §6 CSV floor; exercised in path (b)) =====
+    let funding_sk = tagged_hash("devnet/floor-q", name.as_bytes());
+    let internal_x = SecretKey::from_byte_array(funding_sk).unwrap().x_only_public_key(&secp).0.serialize();
+    let holder_refund_x = tagged_hash("devnet/floor-holder", b"h");
+    let refund = refund_leaf_holder_only(144, &holder_refund_x);
+    let merkle_root: [u8; 32] = bitcoin::taproot::TapLeafHash::from_script(&refund, bitcoin::taproot::LeafVersion::TapScript).to_byte_array();
+    let q_output_x = satusd_crypto::nums::tap_tweak(&internal_x, &merkle_root);
+    let tweaked = keyspend_secret(&funding_sk, &merkle_root)?;
+    let q_spk = format!("5120{}", hex::encode(q_output_x));
+    let q_addr = bcli(&["decodescript", &q_spk])["address"].as_str().ok_or("q addr")?.to_string();
+    let q_txid = bcli(&["sendtoaddress", &q_addr, &format!("{:.8}", COLLATERAL_SATS as f64 / 1e8)])
+        .as_str().ok_or("send q")?.to_string();
+    bcli(&["-generate", "2"]);
+    let q_raw = bcli(&["getrawtransaction", &q_txid, "true"]);
+    let q_vout = q_raw["vout"].as_array().unwrap().iter()
+        .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(q_spk.as_str())).ok_or("q vout")?;
+    let q_outpoint = OutPoint::new(q_txid.parse()?, q_vout["n"].as_u64().unwrap() as u32);
+    let q_txout = TxOut { value: Amount::from_sat(COLLATERAL_SATS), script_pubkey: bitcoin::ScriptBuf::from_hex(&q_spk)? };
+
+    // ===== burn sink for A =====
+    let family = satusd_types::derive::asset_family_id(&asset_id.clone().try_into().unwrap(), &group_key, 0);
+    let sink = satusd_crypto::nums::protocol_sink_script_key(&family);
+    let burn_internal = satusd_crypto::nums::protocol_burn_internal_key(&family);
+    let burn_tweak = satusd_crypto::nums::protocol_burn_tweak(&family);
+    let burn_addr = tap.new_addr(taprpc::NewAddrRequest {
+        asset_id: asset_id.clone(),
+        amt: FUND_UNITS,
+        script_key: Some(taprpc::ScriptKey {
+            pub_key: sink.to_vec(),
+            key_desc: Some(taprpc::KeyDescriptor { raw_key_bytes: compressed_even(&burn_internal), key_loc: None }),
+            tap_tweak: burn_tweak.to_vec(),
+            r#type: taprpc::ScriptKeyType::ScriptKeyScriptPathExternal as i32,
+        }),
+        internal_key: Some(taprpc::KeyDescriptor { raw_key_bytes: compressed_even(&burn_internal), key_loc: None }),
+        skip_proof_courier_conn_check: true,
+        ..Default::default()
+    }).await?.into_inner();
+
+    // ===== build the maturity settle_tx: fund A → burn sink; anchor [A, Q] → [burn, holder, change] =====
+    let funded = wallet.fund_virtual_psbt(awrpc::FundVirtualPsbtRequest {
+        template: Some(awrpc::fund_virtual_psbt_request::Template::Raw(awrpc::TxTemplate {
+            recipients: [(burn_addr.encoded.clone(), 0u64)].into_iter().collect(),
+            ..Default::default()
+        })),
+        ..Default::default()
+    }).await?.into_inner();
+    let anchor_in = vpsbt_anchor_input(&funded.funded_psbt)?;
+    let anchor_outs = vpsbt_anchor_info(&funded.funded_psbt)?;
+    let signed = wallet.sign_virtual_psbt(awrpc::SignVirtualPsbtRequest {
+        funded_psbt: funded.funded_psbt.clone(),
+    }).await?.into_inner();
+
+    let face = MINT_MICRO_USD * 100_000_000 / (u64::from(MATURITY_PRICE) * 1_000_000); // X/P sats
+    let holder_spk = { let a = bcli(&["getnewaddress", "floor-holder", "bech32"]);
+        bcli(&["getaddressinfo", a.as_str().unwrap()])["scriptPubKey"].as_str().unwrap().to_string() };
+    let lp_spk = { let a = bcli(&["getnewaddress", "floor-lp-change", "bech32"]);
+        bcli(&["getaddressinfo", a.as_str().unwrap()])["scriptPubKey"].as_str().unwrap().to_string() };
+
+    let a_txout = TxOut { value: Amount::from_sat(anchor_in.value_sats), script_pubkey: anchor_in.script.clone() };
+    let n_slots = anchor_outs.len() as u64;
+    let total_in = anchor_in.value_sats + COLLATERAL_SATS;
+    let change = total_in - ANCHOR_DUST_SATS * n_slots - face - FEE_SATS;
+
+    let mut tx_outs: Vec<TxOut> = anchor_outs.iter().map(|_| TxOut {
+        value: Amount::from_sat(ANCHOR_DUST_SATS),
+        script_pubkey: anchor_in.script.clone(),
+    }).collect();
+    tx_outs.push(TxOut { value: Amount::from_sat(face), script_pubkey: bitcoin::ScriptBuf::from_hex(&holder_spk)? });
+    let change_index = tx_outs.len() as i32;
+    tx_outs.push(TxOut { value: Amount::from_sat(change), script_pubkey: bitcoin::ScriptBuf::from_hex(&lp_spk)? });
+
+    let tx = bitcoin::Transaction {
+        version: bitcoin::transaction::Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::ZERO,
+        input: vec![
+            bitcoin::TxIn { previous_output: anchor_in.outpoint, sequence: bitcoin::Sequence::ENABLE_RBF_NO_LOCKTIME, ..Default::default() },
+            bitcoin::TxIn { previous_output: q_outpoint, sequence: bitcoin::Sequence::ENABLE_RBF_NO_LOCKTIME, ..Default::default() },
+        ],
+        output: tx_outs,
+    };
+    let mut template = Psbt::from_unsigned_tx(tx)?;
+    template.inputs[0].witness_utxo = Some(a_txout.clone());
+    template.inputs[0].tap_internal_key = Some(anchor_in.internal_key);
+    if let Some(root) = anchor_in.merkle_root {
+        template.inputs[0].tap_merkle_root = Some(bitcoin::TapNodeHash::from_byte_array(root));
+    }
+    template.inputs[1].witness_utxo = Some(q_txout.clone());
+    for (i, info) in anchor_outs.iter().enumerate() {
+        satusd_rail0::builder::apply_anchor_out_info(&mut template.outputs[i], info);
+    }
+
+    let committed = wallet.commit_virtual_psbts(awrpc::CommitVirtualPsbtsRequest {
+        virtual_psbts: vec![signed.signed_psbt],
+        passive_asset_psbts: funded.passive_asset_psbts.clone(),
+        anchor_psbt: template.serialize(),
+        anchor_change_output: Some(awrpc::commit_virtual_psbts_request::AnchorChangeOutput::ExistingOutputIndex(change_index)),
+        skip_funding: true,
+        ..Default::default()
+    }).await?.into_inner();
+    let committed_psbt = Psbt::deserialize(&committed.anchor_psbt)?;
+
+    // ===== LP pre-signs Q's MATURITY CET (oracle-adaptor) at issuance =====
+    let oracle = Oracle::from_seed(&tagged_hash("devnet/floor-oracle", b"seed"))?;
+    let tick = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs() + 60; // the maturity event
+    let ann = oracle.announce(tick)?;
+    let bucket = bucket_of(MATURITY_PRICE, M);
+    let sighash = SighashCache::new(&committed_psbt.unsigned_tx).taproot_key_spend_signature_hash(
+        1,
+        &Prevouts::All(&[a_txout.clone(), q_txout.clone()]),
+        TapSighashType::Default,
+    )?.to_byte_array();
+    let point = bucket_adaptor_point(&ann, &oracle.pubkey, M, bucket)?;
+    let presig = presign(&tweaked, &tagged_hash("devnet/floor-nonce", &bucket.to_be_bytes()), &sighash, &point)?;
+    assert!(verify_presig(&presig, &q_output_x, &sighash, &point)?, "Q maturity CET adaptor pre-sig valid");
+
+    // ===== HOLDER PRE-SIGNS A AT ISSUANCE, then goes permanently offline =====
+    let processed = bcli(&["walletprocesspsbt", &BASE64_STANDARD.encode(committed_psbt.serialize())]);
+    let lnd_channel = env.lnd_channel().await?;
+    let mut lnd_wallet = satusd_tapd_client::WalletKitClient::new(lnd_channel);
+    let a_presigned = lnd_wallet.sign_psbt(satusd_tapd_client::walletrpc::SignPsbtRequest {
+        funded_psbt: BASE64_STANDARD.decode(processed["psbt"].as_str().unwrap())?,
+    }).await?.into_inner().signed_psbt;
+    println!("ISSUANCE: LP pre-signed Q's maturity CET; holder pre-signed A. Holder now goes PERMANENTLY OFFLINE.");
+
+    // ===== MATURITY: anyone decrypts Q + broadcasts; NO holder, NO LP =====
+    let att = oracle.attest(tick, MATURITY_PRICE)?;
+    let secret = bucket_secret(&att, M, bucket)?;
+    let q_sig = decrypt(&presig, &secret)?;
+    secp.verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(q_sig),
+        &sighash, &secp256k1::XOnlyPublicKey::from_byte_array(q_output_x)?)?;
+
+    let mut final_psbt = Psbt::deserialize(&a_presigned)?;
+    final_psbt.inputs[1].witness_utxo = Some(q_txout.clone());
+    final_psbt.inputs[1].tap_key_sig = Some(bitcoin::taproot::Signature {
+        signature: bitcoin::secp256k1::schnorr::Signature::from_slice(&q_sig)?,
+        sighash_type: TapSighashType::Default,
+    });
+    let finalized = bcli(&["finalizepsbt", &BASE64_STANDARD.encode(final_psbt.serialize())]);
+    assert_eq!(finalized["complete"].as_bool(), Some(true),
+        "both inputs finalize (A pre-signed at issuance, Q via oracle-adaptor): {finalized}");
+    let raw_hex = finalized["hex"].as_str().ok_or("no extracted tx hex")?.to_string();
+    // "anyone" broadcasts — no holder, no LP, no tapd key at maturity:
+    let bcast = bcli(&["sendrawtransaction", &raw_hex]);
+    let bcast_txid = bcast.as_str().ok_or_else(|| format!("broadcast failed: {bcast}"))?.to_string();
+    bcli(&["-generate", "2"]);
+
+    // ===== assert: the offline holder was paid at maturity =====
+    let conf = bcli(&["getrawtransaction", &bcast_txid, "true"]);
+    let paid = conf["vout"].as_array().unwrap().iter().any(|o|
+        o["scriptPubKey"]["hex"].as_str() == Some(holder_spk.as_str())
+        && (o["value"].as_f64().unwrap() * 1e8).round() as u64 == face);
+    assert!(paid, "the offline holder's payout output is present and confirmed: {conf}");
+    println!(
+        "OFFLINE MATURITY FLOOR (path a) CONFIRMED: holder pre-signed at issuance and went offline; \
+         a third party broadcast the maturity settlement (Q via oracle-adaptor, A via the issuance-time \
+         pre-sign) — holder paid {face} sats with NO signature after issuance, NO LP, NO keeper key."
+    );
+    Ok(())
+}
+
+/// Offline maturity-floor — **path (b): holder-only CSV fallback** (PRD
+/// FR-4, spec 07 §6). If NO ONE broadcasts the maturity CET (no keeper),
+/// the holder — coming online ONCE, after the CSV — recovers `Q` alone via
+/// the holder-only refund leaf, with no LP and no oracle. This is the
+/// unconditional safety net: the holder's funds never depend on anyone
+/// else's liveness. Exercises the real tapscript-path spend of `Q`.
+#[tokio::test]
+#[ignore = "requires live devnet bitcoind (make devnet-up)"]
+async fn offline_maturity_floor_csv_fallback() -> Result<(), Box<dyn std::error::Error>> {
+    const COLLATERAL_SATS: u64 = 2_000_000;
+    const CSV_DELTA: u16 = 144;
+    let env = satusd_tapd_client::env::NodeEnv::from_env(root());
+    assert_eq!(env.chain, "regtest", "regtest-only");
+    let bsecp = bitcoin::secp256k1::Secp256k1::new();
+
+    // ===== Q — LP collateral whose script tree is the HOLDER-ONLY refund
+    //       leaf; the holder controls the refund secret =====
+    let ts = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+    let funding_sk = tagged_hash("devnet/floorcsv-q", &ts.to_be_bytes());
+    let internal_pk = bitcoin::secp256k1::SecretKey::from_slice(&funding_sk)?.x_only_public_key(&bsecp).0;
+    let holder_kp = bitcoin::secp256k1::Keypair::from_secret_key(&bsecp,
+        &bitcoin::secp256k1::SecretKey::from_slice(&tagged_hash("devnet/floorcsv-holder", &ts.to_be_bytes()))?);
+    let holder_refund_x = holder_kp.x_only_public_key().0.serialize();
+    let refund = refund_leaf_holder_only(CSV_DELTA, &holder_refund_x);
+    let q_spend_info = bitcoin::taproot::TaprootBuilder::new()
+        .add_leaf(0, refund.clone())?
+        .finalize(&bsecp, internal_pk).map_err(|_| "q taproot finalize")?;
+    let q_spk = bitcoin::ScriptBuf::new_p2tr_tweaked(q_spend_info.output_key());
+    let q_addr = bcli(&["decodescript", &q_spk.to_hex_string()])["address"].as_str().ok_or("q addr")?.to_string();
+    let q_txid = bcli(&["sendtoaddress", &q_addr, &format!("{:.8}", COLLATERAL_SATS as f64 / 1e8)])
+        .as_str().ok_or("send q")?.to_string();
+    // confirm Q, then bury it past the CSV (the holder is "offline" all this time)
+    bcli(&["-generate", &(u32::from(CSV_DELTA) + 6).to_string()]);
+    let q_raw = bcli(&["getrawtransaction", &q_txid, "true"]);
+    let q_vout = q_raw["vout"].as_array().unwrap().iter()
+        .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(q_spk.to_hex_string().as_str())).ok_or("q vout")?;
+    let q_outpoint = OutPoint::new(q_txid.parse()?, q_vout["n"].as_u64().unwrap() as u32);
+    let q_txout = TxOut { value: Amount::from_sat(COLLATERAL_SATS), script_pubkey: q_spk.clone() };
+
+    // ===== the holder comes online ONCE and sweeps Q via the refund leaf =====
+    let holder_dest = { let a = bcli(&["getnewaddress", "floorcsv-holder", "bech32"]);
+        bcli(&["getaddressinfo", a.as_str().unwrap()])["scriptPubKey"].as_str().unwrap().to_string() };
+    let sweep_value = COLLATERAL_SATS - FEE_SATS;
+    let mut sweep = bitcoin::Transaction {
+        version: bitcoin::transaction::Version::TWO,
+        lock_time: bitcoin::absolute::LockTime::ZERO,
+        input: vec![bitcoin::TxIn {
+            previous_output: q_outpoint,
+            sequence: bitcoin::Sequence::from_height(CSV_DELTA), // the relative CSV lock
+            ..Default::default()
+        }],
+        output: vec![TxOut {
+            value: Amount::from_sat(sweep_value),
+            script_pubkey: bitcoin::ScriptBuf::from_hex(&holder_dest)?,
+        }],
+    };
+    let leaf_hash = bitcoin::taproot::TapLeafHash::from_script(&refund, bitcoin::taproot::LeafVersion::TapScript);
+    let sighash = SighashCache::new(&sweep).taproot_script_spend_signature_hash(
+        0, &Prevouts::All(&[q_txout.clone()]), leaf_hash, TapSighashType::Default)?;
+    let sig = bsecp.sign_schnorr_no_aux_rand(&bitcoin::secp256k1::Message::from_digest(sighash.to_byte_array()), &holder_kp);
+    let control_block = q_spend_info
+        .control_block(&(refund.clone(), bitcoin::taproot::LeafVersion::TapScript))
+        .ok_or("control block")?;
+    let mut witness = bitcoin::Witness::new();
+    witness.push(bitcoin::taproot::Signature { signature: sig, sighash_type: TapSighashType::Default }.to_vec());
+    witness.push(refund.as_bytes());
+    witness.push(control_block.serialize());
+    sweep.input[0].witness = witness;
+
+    let raw = bitcoin::consensus::encode::serialize_hex(&sweep);
+    let bcast = bcli(&["sendrawtransaction", &raw]);
+    let sweep_txid = bcast.as_str().ok_or_else(|| format!("CSV sweep broadcast failed: {bcast}"))?.to_string();
+    bcli(&["-generate", "2"]);
+
+    // ===== assert: the holder recovered Q with no LP, no oracle, no keeper =====
+    let conf = bcli(&["getrawtransaction", &sweep_txid, "true"]);
+    let recovered = conf["vout"].as_array().unwrap().iter().any(|o|
+        o["scriptPubKey"]["hex"].as_str() == Some(holder_dest.as_str())
+        && (o["value"].as_f64().unwrap() * 1e8).round() as u64 == sweep_value);
+    assert!(recovered, "the holder recovered Q via the holder-only CSV path: {conf}");
+    println!(
+        "OFFLINE MATURITY FLOOR (path b) CONFIRMED: no keeper broadcast the maturity CET; the holder \
+         came online once after the CSV and recovered {sweep_value} sats from Q via the holder-only \
+         refund leaf — no LP, no oracle, no keeper. The unconditional safety net holds."
     );
     Ok(())
 }
