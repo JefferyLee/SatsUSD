@@ -10,8 +10,12 @@
 //! 32B, signatures 64B), independently verifiable under the project's
 //! own secp256k1.
 
+use musig2::secp::{MaybePoint, MaybeScalar};
 use musig2::secp256k1::{PublicKey, Secp256k1, SecretKey, XOnlyPublicKey};
-use musig2::{CompactSignature, FirstRound, KeyAggContext, PartialSignature, SecNonceSpices};
+use musig2::{
+    AdaptorSignature, BinaryEncoding, CompactSignature, FirstRound, KeyAggContext, LiftedSignature,
+    PartialSignature, SecNonceSpices,
+};
 use satusd_rail::encode::tagged_hash;
 
 fn pubkey(sk: &[u8; 32]) -> PublicKey {
@@ -96,6 +100,75 @@ pub fn cosign_keyspend(
     sig.serialize()
 }
 
+/// A 2-of-2 MuSig2 *adaptor* key-path signature under Q over `message`,
+/// verifiably encrypted to the oracle anticipation point `adaptor_point`
+/// (`T`, 33-byte compressed `t·G`). The minter and reserve each contribute
+/// a nonce and a partial adaptor signature; `receive_signature` verifies
+/// the counterparty's partial before aggregation, so a tampered partial is
+/// rejected here (S1). Neither party can produce this alone — this is the
+/// maturity CET pre-signed at issuance that closes v0's single-key custody
+/// gap. Decrypt at maturity with the oracle scalar via [`adapt_keyspend`].
+/// Returns the 65-byte adaptor signature (compressed `R` ‖ `s`).
+pub fn cosign_keyspend_adaptor(
+    minter_sk: &[u8; 32],
+    reserve_sk: &[u8; 32],
+    merkle_root: &[u8; 32],
+    message: &[u8; 32],
+    adaptor_point: &[u8; 33],
+) -> [u8; 65] {
+    let msk = SecretKey::from_byte_array(*minter_sk).expect("minter sk");
+    let rsk = SecretKey::from_byte_array(*reserve_sk).expect("reserve sk");
+    let t = MaybePoint::try_from(&adaptor_point[..]).expect("adaptor point");
+
+    // Nonce seeds bound to (root, message, adaptor point) — never reused.
+    let mut mat = merkle_root.to_vec();
+    mat.extend_from_slice(message);
+    mat.extend_from_slice(adaptor_point);
+    let seed_m = tagged_hash("SatUSD/vault/musig-adaptor-nonce/minter/v1", &mat);
+    let seed_r = tagged_hash("SatUSD/vault/musig-adaptor-nonce/reserve/v1", &mat);
+
+    let mut fr_m = FirstRound::new(
+        ctx(minter_sk, reserve_sk, Some(merkle_root)),
+        seed_m,
+        0,
+        SecNonceSpices::new().with_seckey(msk),
+    )
+    .expect("first round minter");
+    let mut fr_r = FirstRound::new(
+        ctx(minter_sk, reserve_sk, Some(merkle_root)),
+        seed_r,
+        1,
+        SecNonceSpices::new().with_seckey(rsk),
+    )
+    .expect("first round reserve");
+    let nonce_m = fr_m.our_public_nonce();
+    let nonce_r = fr_r.our_public_nonce();
+    fr_m.receive_nonce(1, nonce_r).expect("minter receives reserve nonce");
+    fr_r.receive_nonce(0, nonce_m).expect("reserve receives minter nonce");
+
+    let mut sr_m = fr_m.finalize_adaptor(msk, t, *message).expect("second round minter");
+    let sr_r = fr_r.finalize_adaptor(rsk, t, *message).expect("second round reserve");
+    let partial_r: PartialSignature = sr_r.our_signature();
+    sr_m.receive_signature(1, partial_r).expect("minter receives reserve partial");
+    let adaptor = sr_m
+        .finalize_adaptor::<AdaptorSignature>()
+        .expect("aggregate adaptor signature");
+    adaptor.to_bytes()
+}
+
+/// Adapt a 2-of-2 adaptor key-path signature (from
+/// [`cosign_keyspend_adaptor`]) with the oracle scalar `oracle_secret`
+/// (the discrete log of the anticipation point) into a standard 64-byte
+/// BIP-340 key-path signature under Q. Anyone holding the public oracle
+/// attestation can do this — no signer key needed — preserving unilateral
+/// broadcast and the offline maturity floor.
+pub fn adapt_keyspend(adaptor_sig: &[u8; 65], oracle_secret: &[u8; 32]) -> [u8; 64] {
+    let adaptor = AdaptorSignature::from_bytes(&adaptor_sig[..]).expect("adaptor sig bytes");
+    let t = MaybeScalar::try_from(&oracle_secret[..]).expect("oracle secret");
+    let lifted: LiftedSignature = adaptor.adapt(t).expect("adapt");
+    lifted.to_bytes()
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -138,5 +211,42 @@ mod tests {
         let q = secp256k1::XOnlyPublicKey::from_byte_array(f.output_x).unwrap();
         secp.verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(sig), &msg, &q)
             .expect("2-of-2 MuSig2 keyspend verifies under Q");
+    }
+
+    #[test]
+    fn cosigned_adaptor_keyspend_decrypts_to_valid_q_sig() {
+        // The 2-of-2 MuSig2 ADAPTOR keyspend, pre-signed by both parties at
+        // issuance and encrypted to the oracle point T = t·G, must — once
+        // adapted with the published scalar t — verify as a plain BIP-340
+        // keyspend under Q, checked with the PROJECT's secp256k1.
+        let (mk, rs) = keys();
+        let refund = refund_leaf_script(4032, &th("test/m-x", b"m"), &th("test/r-x", b"r"));
+        let internal_x = aggregate_internal_x(&mk, &rs);
+        let f = vault_funding_output(&internal_x, &refund);
+        let msg = th("test/adaptor-sighash", b"maturity-cet");
+
+        // Oracle anticipation point T = t·G (project secp256k1).
+        let secp = secp256k1::Secp256k1::new();
+        let t = th("test/oracle-secret", b"price-bucket");
+        let t_point = secp256k1::SecretKey::from_byte_array(t)
+            .unwrap()
+            .public_key(&secp)
+            .serialize();
+
+        let adaptor = cosign_keyspend_adaptor(&mk, &rs, &f.merkle_root, &msg, &t_point);
+        let sig = adapt_keyspend(&adaptor, &t);
+
+        let q = secp256k1::XOnlyPublicKey::from_byte_array(f.output_x).unwrap();
+        let vsecp = secp256k1::Secp256k1::verification_only();
+        vsecp
+            .verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(sig), &msg, &q)
+            .expect("adapted 2-of-2 MuSig2 keyspend verifies under Q");
+
+        // Wrong oracle scalar must NOT yield a valid keyspend (the lock holds).
+        let wrong = th("test/oracle-secret", b"not-the-bucket");
+        let bad = adapt_keyspend(&adaptor, &wrong);
+        assert!(vsecp
+            .verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(bad), &msg, &q)
+            .is_err());
     }
 }
