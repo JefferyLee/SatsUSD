@@ -156,6 +156,18 @@
   </div>
 </section>
 
+<section class="scene" id="eras" data-actzone="a1">
+  <div class="kicker reveal" data-zh="它是什么 · 分两个时代读" data-en="What it is · read it in two eras">它是什么 · 分两个时代读</div>
+  <h2 class="reveal" data-zh="今天，是一个期权市场。<br>终局，是一把自由流通的尺子。" data-en="Today, an options market.<br>The endgame, a freely-circulating ruler.">今天，是一个期权市场。<br>终局，是一把自由流通的尺子。</h2>
+  <p class="lead reveal"
+     data-zh="比特币今天还没有契约（covenant），所以转让性买不来——这是一道硬墙，我们没有假装它不在。SatUSD 因此分两个时代落地。<b>今天（pre-covenant）：它是一个 BTC/USD 期权市场</b>——你持有把波动锁成一美元的<b>优先腿 P</b>（抵押在链上、到期单边结算、无清算、无需许可），或写下<b>杠杆多头腿 N</b>；P+N=Q，永远自洽。<b>终局（post-covenant，契约一旦到位）：</b>同一份一美元 claim 变得可自由转让、可支付，就成了上图里那把「现在就能用的尺子」。我们证明了在契约到来之前能走多远，并把转让性干净地留给它解锁——而不是靠一个可以说「不」的节点假装实现。"
+     data-en="Bitcoin has no covenants today, so transferability cannot be bought — a hard wall we don't pretend away. So SatUSD ships in two eras. <b>Today (pre-covenant): it is a BTC/USD options market</b> — you hold the <b>senior P leg</b> that locks volatility into a one-dollar line (collateralised on-chain, settled unilaterally at maturity, no liquidation, no permission), or write the <b>leveraged-long N leg</b>; P + N = Q, always self-consistent. <b>The endgame (post-covenant, once covenants land):</b> that same one-dollar claim becomes freely transferable and spendable — the ruler-you-can-use-today from the figure above. We prove how far the design goes before covenants arrive, and leave transferability cleanly for them to unlock — never faked through a node that can say no.">比特币今天还没有契约（covenant），所以转让性买不来——这是一道硬墙，我们没有假装它不在。SatUSD 因此分两个时代落地。<b>今天（pre-covenant）：它是一个 BTC/USD 期权市场</b>——你持有把波动锁成一美元的<b>优先腿 P</b>（抵押在链上、到期单边结算、无清算、无需许可），或写下<b>杠杆多头腿 N</b>；P+N=Q，永远自洽。<b>终局（post-covenant，契约一旦到位）：</b>同一份一美元 claim 变得可自由转让、可支付，就成了上图里那把「现在就能用的尺子」。我们证明了在契约到来之前能走多远，并把转让性干净地留给它解锁——而不是靠一个可以说「不」的节点假装实现。</p>
+  <div class="miles reveal">
+    <div class="mile done"><div class="id" data-zh="今天 · pre-covenant" data-en="Today · pre-covenant">今天 · pre-covenant</div><div class="what" data-zh="一个 <b>BTC/USD 期权市场</b>：P/N 双腿、抵押 Q 是 2-of-2 MuSig2、到期单边结算、离线地板、去中心化 FROST oracle、客户端验证——<b>M-1 信任核心已 devnet 端到端跑通</b>。" data-en="A <b>BTC/USD options market</b>: P/N legs, a 2-of-2 MuSig2 collateral Q, unilateral maturity settlement, the offline floor, a decentralised FROST oracle, client-side verification — <b>the M-1 trustless core runs end-to-end on devnet</b>.">一个 <b>BTC/USD 期权市场</b>：P/N 双腿、抵押 Q 是 2-of-2 MuSig2、到期单边结算、离线地板、去中心化 FROST oracle、客户端验证——<b>M-1 信任核心已 devnet 端到端跑通</b>。</div></div>
+    <div class="mile"><div class="id" data-zh="终局 · post-covenant" data-en="Endgame · post-covenant">终局 · post-covenant</div><div class="what" data-zh="契约解锁<b>可自由转让、可支付</b>的同一份美元 claim 与共享抵押池——那把无需许可、无冻结节点、<b>现在就能用的尺子</b>。转让性由契约解锁，不靠任何中间人。" data-en="Covenants unlock the <b>freely transferable, spendable</b> form of the same dollar claim, plus shared collateral pools — the permissionless, freeze-node-free <b>ruler you can use</b>. Transferability is unlocked by covenants, not by any intermediary.">契约解锁<b>可自由转让、可支付</b>的同一份美元 claim 与共享抵押池——那把无需许可、无冻结节点、<b>现在就能用的尺子</b>。转让性由契约解锁，不靠任何中间人。</div></div>
+  </div>
+</section>
+
 <section class="scene" id="valve" data-actzone="a1">
   <div class="kicker reveal" data-zh="第一种坏法 · 被控制的尺子" data-en="Breakage one · the controlled ruler">第一种坏法 · 被控制的尺子</div>
   <h2 class="reveal" data-zh="当钱变成权力的传感器。" data-en="When money becomes a sensor for power.">当钱变成权力的传感器。</h2>
@@ -190,7 +202,7 @@
 </div>
 
 <section class="scene" id="tranche" data-actzone="a2">
-  <div class="kicker reveal" data-zh="构造 1 · 分层定理" data-en="Step 1 · the tranche theorem">构造 1 · 分层定理</div>
+  <div class="kicker reveal" data-zh="构造 1 · 期权的两条腿（分层定理）" data-en="Step 1 · the option’s two legs (the tranche theorem)">构造 1 · 期权的两条腿（分层定理）</div>
   <h2 class="reveal" data-zh="稳定不需要稳定的资产。<br>只需要一份切分波动的合约。" data-en="Stability doesn’t require a stable asset.<br>Only a contract that splits volatility.">稳定不需要稳定的资产。<br>只需要一份切分波动的合约。</h2>
   <p class="lead reveal"
      data-zh="这是金融学最古老的定理之一：把波动资产的收益切成优先与次级两层，优先层就是平的。SatUSD 是它<b>自有那份超额抵押 BTC</b> 之上的<b>优先层</b>：持有者拿走「一美元」那条直线，全部波动由次级层——超额抵押缓冲与 LP 的价差——吸收。稳定是从波动本身<b>炼</b>出来的，不需要从任何银行进口。这里没有「兑付承诺」：协议从不承诺刚兑，承诺的是优先权与<b>到期时的单边结算</b>（发行时预签、由公开 oracle 完成、持有者可独自广播；就算持有者再不上线，离线地板也会在到期付给他）。每个仓位自带超额抵押缓冲；跌破抵押下限时，优先层拿走它<b>自己那份 Q</b> 的全部（spec 07 §6/§9），没有挤兑里的「先跑补贴」。亲手压一压它——包括压穿它："
@@ -345,7 +357,7 @@
   <div class="evidence reveal">
     <div class="ev"><div class="k" data-zh="TA 资产进入 DLC 资金输出（链上输出键逐字节复现）" data-en="TA asset inside a DLC funding output (on-chain key reproduced byte-for-byte)">TA 资产进入 DLC 资金输出（链上输出键逐字节复现）</div><div class="v">bcabed6d…:1 · tapd v0.7.2</div></div>
     <div class="ev"><div class="k" data-zh="Oracle 门控 DLC 结算端到端（预签早于结果存在）" data-en="Oracle-gated DLC settlement end-to-end (pre-signed before the outcome existed)">Oracle 门控 DLC 结算端到端（预签早于结果存在）</div><div class="v">c23d6889…801c326 · regtest</div></div>
-    <div class="ev"><div class="k" data-zh="一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（赎回的绑定原语）" data-en="One-tx atomic binding: SatUSD burn ↔ BTC payout (the redemption binding)">一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（赎回的绑定原语）</div><div class="v">90d13a12… · regtest</div></div>
+    <div class="ev"><div class="k" data-zh="一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（到期结算的绑定原语）" data-en="One-tx atomic binding: SatUSD burn ↔ BTC payout (the maturity-settlement binding)">一笔交易内原子绑定：SatUSD 烧毁 ↔ BTC 到账（到期结算的绑定原语）</div><div class="v">90d13a12… · regtest</div></div>
     <div class="ev"><div class="k" data-zh="tapd 烧毁键派生 vs 真实 BurnAsset 调用" data-en="tapd burn-key derivation vs a live BurnAsset call">tapd 烧毁键派生 vs 真实 BurnAsset 调用</div><div class="v">2ceb9ffd… byte-exact</div></div>
     <div class="ev"><div class="k" data-zh="等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器" data-en="Equivocation → key extraction → forged signature passes an independent verifier">等价见证 → 私钥提取 → 提取钥伪造的签名通过独立验证器</div><div class="v">satusd-oracle::equivocation (EOTS)</div></div>
   </div>
