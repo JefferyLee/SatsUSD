@@ -37,7 +37,7 @@ use satusd_rail1::adaptor::{decrypt, presign, verify_presig, AdaptorSig};
 use satusd_vault::cet::{bucket_of, bucket_secret, crash_adaptor_point, crash_schedule};
 use satusd_vault::contract::{opening_ok, VaultTerms};
 use satusd_vault::funding::{keyspend_secret, refund_leaf_script, spend_info, vault_funding_output};
-use satusd_vault::musig::{aggregate_internal_x, cosign_keyspend};
+use satusd_vault::musig::{adapt_keyspend, aggregate_internal_x, cosign_keyspend, cosign_keyspend_adaptor};
 use satusd_vault::settle::{face_sats, CrashPayout, PayoutParams};
 use secp256k1::{Secp256k1, SecretKey, XOnlyPublicKey};
 
@@ -726,6 +726,127 @@ async fn vault_redeem_q_to_holder() -> Result<(), Box<dyn std::error::Error>> {
     println!(
         "REDEEM Q-LEG: oracle-adaptor CET key-path spent Q → holder {face} sats (X/P @ ${REDEEM_PRICE}) \
          + LP change {change} sats, broadcast unilaterally (redeem_tx Step 2): {redeem_txid}"
+    );
+    Ok(())
+}
+
+/// FR-3 (spec 07 §5/§6): Q's internal key is the 2-of-2 MuSig2 aggregate of
+/// the LP and the holder, and the maturity settlement is a 2-of-2 MuSig2
+/// **adaptor** key-path spend pre-signed by BOTH at issuance and gated on
+/// the oracle. Neither party can move Q alone — this closes v0's single-key
+/// custody gap (`vault_redeem_q_to_holder` uses a single LP-held funding
+/// key). At maturity anyone adapts the joint adaptor with the public oracle
+/// attestation and broadcasts; the offline maturity floor is preserved.
+/// Validated on-chain: open Q at taptweak(KeyAgg(LP, holder), refund_root),
+/// then settle it with the oracle-decrypted 2-of-2 adaptor.
+#[tokio::test]
+#[ignore = "requires live devnet bitcoind (make devnet-up)"]
+async fn vault_musig2_maturity_settle() -> Result<(), Box<dyn std::error::Error>> {
+    let env = env();
+    assert_eq!(env.chain, "regtest", "this test is regtest-only");
+    let secp = Secp256k1::new();
+    let t = terms();
+    const MATURITY_PRICE: u32 = REF_PRICE; // settle at fair value
+
+    // ---- LP + holder keys; Q's internal key is their MuSig2 aggregate ----
+    let lp_sk = tagged_hash("devnet/musig-maturity-lp", b"v1");
+    let holder_sk = tagged_hash("devnet/musig-maturity-holder", b"v1");
+    let lp_x = SecretKey::from_byte_array(lp_sk)?.x_only_public_key(&secp).0.serialize();
+    let holder_x = SecretKey::from_byte_array(holder_sk)?.x_only_public_key(&secp).0.serialize();
+    let internal_x = aggregate_internal_x(&lp_sk, &holder_sk); // P = KeyAgg(LP, holder)
+    let refund = refund_leaf_script(4032, &lp_x, &holder_x);
+    let f = vault_funding_output(&internal_x, &refund);
+    let q = XOnlyPublicKey::from_byte_array(f.output_x)?;
+    // Custody gap closed: Q is the joint key, not either party's own key.
+    assert_ne!(f.output_x, lp_x, "Q is not the LP's key");
+    assert_ne!(f.output_x, holder_x, "Q is not the holder's key");
+
+    // ---- OPEN: the LP locks the over-collateralised, 2-of-2 Q ----
+    let spk_hex = format!("5120{}", hex::encode(f.output_x));
+    let q_addr = env.bcli(&["decodescript", &spk_hex])["address"].as_str().ok_or("addr")?.to_string();
+    let open_txid = env
+        .bcli(&["sendtoaddress", &q_addr, &format!("{:.8}", t.collateral_sats as f64 / 1e8)])
+        .as_str()
+        .ok_or("send")?
+        .to_string();
+    env.bcli(&["-generate", "2"]);
+    let raw = env.bcli(&["getrawtransaction", &open_txid, "true"]);
+    let vout = raw["vout"]
+        .as_array()
+        .unwrap()
+        .iter()
+        .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(spk_hex.as_str()))
+        .ok_or("Q vout")?;
+    let funding_outpoint = OutPoint::new(open_txid.parse()?, vout["n"].as_u64().unwrap() as u32);
+    let funding_txout = TxOut {
+        value: Amount::from_btc(vout["value"].as_f64().unwrap())?,
+        script_pubkey: ScriptBuf::from_hex(&spk_hex)?,
+    };
+    println!("OPEN(musig2-maturity): {} sats at 2-of-2 Q={}", t.collateral_sats, hex::encode(f.output_x));
+
+    // ---- the maturity payout: holder gets X/P, LP gets the change ----
+    let holder_spk = new_spk("maturity-holder");
+    let lp_spk = new_spk("maturity-lp-change");
+    let face = face_sats(t.mint_micro_usd, MATURITY_PRICE); // X/P in sats
+    let change = t.collateral_sats - face - FEE_SATS;
+    let tx = cet_tx(
+        funding_outpoint,
+        vec![
+            TxOut { value: Amount::from_sat(face), script_pubkey: holder_spk.clone() },
+            TxOut { value: Amount::from_sat(change), script_pubkey: lp_spk.clone() },
+        ],
+    );
+    let sighash = SighashCache::new(&tx)
+        .taproot_key_spend_signature_hash(0, &Prevouts::All(&[funding_txout.clone()]), TapSighashType::Default)?
+        .to_byte_array();
+
+    // ---- ISSUANCE-time: BOTH the LP and the holder pre-sign the maturity
+    //      CET as ONE 2-of-2 MuSig2 adaptor, anticipating the oracle,
+    //      before any attestation. Neither can finish it alone. ----
+    let oracle = Oracle::from_seed(&tagged_hash("devnet/maturity-oracle", b"seed"))?;
+    let tick = 1_700_000_000u64;
+    let ann = oracle.announce(tick)?;
+    let bucket = bucket_of(MATURITY_PRICE, M);
+    let point = crash_adaptor_point(&ann, &oracle.pubkey, &t, bucket)?;
+    let adaptor = cosign_keyspend_adaptor(&lp_sk, &holder_sk, &f.merkle_root, &sighash, &point.serialize());
+    println!("PRESIGN(2-of-2): maturity CET co-signed by LP+holder as one MuSig2 adaptor (bucket {bucket})");
+
+    // ---- MATURITY: the public oracle attests → anyone adapts the JOINT
+    //      adaptor with the bucket secret → broadcasts the keyspend of Q ----
+    let att = oracle.attest(tick, MATURITY_PRICE)?;
+    let secret = bucket_secret(&att, M, bucket)?;
+    // Oracle gate: a non-attested bucket's secret does not exist.
+    let wrong_bucket = bucket_of(CRASH_PRICE, M);
+    assert!(bucket_secret(&att, M, wrong_bucket).is_err(), "only the attested bucket decrypts");
+
+    let sig = adapt_keyspend(&adaptor, &secret);
+    // independently verify the adapted 2-of-2 sig under Q before broadcasting
+    secp.verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(sig), &sighash, &q)?;
+
+    let mut tx = tx;
+    tx.input[0].witness = Witness::from_slice(&[sig.to_vec()]);
+    let settle_txid = env.bcli(&["sendrawtransaction", &hex::encode(bitcoin::consensus::serialize(&tx))]);
+    let settle_txid = settle_txid.as_str().ok_or_else(|| format!("sendraw: {settle_txid}"))?.to_string();
+    env.bcli(&["-generate", "2"]);
+
+    // ---- confirm: holder got X/P, LP got the change, on-chain ----
+    let mined = env.bcli(&["getrawtransaction", &settle_txid, "true"]);
+    assert!(mined["confirmations"].as_i64().unwrap_or(0) >= 1, "maturity settle confirmed");
+    let onchain = |spk: &ScriptBuf| -> Option<u64> {
+        mined["vout"]
+            .as_array()
+            .unwrap()
+            .iter()
+            .find(|o| o["scriptPubKey"]["hex"].as_str() == Some(hex::encode(spk.as_bytes()).as_str()))
+            .map(|o| Amount::from_btc(o["value"].as_f64().unwrap()).unwrap().to_sat())
+    };
+    assert_eq!(onchain(&holder_spk), Some(face), "holder receives X/P BTC");
+    assert_eq!(onchain(&lp_spk), Some(change), "LP receives the change");
+    println!(
+        "MUSIG2 MATURITY SETTLE: a 2-of-2(LP,holder) MuSig2-adaptor keyspend of Q — co-signed at \
+         issuance, decrypted at maturity by the PUBLIC oracle attestation alone — settled → holder \
+         {face} sats (X/P @ ${MATURITY_PRICE}) + LP change {change} sats. Neither party could move Q \
+         alone (v0 single-key custody gap closed): {settle_txid}"
     );
     Ok(())
 }
