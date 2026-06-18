@@ -60,7 +60,9 @@ const COEFF_TAG: &str = "SatUSD/frost/dkg-coeff/v1";
 const POK_TAG: &str = "SatUSD/frost/dkg-pok/v1";
 const POK_NONCE_TAG: &str = "SatUSD/frost/dkg-pok-nonce/v1";
 const PARTICIPANT_SEED_TAG: &str = "SatUSD/frost/participant-seed/v1";
-const NONCE_TAG: &str = "SatUSD/frost/nonce/v1";
+const HIDING_NONCE_TAG: &str = "SatUSD/frost/hiding-nonce/v1";
+const BINDING_NONCE_TAG: &str = "SatUSD/frost/binding-nonce/v1";
+const BINDING_FACTOR_TAG: &str = "SatUSD/frost/binding-factor/v1";
 
 fn scalar(bytes: [u8; 32]) -> SecretKey {
     SecretKey::from_byte_array(bytes).expect("hash output is a scalar in range")
@@ -131,13 +133,32 @@ fn lagrange_at_zero(j: u16, quorum: &[u16]) -> Result<SecretKey, FrostError> {
     Ok(num.mul_tweak(&Scalar::from(invert_mod_n(&den)?))?)
 }
 
-/// A participant's per-(event, digit) nonce — committed (as a point) at
-/// announce, consumed (as a scalar) at attest.
-fn participant_nonce(seed: &[u8; 32], event_id: &str, digit: u16) -> SecretKey {
+/// A participant's per-(event, digit) FROST nonce pair: the hiding nonce
+/// `d_j` and the binding nonce `e_j`. The effective nonce a signer
+/// contributes is `d_j + ρ_j·e_j`, where the binding factor `ρ_j` ties it
+/// to the full commitment set (below) — so no participant can steer the
+/// aggregate nonce by choosing their commitment after seeing the others'
+/// (the Drijvers / rogue-nonce defence, RFC 9591 §4.4).
+fn nonce_pair(seed: &[u8; 32], event_id: &str, digit: u16) -> (SecretKey, SecretKey) {
     let mut b = seed.to_vec();
     b.extend_from_slice(event_id.as_bytes());
     b.extend_from_slice(&digit.to_be_bytes());
-    scalar(tagged_hash(NONCE_TAG, &b))
+    (scalar(tagged_hash(HIDING_NONCE_TAG, &b)), scalar(tagged_hash(BINDING_NONCE_TAG, &b)))
+}
+
+/// The per-signer binding factor `ρ_j = H(j ‖ event ‖ digit ‖ B)`, where
+/// `B` is the ordered commitment set `{(i, D_i, E_i)}` of the quorum. It
+/// binds each signer's nonce to *everyone's* commitments, so the aggregate
+/// nonce is a non-linear function of all of them. The attested message (the
+/// digit value) is deliberately NOT an input: in the DLC announce-then-
+/// attest model the nonce is committed before the outcome and reused for
+/// whichever digit realises — signing two values for one digit is
+/// equivocation, which leaks the key by design (EOTS, spec 03 §3.3), not a
+/// forgery to defend against.
+fn binding_factor(j: u16, b_encoded: &[u8]) -> SecretKey {
+    let mut rb = j.to_be_bytes().to_vec();
+    rb.extend_from_slice(b_encoded);
+    scalar(tagged_hash(BINDING_FACTOR_TAG, &rb))
 }
 
 /// One participant's DKG polynomial + the public artifacts it broadcasts.
@@ -280,19 +301,45 @@ impl Cohort {
         Ok(())
     }
 
-    /// The aggregate nonce point `R_i = Σ_{j∈Q} k_{j,i}·G` for digit `i`.
-    fn aggregate_nonce(&self, quorum: &[u16], event_id: &str, digit: u16) -> Result<PublicKey, secp256k1::Error> {
+    /// A FROST signing session for one digit: the binding-factor aggregate
+    /// nonce `R = Σ_{j∈Q} (D_j + ρ_j·E_j)` and, in quorum order, each
+    /// signer's effective nonce scalar `d_j + ρ_j·e_j` (so `Σ eff_j·G = R`).
+    /// Both announce (which commits `R`) and attest (which consumes the
+    /// effective nonces) derive this identically.
+    fn nonce_session(
+        &self,
+        quorum: &[u16],
+        event_id: &str,
+        digit: u16,
+    ) -> Result<(PublicKey, Vec<SecretKey>), secp256k1::Error> {
         let secp = Secp256k1::new();
-        let mut r: Option<PublicKey> = None;
+        // Gather (j, d_j, e_j, D_j, E_j) and encode the commitment set B.
+        let mut parts = Vec::with_capacity(quorum.len());
+        let mut b_encoded = event_id.as_bytes().to_vec();
+        b_encoded.extend_from_slice(&digit.to_be_bytes());
         for &j in quorum {
-            let kj = participant_nonce(&self.seeds[(j - 1) as usize], event_id, digit);
-            let rj = kj.public_key(&secp);
-            r = Some(match r {
-                None => rj,
-                Some(acc) => acc.combine(&rj)?,
-            });
+            let (d, e) = nonce_pair(&self.seeds[(j - 1) as usize], event_id, digit);
+            let (dpt, ept) = (d.public_key(&secp), e.public_key(&secp));
+            b_encoded.extend_from_slice(&j.to_be_bytes());
+            b_encoded.extend_from_slice(&dpt.serialize());
+            b_encoded.extend_from_slice(&ept.serialize());
+            parts.push((j, d, e, dpt, ept));
         }
-        Ok(r.expect("non-empty quorum"))
+        // Per-signer binding factor → aggregate nonce + effective nonces.
+        let mut r: Option<PublicKey> = None;
+        let mut effs = Vec::with_capacity(quorum.len());
+        for (j, d, e, dpt, ept) in &parts {
+            let rho = binding_factor(*j, &b_encoded);
+            // R contribution: D_j + ρ_j·E_j.
+            let term = dpt.combine(&ept.mul_tweak(&secp, &Scalar::from(rho))?)?;
+            r = Some(match r {
+                None => term,
+                Some(acc) => acc.combine(&term)?,
+            });
+            // Effective nonce: d_j + ρ_j·e_j.
+            effs.push(d.add_tweak(&Scalar::from(e.mul_tweak(&Scalar::from(rho))?))?);
+        }
+        Ok((r.expect("non-empty quorum"), effs))
     }
 
     /// Announce the per-digit aggregate nonce points for the tick at
@@ -304,8 +351,8 @@ impl Cohort {
         let id = event_id(unix_ts);
         let mut points = Vec::with_capacity(NB_DIGITS as usize);
         for i in 0..NB_DIGITS {
-            let (rx, _) = self.aggregate_nonce(quorum, &id, i)?.x_only_public_key();
-            points.push(rx.serialize());
+            let (r, _) = self.nonce_session(quorum, &id, i)?;
+            points.push(r.x_only_public_key().0.serialize());
         }
         let descriptor = tlv::digit_descriptor(BASE, false, "USD/BTC", 0, NB_DIGITS);
         let event = tlv::oracle_event(&points, unix_ts as u32, &descriptor, &id);
@@ -328,15 +375,15 @@ impl Cohort {
         let mut sigs = Vec::with_capacity(ds.len());
         for (i, d) in ds.iter().enumerate() {
             let digit = i as u16;
-            let r = self.aggregate_nonce(quorum, &id, digit)?;
+            let (r, effs) = self.nonce_session(quorum, &id, digit)?;
             let (rx, r_parity) = r.x_only_public_key();
             let r_odd = r_parity == Parity::Odd;
             let e = challenge(&rx, &px, &attestation_msg(*d));
 
             let mut s: Option<SecretKey> = None;
             for (idx, &j) in quorum.iter().enumerate() {
-                let kj = participant_nonce(&self.seeds[(j - 1) as usize], &id, digit);
-                let kj = if r_odd { kj.negate() } else { kj };
+                // The binding-factor effective nonce, negated if R is odd-Y.
+                let kj = if r_odd { effs[idx].negate() } else { effs[idx] };
                 // e·λ_j·x_j, negated when PK is odd-Y (signing under −s).
                 let key_part = lambdas[idx]
                     .mul_tweak(&Scalar::from(self.shares[(j - 1) as usize]))?
