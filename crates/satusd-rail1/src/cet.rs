@@ -164,6 +164,38 @@ mod tests {
     }
 
     #[test]
+    fn frost_median_drives_the_bucket_as_one_key() {
+        // FR-5 end-to-end: the decentralised stake-weighted median, attested
+        // by a t-of-n FROST cohort, is consumed by THIS bucket code exactly
+        // like a single oracle — the cohort presents as one key.
+        use satusd_oracle::frost::Cohort;
+        use satusd_oracle::median::{stake_weighted_median, Report};
+
+        let reports = [
+            Report { price_usd: 60_000, stake: 20 },
+            Report { price_usd: 64_000, stake: 60 }, // > 50% stake → the median
+            Report { price_usd: 70_000, stake: 20 },
+        ];
+        let price = stake_weighted_median(&reports).unwrap();
+        assert_eq!(price, 64_000);
+
+        let cohort = Cohort::keygen(5, 3, &[3u8; 32]).unwrap();
+        let ts = 1_700_000_300u64;
+        let quorum = [1u16, 2, 4];
+        let ann = cohort.announce(ts, &quorum).unwrap();
+        let att = cohort.attest(ts, price, &quorum).unwrap();
+
+        // The bucket point from the ANNOUNCEMENT equals s·G of the secret
+        // from the ATTESTATION — under the cohort's group key.
+        let win = bucket_of(price, M);
+        let point = bucket_adaptor_point(&ann, &cohort.group_pubkey, M, win).unwrap();
+        let t = bucket_secret(&att, M, win).unwrap();
+        assert!(secret_matches_point(&t, &point));
+        // A non-attested bucket has no secret — same selective decryption.
+        assert!(bucket_secret(&att, M, win ^ 1).is_err());
+    }
+
+    #[test]
     fn end_to_end_with_adaptor() {
         // Oracle → bucket point → presign → attest → bucket secret →
         // decrypt → BIP-340 verify. The full J4 crypto chain, pure.

@@ -107,7 +107,7 @@ pub fn anticipation_point(
 /// Modular inverse mod n via Fermat (`a^(n−2)`), built from
 /// `SecretKey::mul_tweak` — no bigint dependency. `a` MUST be
 /// nonzero mod n.
-fn invert_mod_n(a: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
+pub(crate) fn invert_mod_n(a: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
     // exponent = n − 2, big-endian.
     let mut exp = N;
     exp[31] -= 2; // n ends in 0x41; no borrow.
@@ -132,7 +132,7 @@ fn invert_mod_n(a: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
 }
 
 /// `a − b mod n`, both nonzero, result must be nonzero.
-fn sub_mod_n(a: &SecretKey, b: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
+pub(crate) fn sub_mod_n(a: &SecretKey, b: &SecretKey) -> Result<SecretKey, secp256k1::Error> {
     a.add_tweak(&Scalar::from(b.negate()))
 }
 

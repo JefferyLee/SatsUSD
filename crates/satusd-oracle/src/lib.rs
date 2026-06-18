@@ -8,6 +8,8 @@
 
 pub mod equivocation;
 pub mod event;
+pub mod frost;
+pub mod median;
 pub mod oracle;
 pub mod schnorr;
 pub mod tlv;
