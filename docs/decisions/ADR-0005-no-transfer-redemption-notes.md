@@ -1,7 +1,7 @@
 # ADR-0005: SatUSD is a no-transfer, unilaterally-redeemable holding — the redemption-bearing note is the core object
 
 - **Date**: 2026-06-16
-- **Status**: accepted
+- **Status**: accepted — **refined and extended by [ADR-0006](ADR-0006-pre-covenant-options-market.md)** (2026-06-17): the redemption-bearing note is reconceived as a fixed-maturity *option* and the product as a *market*; the unilateral-redemption core asserted here holds.
 - **Authority**: `docs/MISSION.md` v2 via ADR-0001. **Supersedes ADR-0003**
   (settle-to-LP / recirculation). **Re-scopes ADR-0004** (vault →
   LP-supply-side). **Defers** spec 04 reserve + ADR-0002 capacity to the
