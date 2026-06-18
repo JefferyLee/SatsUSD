@@ -189,6 +189,13 @@ CETs are valid for the announced maturity event + buckets and pay `K`;
 the maturity event/strike are as quoted. Under-funding or a bad CET is
 caught here, not at maturity.
 
+Implemented as pure, server-free functions in `satusd-verify::position`
+(FR-6): `verify_backing` recomputes `Q = taptweak(KeyAgg(LP, holder),
+refund_root)` and checks the on-chain output, collateral, and opening CR;
+`payout_at` gives the `P + N = Q` split at any price; `verify_cet_adaptor`
+confirms the pre-signed 2-of-2 MuSig2 adaptor is armed for the announced
+bucket's oracle point under `Q`, without the oracle secret.
+
 ## 5. Collateral custody — 2-of-2 MuSig2 `Q` (Phase 1)
 
 `Q`'s key-path is a **2-of-2 MuSig2(LP, holder)** output, with a

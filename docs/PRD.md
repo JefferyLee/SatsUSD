@@ -191,7 +191,8 @@ the cryptographic core the option settlement reuses.
 ☑ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** (devnet-validated 2026-06-17) ·
 ☑ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
 holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-17) ·
-☐ FR-5 maturity-event oracle · ☐ FR-6 client verification incl. LP solvency.
+☐ FR-5 maturity-event oracle ·
+☑ FR-6 client verification — a position is backed by its own locked `Q`, P+N=`Q`, CET armed for the announced event (`satusd-verify::position`, 2026-06-17).
 
 **M-2 — The market (Phase 2, dev signet).**
 ☐ FR-7 order book + single-hop atomic-swap transfer ·
