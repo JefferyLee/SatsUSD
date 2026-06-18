@@ -1,8 +1,9 @@
 # SatUSD: A Bitcoin-Native Bridge to a Bitcoinizing Future
 
-*Version 2 — the founding document, rewritten from the seed vision.
-All other documents in this repository derive from, and are
-subordinate to, this one. 中文版本：[MISSION.zh.md](MISSION.zh.md)*
+*Version 3 — restructured into two eras (pre-covenant / post-covenant)
+after the 2026-06 design exploration. All other documents in this
+repository derive from, and are subordinate to, this one. 中文版本：
+[MISSION.zh.md](MISSION.zh.md)*
 
 ## Two monies, two failures
 
@@ -10,332 +11,405 @@ Bitcoin is the most reliable money ever designed: fixed supply,
 no discretionary issuer, permissionless, censorship-resistant,
 custody-sovereign. As money, its principal failure today is
 **purchasing-power volatility**: its day-to-day price moves too
-much for anyone to quote a salary, a contract, or a cup of
-coffee in it. It cannot yet serve as a unit of account — and so
-it cannot yet do the one thing a free market needs most from
-its money.
+much for anyone to quote a salary, a contract, or a cup of coffee
+in it. It cannot yet serve as a unit of account.
 
-The US dollar — and the fiat system it represents — has the
-opposite profile. Its short-term purchasing power is stable
-enough to quote prices in. But it is issued by political
-authority, inflated at the issuer's discretion, and increasingly
-programmable into a surveillance and control apparatus. Account
-freezes, transaction monitoring, sanctioned addresses,
-programmable CBDC restrictions — these are not hypothetical
-futures. They are the lived experience of millions of people
-in 2026.
+The US dollar has the opposite profile. Its short-term purchasing
+power is stable enough to quote prices in. But it is issued by
+political authority, inflated at the issuer's discretion, and
+increasingly programmable into a surveillance and control
+apparatus — account freezes, transaction monitoring, sanctioned
+addresses, programmable CBDC restrictions. These are the lived
+experience of millions in 2026.
 
-Both monies fail. Bitcoin fails as a present-day unit of
-account. The dollar fails as a long-term store of freedom. The
-question this project answers is: **can a single instrument
-inherit the strengths of both, while shedding the weaknesses of
-either?**
+Both monies fail. Bitcoin fails as a present-day unit of account.
+The dollar fails as a long-term store of freedom. The question
+this project answers is: **can a single instrument inherit the
+strengths of both, while shedding the weaknesses of either?**
 
 ## Money is an information system
 
 Money's deepest function is neither storage nor payment. It is
 **information**: prices denominated in a common unit are the
 distributed signals by which billions of strangers coordinate
-production, consumption, and exchange — without any of them
-needing to know the whole. This is the price-signal function,
-and it is the hardest function of money to migrate, because it
+production, consumption, and exchange. This price-signal function
 lives not in any ledger but in the habits of every mind that
-quotes a price.
+quotes a price — which is why it is the hardest function of money
+to migrate.
 
-Be honest about the present: fiat performs this function today.
-That is the real reason it survives. Bitcoin does not — nothing
-is quoted in it, so it generates no signals. But fiat's signal
-source is owned. It is inflated at will, surveilled at scale,
-and — with programmable central-bank money — being rebuilt into
-an instrument of control. A free market running on captured
-signals is free in name only.
+Fiat performs this function today — that is the real reason it
+survives. But fiat's signal source is owned: inflated at will,
+surveilled at scale, being rebuilt into an instrument of control.
+A free market running on captured signals is free in name only.
 
-**The mission of this project, stated precisely, is to migrate
-the price-signal function of money from fiat to bitcoin.** Not
-to migrate balances — that has been possible for fifteen years —
-but to migrate the function: the unit people quote in, the
-signals markets coordinate by.
+**The ultimate mission of this project is to migrate the
+price-signal function of money from fiat to bitcoin** — not to
+migrate balances (possible for fifteen years) but to migrate the
+function: the unit people quote in, the signals markets
+coordinate by. That is the north star. The rest of this document
+is honest about how far today's Bitcoin lets us travel toward it,
+and what we build in the meantime.
 
-## What SatUSD is
+## Two eras, one direction
 
-SatUSD is a bitcoin-collateralized, dollar-denominated
-instrument issued natively on Bitcoin L1 via Taproot Assets. A
-holder of N SatUSD holds a claim on $N worth of bitcoin in the
-reserve — a claim the protocol is built to enforce without
-trusted intermediaries, and one that is as strong as the
-reserve's over-collateralization, which the mechanism is
-designed to maintain.
+The full vision — a self-custodial, permissionless, **fungible,
+freely-transferable** dollar token that is **perpetually pegged**
+to BTC/USD, redeemable and spendable at any moment, circulating
+over Lightning, generating the canonical price signal — **cannot
+be built trustlessly on Bitcoin as it exists today.** This is not
+an engineering gap to grind through; it is a property of the base
+layer — and we did not assume it, we *proved* it. We, like others
+in the Bitcoin community before us, spent real effort trying to
+build the full, post-covenant vision on the Bitcoin that exists
+today; only by exhausting those attempts (the dead-ends are
+documented in `docs/research/2026-06-design-journal.md`) did we
+establish, rigorously, where the wall stands:
 
-It is **a bridge** — not just a stablecoin. The dollar's real
-fortress is not the central bank; it is the habit of billions of
-minds quoting prices in dollars. That network effect cannot be
-taken by frontal assault. SatUSD does not assault it. It hollows
-it out: the user keeps the dollar habit — familiar denominations,
-stable quotes — while the substance beneath becomes bitcoin.
-Reserve: bitcoin, never leaving Bitcoin L1. Settlement: bitcoin.
-Custody: the holder's own keys. **Substance migrates first. The
-habit migrates last — and by then it is migrating across a
-bridge that already exists.**
+- Bitcoin script **cannot read a live oracle price**, so a
+  redemption authorization cannot be computed at spend time; it
+  must be **pre-signed** for a fixed outcome in advance.
+- Bitcoin has **no way to expire a signature**, and **cannot
+  re-bind a claim or constrain a payout amount to an unknown
+  future holder**. So a pre-signed claim cannot freely circulate
+  to arbitrary recipients, and a holder cannot redeem at "the
+  current price" without accumulating an exploitable menu of
+  stale prices.
 
-This is intentional scaffolding. **The dollar peg is the path,
-not the destination.**
+Both gaps are closed by the same future capability: **covenants**
+(notably `CHECKSIGFROMSTACK` to verify an oracle signature in
+script, plus amount/output introspection such as
+`OP_CHECKCONTRACTVERIFY`), which let Bitcoin enforce "redeem at
+the latest attested price, pay whoever holds the asset" without
+trusting any party. **None of these opcodes is active on Bitcoin
+mainnet.** Betting the project's existence on a soft fork that may
+take years — or never come — would be a strategic error.
+
+So SatUSD has **two eras**, and this document describes both
+honestly:
+
+- **Pre-covenant (now): a self-custodial, KYC-free BTC/USD
+  options market.** A genuinely useful instrument that today's
+  Bitcoin *can* enforce trustlessly — and the foundation the full
+  vision is later built on.
+- **Post-covenant (the horizon): the bridge.** The fungible,
+  freely-transferable, perpetually-pegged, spendable dollar that
+  migrates the price signal — achievable when covenants land.
+
+The same direction runs through both: self-custody, no issuer in
+the redemption path, no fiat, bitcoin-only reserve, no kill
+switch, everything verifiable by anyone. What changes between the
+eras is not the values — it is how much of the vision the base
+layer permits.
+
+**The pre-covenant era is not a consolation prize.** Having ruled
+out everything today's Bitcoin cannot do, what remains is something
+it genuinely *can* enforce trustlessly — and that no one else
+offers. We build it because we believe it is valuable in its own
+right, for the people it serves now, not merely as a placeholder
+for the bridge.
+
+**How both eras are built.** Development runs against a single
+custom signet with the covenant opcodes activated. The pre-covenant
+option market is built and hardened *first*, using only the rules
+that already hold on Bitcoin mainnet (the covenant opcodes are
+present on the testbed but left unused) — so it is deployable
+today. The post-covenant SatUSD is then developed against those
+activated opcodes, so that when mainnet covenants land, the bridge
+is ready to ship rather than only imagined.
+
+---
+
+## Pre-covenant SatUSD (today): a self-custodial BTC/USD options market
+
+Strip away what today's Bitcoin cannot do, and a real product
+remains — one that *no one else offers*.
+
+**The underserved holder.** There are many bitcoiners who refuse
+centralized exchanges (KYC is a privacy liability), refuse wrapped
+tokens like wBTC/tBTC (custodial and bridge risk), and so leave
+their bitcoin idle: they cannot hedge, cannot lock in a gain,
+cannot take a short or a leveraged-long view, without surrendering
+either their privacy or their self-custody. SatUSD gives them a
+way to **take a position on their own bitcoin — short, long,
+hedge, or lock-in — without KYC, without a wrapped token, without
+leaving self-custodied bitcoin.**
+
+**What the instrument is.** A bitcoin-collateralized **option**,
+settled by a Discreet Log Contract (DLC) at a **fixed maturity**
+against an oracle's BTC/USD attestation. The collateral splits
+into two complementary legs that always sum to the locked
+bitcoin, so **there is no liquidation**:
+
+- a **protective leg** (the holder who wants dollar stability): at
+  maturity it is worth a fixed dollar amount of bitcoin — buying
+  it locks in dollar value / hedges / synthetically shorts BTC;
+- a **leveraged leg** (the holder who wants upside): it takes the
+  bitcoin appreciation above the strike — a self-custodial
+  leveraged-long.
+
+The protective-leg holder gets a stable dollar claim; the
+leveraged-leg holder gets bitcoin upside; neither can be
+liquidated; the oracle is needed only once, at maturity (no
+real-time price feed, hence little manipulation surface).
+
+**Redemption is unilateral and unstoppable.** The settlement is
+pre-signed at issuance; at maturity the holder broadcasts it
+**alone**, on-chain — no issuer signs, no one can freeze or
+refuse. This trustless, holder-sovereign exit is the core that
+survives into both eras.
+
+**Liquidity providers take the other side; how they manage risk is
+their own affair.** Every position is taken by an LP — and how an
+LP handles its resulting bitcoin exposure is entirely its own
+business, external to the framework. The framework **neither
+requires nor has any formal connection to any exchange.** An LP may
+hold a directional view, hedge on-chain, leave it unhedged, or — a
+natural choice for a professional market-maker — go **delta-neutral**
+by hedging on a centralized exchange and earning the **spread**, the
+more trading the better. That this is merely *possible* widens who
+can profitably be an LP (professional market-makers, not only
+bitcoin bulls), which answers the question that sank earlier attempts
+("who wants the other side?"). But it is an *option*, not a
+dependency: **whatever an LP chooses, the holder never touches an
+exchange, and the holder's backing is always the on-chain locked
+bitcoin, never any LP hedge** — distinguishing SatUSD from
+delta-neutral synthetics (e.g. Ethena), where the holder *is* the
+one exposed to the hedge.
+
+**A secondary market, within a membership club.** Holders can sell
+a not-yet-matured option once, peer-to-peer, on an order book —
+price discovered freely, the trade atomic and (over Lightning)
+near-instant, the LP free to make markets and recycle its
+collateral. This transfer is **single-hop within a pseudonymous
+membership club** (each member pre-registers; the issuing LP
+pre-signs settlements payable to each member). It is *not* open,
+permissionless, fungible circulation — that is covenant-era. What
+is on-chain and slow (entering a position, redeeming at maturity)
+is infrequent; what must feel smooth (trading) is off-chain.
+
+**An open-source framework, not a company.** A single club-market
+is necessarily bounded. So the deliverable is an **open framework
+anyone can deploy to run their own market**. Many small markets —
+each anchored by an institution or a bitcoin-rich whale acting as
+the market-making LP, monetizing idle bitcoin without lending it
+out or selling it — federate into meaningful aggregate volume.
+**This project does not seek to commercialize a product or extract
+rent; it seeks to give the Bitcoin community a useful, secure
+technical framework.** Success is measured by usefulness and
+correctness, not by TVL.
+
+**Honest scope and limits (pre-covenant).**
+
+- It is an option you **hold to maturity** (or sell once / unwind
+  cooperatively), not a circulating cash-like token. Liquidity
+  before maturity comes from the secondary market and a maturity
+  *ladder*, not from spending the instrument itself.
+- It is **not fungible across series** — different strikes and
+  maturities are different instruments; fungibility is achieved
+  only within a standardized series, and full fungibility is
+  covenant-era.
+- Membership is **pseudonymous but permissioned** (you join a
+  club), not permissionless like the bitcoin behind it.
+- Backing is **over-collateralization**, not a guarantee against a
+  catastrophic crash: below the collateral floor the holder bears
+  the tail, as in any honest bitcoin-collateralized synthetic
+  (DAI/LUSD). This is stated plainly, not papered over.
+
+---
+
+## Post-covenant SatUSD (the horizon): the bridge
+
+When covenants activate, the constraints above dissolve, and
+SatUSD becomes what the mission always aimed at: a **fungible,
+freely-transferable, permissionless** Taproot Asset, **perpetually
+pegged** to BTC/USD (redeemable at the live price, no fixed
+maturity), **spendable** — payable peer-to-peer and over
+Lightning — and redeemable unilaterally by whoever holds it, with
+no issuer, no club, no KYC.
+
+At that point it is **a bridge** — not just a stablecoin. The
+dollar's fortress is not the central bank; it is the habit of
+billions of minds quoting prices in dollars. SatUSD does not
+assault that network effect; it hollows it out. The user keeps the
+dollar habit — familiar denominations, stable quotes — while the
+substance beneath becomes bitcoin: reserve in bitcoin, never
+leaving Bitcoin L1; settlement in bitcoin; custody in the holder's
+own keys. **Substance migrates first; the habit migrates last —
+across a bridge that already exists.** The dollar peg is the path,
+not the destination.
+
+The transition the bridge enables — recognized in hindsight by
+metrics, never declared:
+
+- **Phase 0 — We exist.** Small volume, prices pinned to external
+  sources.
+- **Phase 1 — Real volume.** The internal market begins generating
+  its own data; external oracles remain the reference.
+- **Phase 2 — The internal market becomes canonical.** SatUSD's
+  own trade history is the most authoritative BTC/USD price on
+  Bitcoin L1 — the bitcoin economy, for the first time, generating
+  its own price signal. External sources demote to sanity checks.
+- **Phase 3 — Denomination begins to flip.** Commerce is
+  increasingly quoted in SatUSD and settled in bitcoin; measured
+  volatility shrinks as the speculative share of flow shrinks.
+- **Phase 4 — The bridge retires.** When bitcoin is a sufficient
+  unit of account, SatUSD's work is done; issuance wanes; the
+  instrument winds down by attrition. **A bridge succeeds when
+  traffic no longer needs it.** We state this so that no one —
+  including us — can later pretend this project was meant to live
+  forever and collect rent.
+
+**Self-referencing is the definition of success, and it is not
+Terra.** A stablecoin that forever depends on an external oracle
+has not escaped the system it claims to escape. Deriving the
+canonical price from SatUSD's own on-chain activity is therefore
+not an optimization — it is the mission achieved. And the
+circularity that destroyed Terra's UST was in its *collateral*
+(UST backed by LUNA, whose value derived from UST). **SatUSD's
+collateral is bitcoin** — value exogenous to SatUSD's existence;
+redemption transfers bitcoin, mints nothing, dilutes nothing. What
+is self-referenced is **information** (the price signal), and only
+after the internal market earns authority through years of
+cross-checked operation. A system whose information is
+self-generated but whose value is exogenous has the failure modes
+of any collateralized system — undercollateralization in a crash,
+thin-market manipulation while young — known, bounded, and
+engineered against, not Terra's reflexive collapse.
+
+**We put no dates on these phases.** They are recognized by
+metrics, not calendars — and they are gated, first of all, on the
+covenant capability that opens this era at all.
+
+---
 
 ## What SatUSD is not
 
-**SatUSD does not pay interest on holdings.** Paying yield on a
-stablecoin requires deploying the reserve into yield-bearing
-positions, which either compromises the redeem-anytime guarantee
-or routes the yield through fiat instruments that re-import the
-dependencies we are escaping. We refuse this trade.
+**No centralized issuer.** No company that can freeze an address.
+You trust a protocol, not a firm. (Pre-covenant, an LP can decline
+to *open* a redemption position or to facilitate a *transfer* for
+you — but it can never seize, freeze, or refuse to honor an
+option already in your hands; your unilateral maturity redemption
+is yours alone.)
 
-This does not mean participation is unprofitable:
+**No fiat reserve.** No dollars, no Treasury bills, no fiat
+instrument of any kind. The reserve is bitcoin only.
 
-- **Liquidity providers earn fees.** Providing bitcoin to the
-  BTC/SatUSD redemption rails earns a share of every redemption
-  spread — a real return, paid in real bitcoin, at every
-  settlement.
+**No yield on the holding itself.** Paying yield would require
+deploying the reserve into yield-bearing positions, compromising
+the redeem guarantee or re-importing fiat dependencies. The
+protective-leg holder gets stability, not interest; the return for
+taking risk accrues to the leveraged leg and to the LP's spread.
 
-- **Bitcoin appreciates as the economy bitcoinizes.** The deepest
-  return comes not from any yield instrument but from holding
-  bitcoin through the transition itself. If SatUSD succeeds,
-  bitcoin's purchasing power compounds over the horizon of this
-  project. **The reward for being early to a bitcoinizing world
-  is bitcoin itself.**
+**No permission layer on the holder's bitcoin.** No KYC, no AML
+gate, no freeze function, no admin key over the holder's
+self-custodied bitcoin or their unilateral redemption. (The
+pre-covenant *market* is a pseudonymous membership club; an LP
+that *chooses* to hedge on an exchange does its own KYC there as a
+private matter unconnected to the protocol — neither touches the
+holder's custody or their right to redeem.)
 
-**SatUSD holds no fiat reserve.** No dollars, no Treasury bills,
-no fiat instrument of any kind. The reserve is bitcoin only.
+**Not optimized for institutions.** We optimize for the
+individual who treats monetary sovereignty as an end in itself —
+the bitcoiner who will not give up self-custody or privacy to do
+something with their bitcoin.
 
-**SatUSD has no permission layer.** No KYC, no AML gate, no
-freeze function, no admin key on the issuance and redemption
-paths. The asset is as permissionless as the bitcoin behind it.
-Where today's implementation still contains transitional
-controls, they are scaffolding — enumerated, justified, and
-scheduled for demolition in the technical documents.
+## Why existing products fall short
 
-**SatUSD is not optimized for institutions.** Institutional
-adoption demands regulatory wrappers and audited custodians that
-contradict the asset's core properties. We optimize for the
-individual: the person denied banking service, the person under
-capital controls, the person who treats monetary sovereignty as
-an end in itself.
+Every dollar-instrument on the market makes a compromise SatUSD
+refuses — and the bitcoin-native ones each miss the specific niche
+SatUSD fills:
 
-## Why existing stablecoins fall short
+- **Centralized + fiat-backed** — USDT, USDC; on Bitcoin, **USDB**
+  and **Citrea ctUSD** (licensed issuer, Treasury reserves). A
+  kill switch wearing a brand; the trust never left fiat.
+- **CDP with liquidation** — on Bitcoin, **Ducat, bitSmiley,
+  Satoshi, Avalon, BOB**. Over-collateralized debt that force-sells
+  in a crash — exactly the liquidation SatUSD's option structure
+  removes.
+- **Delta-neutral synthetics with exchange counterparties** —
+  **Ethena (USDe)**, **Stablesats**, **Hermetica**. The holder's
+  backing *is* the exchange hedge; counterparty and funding risk
+  are the holder's. SatUSD's holder is backed by on-chain bitcoin;
+  any LP hedge is the LP's own private business, optional and
+  unconnected to the protocol.
+- **The wrong chain** — value that settles off Bitcoin L1 inherits
+  someone else's security.
+- **Algorithmic** — Terra's UST: stability conjured from a
+  system's own token, a proven failure mode.
 
-Every stablecoin on the market makes at least one of four
-compromises that SatUSD refuses:
+The closest thing to pre-covenant SatUSD — a self-custodial,
+issuer-less, no-liquidation, DLC-settled bitcoin synthetic — was
+**10101**, which shut down in 2024: it built it as a *perpetual*
+(requiring an always-in-the-loop coordinator, liquidation, and
+DLC-channel plumbing that proved operationally fatal) and died of
+that complexity plus lack of traction. SatUSD takes the deliberate
+opposite path: a **fixed-maturity option** (no coordinator in the
+redemption loop, no liquidation, no channel), shipped as an
+open-source community framework rather than a venture-funded
+company that must grow or die.
 
-**1. A centralized issuer** — USDT (Tether), USDC (Circle),
-ctUSD (M0/MoonPay on Citrea). A company that can freeze any
-address is a kill switch wearing a brand. You trust a firm, not
-a protocol.
-
-**2. A fiat reserve** — USDT, USDC, ctUSD; DAI/USDS (Sky,
-formerly MakerDAO) indirectly through its USDC and Treasury
-backing; even FRAX, the flagship of algorithmic design, pivoted
-to full Treasury collateralization in 2025. The trust never
-left the fiat system — it was laundered through a token.
-
-**3. The wrong chain** — LUSD/BOLD (Liquity) live on Ethereum;
-BTD (Alpen) lives on a rollup. Value that does not settle on
-Bitcoin L1 inherits someone else's security assumptions.
-
-**4. Algorithmic stability** — Terra's UST erased roughly $40B
-in May 2022. Stability conjured from a system's own token is a
-proven failure mode, not a design choice.
-
-**SatUSD makes none of these compromises.** Bitcoin-only
-reserve. Bitcoin L1 settlement. Permissionless issuance and
-redemption. No kill switch by design — not for us, not for any
-government, not for any committee. This combination exists
-nowhere else.
-
-## The transition
-
-First, the thesis that makes the path coherent: **volatility is
-a property of denomination, not of bitcoin.** Today bitcoin's
-price is set in dollar-denominated, speculation-dominated
-markets — so "bitcoin is volatile." In a world where goods and
-labor are quoted in sats, the measuring stick has switched
-sides, and what fluctuates is the dollar. The phases below are
-the path between those two worlds. Their boundaries are
-recognized in hindsight by metrics — volume, internal-external
-price coherence, oracle market share — not declared by anyone.
-
-**Phase 0 — We exist.** Small volume, prices pinned to external
-sources. Most users still think in dollars.
-
-**Phase 1 — Real volume.** The internal market begins generating
-its own data. External oracles remain the reference; internal
-trades begin to cross-check them.
-
-**Phase 2 — The internal market becomes canonical.** SatUSD's
-own trade history is the most authoritative BTC/USD price on
-Bitcoin L1. For the first time, the bitcoin economy generates
-its own price signal. External sources demote to sanity checks.
-
-**Phase 3 — Denomination begins to flip.** Commerce is
-increasingly quoted in SatUSD and settled in bitcoin (redeem-to-pay
-— the dollar is the unit of account, bitcoin the medium that
-moves); transactional demand
-for bitcoin grows continuous and two-sided; measured volatility
-shrinks because the speculative share of flow shrinks. Prices
-start appearing in sats alongside dollars.
-
-**Phase 4 — The bridge retires.** When bitcoin is a sufficient
-unit of account, SatUSD's work is done. Holders redeem into the
-sat-denominated world; issuance wanes; the instrument winds down
-by attrition, the same way it grew — no decree required. **A
-bridge succeeds when traffic no longer needs it.** We state this
-in the founding document so that no one — including us — can
-later pretend this project was meant to live forever and collect
-rent.
-
-**We put no dates on these phases.** Forecasts of the future are
-wrong by nature, and a schedule serves no one: too cautious, it
-deflates; too bold, it embarrasses. The phases above are
-recognized by metrics, not calendars.
-
-What we will say is this: the slope is steepening. AI now
-compounds the speed of engineering — this project is itself
-built that way. More deeply, AI agents are becoming economic
-actors in their own right: they hold no dollar habit, cannot
-open bank accounts, cannot pass KYC, and choose their money on
-engineering merit alone. The network-effect moat this bridge
-exists to cross is a phenomenon of human habit — and the
-fastest-growing population of new economic actors has no habits
-at all. Machine-verifiable, permissionless, programmable money
-is not merely available to them; it is the only money they can
-natively use.
-
-Adoption runs on the world's clock, not ours — and the world's
-clock is accelerating. We assume we will be wrong about
-specifics. We are committed to being right about direction.
-
-## Self-referencing: why it is necessary — and why this is not Terra
-
-A stablecoin that permanently depends on an external price
-oracle has not escaped the system it claims to escape. If
-SatUSD's redemption rate forever depends on what a Coinbase or
-a Binance reports, the legacy financial system retains a veto
-over SatUSD's operation — a single point of political,
-regulatory, and technical attack. Worse: a bitcoin economy that
-still needs fiat-side institutions to know what things are worth
-has not actually migrated the price-signal function. It has
-outsourced it.
-
-Self-referencing — deriving the canonical price from SatUSD's
-own on-chain economic activity, secured by Bitcoin's consensus —
-is therefore not a technical optimization. **It is the
-definition of success.** When the internal market becomes the
-authoritative price source, the bitcoin economy is, for the
-first time, generating its own signals. That is the mission,
-achieved.
-
-Terra's UST is the obvious objection, so let us be precise
-about the difference. **UST's circularity was in its
-collateral**: UST was backed by LUNA, and LUNA's value derived
-from expected demand for UST. Redemption minted LUNA, diluting
-the very backing it redeemed against — a reflexive loop with no
-exogenous floor. **SatUSD's collateral is bitcoin** — an asset
-whose value owes nothing to SatUSD's existence. Redemption
-transfers bitcoin; it mints nothing and dilutes nothing. What is
-self-referenced here is not value but **information** — the
-price signal — and even that only after the internal market has
-earned authority through years of cross-checked operation, with
-external anchors demoted to sanity checks rather than
-dependencies. A system whose information is self-generated but
-whose value is exogenous does not have Terra's failure mode. It
-has the failure modes of any collateralized system —
-undercollateralization in a crash, thin-market manipulation
-while young — which are known, bounded, and engineered against
-in the technical documents.
-
-Every architectural choice in this project is to be evaluated by
-one criterion: **does it move us closer to, or further from, the
-state where the external dependency can be removed?**
+This exact combination — self-custodial, no issuer in the
+redemption path, no liquidation, bitcoin-only reserve,
+maturity-settled, open-source — exists nowhere else today.
 
 ## How, in principle
 
-The mission constrains the mechanism. Four principles:
+The mission constrains the mechanism. Four principles, in both
+eras:
 
-1. **Everything verifiable by anyone.** Every claim the protocol
-   makes — reserve, supply, lineage, price — must be checkable
-   by client software against Bitcoin's chain, not asserted by
-   any authority.
-
+1. **Everything verifiable by anyone.** Every claim — reserve,
+   supply, lineage, price, an LP's solvency — must be checkable by
+   client software against Bitcoin's chain, not asserted by any
+   authority.
 2. **Trust is priced by a market, not chosen by a decree.**
-   Redemption runs over an open standard of competing rails —
-   different oracle designs, speeds, sizes, fees, trust
-   profiles. Users pick; market share is the judgment. The
-   self-referencing rail does not get switched on by governance;
-   it wins when it offers the best terms.
-
-3. **Liveness is bought, not assumed.** Wherever the design
-   needs someone to act, it must suffice that *anyone* may act,
-   paid by the protocol's own economics — never that a specific
-   party must.
-
-4. **Three exits, one philosophy.** The founder exits — the
-   protocol runs without its creators. The transitional controls
-   exit — scaffolding is enumerated and demolished. The asset
-   itself exits — Phase 4 is written above. Nothing in this
-   project is meant to be permanent except the bitcoin
-   underneath it.
+   Competing LPs, oracle rails, and markets; users pick; market
+   share is the judgment.
+3. **Liveness is bought, not assumed.** Wherever the design needs
+   someone to act, it must suffice that *anyone* may act, paid by
+   the protocol's economics — never that a specific party must.
+4. **Everything temporary exits.** The founder exits — the
+   framework runs without its creators. Transitional controls
+   exit — scaffolding is enumerated and demolished. The bridge
+   itself exits — Phase 4. Nothing here is permanent except the
+   bitcoin underneath.
 
 ## A standing invitation
 
-This is not a wager. This is a bet on a future that is already
-arriving.
+This is a bet on a future that is already arriving: bitcoin's hash
+rate compounds, its supply is set in stone, the dollar's
+purchasing power erodes and the erosion accelerates, CBDCs are
+prototyped in two dozen jurisdictions, political account freezes
+are no longer unthinkable in liberal democracies. The world is
+sorting into people who can opt out of monetary politics and
+people who cannot. **SatUSD exists to make the first category
+larger** — and to do it as an open gift to the Bitcoin community,
+not a business.
 
-Bitcoin's hash rate compounds. Its supply schedule is set in
-stone for the next century. The dollar has lost half its
-purchasing power since the turn of the century, and the loss is
-accelerating. Central bank digital currencies are being
-prototyped in two dozen jurisdictions. Account freezes for
-political reasons are no longer unthinkable in liberal
-democracies. The world is sorting itself into people who can opt
-out of monetary politics and people who cannot.
+We do not seek venture capital, regulatory approval, or
+institutional endorsement. We seek:
 
-SatUSD exists to make the first category larger.
+- **Bitcoin developers** who see that the next decade is about the
+  financial infrastructure people live inside, not price-go-up.
+- **Cryptographers** willing to engage Bitcoin-L1 oracle design,
+  threshold signing, adaptor-signature constructions, and the
+  covenant primitives that open the second era.
+- **Users** who have felt the cost of fiat coercion and will use
+  early, imperfect tools so the next generation has better ones.
+- **Critics** who will tell us bluntly where the design is wrong.
+  Well-articulated hostile criticism is worth more than friendly
+  endorsement.
 
-We do not seek venture capital. We do not seek regulatory
-approval. We do not seek institutional endorsement. We seek the
-attention of:
-
-- **Bitcoin developers** who recognize that the next decade of
-  this technology is not about price-go-up but about building
-  the financial infrastructure that lets people live inside it.
-
-- **Cryptographers** willing to engage the unsolved problems of
-  Bitcoin-L1 oracle design, threshold signing, and
-  trust-minimized settlement.
-
-- **Users** who have personally felt the cost of fiat coercion
-  and will use early, imperfect alternatives so the next
-  generation has better ones.
-
-- **Critics** who will tell us bluntly where the design is
-  wrong. Hostile criticism well-articulated is worth more to
-  this project than friendly endorsement.
-
-This project is an attempt. The attempt may fail. If it does, we
-will have documented the failure in the open, and the next
-attempt will start further down the road we cleared. If it
-succeeds, the world will be measurably freer within our
-lifetimes — not through revolution, not through politics, but
-through the quiet substitution of better money for worse.
-
-Either way: what we build will be open, what we learn will be
-shared, and what we believe is written down here.
+This is an attempt. It may fail. If it does, the failure will be
+documented in the open and the next attempt will start further
+down the road we cleared. What we build will be open, what we
+learn will be shared, and what we believe is written here.
 
 ---
 
 *This document defines the project's intent and is the highest
 authority in this repository. Technical documents define
 implementation. Any implementation choice that contradicts this
-document must either be revised, or be explicitly justified as a
-deliberate, temporary compromise on the way to it — enumerated,
-with its removal criteria stated.*
-
-*The vision articulated here is intended to outlive any
+document must be revised, or explicitly justified as a deliberate,
+temporary compromise on the way to it — enumerated, with its
+removal criteria stated. The vision here is intended to outlive any
 individual contributor, including its original drafters.*
