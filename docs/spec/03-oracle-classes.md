@@ -454,6 +454,17 @@ pre-signing) is the open sub-design — spec 07 §10.3, open item 7
 below. **Redemption consumes this key on a per-block cadence** (§5.4),
 decoupled from the §3.1 1 s trading tick.
 
+> **Implemented (FR-5 core, 2026-06-18).** `satusd-oracle::median`
+> (`stake_weighted_median`) and `satusd-oracle::frost` (`Cohort`): a
+> Pedersen DKG (no trusted dealer — commitment PoKs + dealt-share
+> verification) yields the group key `PK`, and a *t*-of-*n* quorum
+> threshold-signs the median's digit decomposition into the *same*
+> `Announcement`/`Attestation` a single oracle emits — verified end-to-end
+> against the live bucket code (`rail1::cet::frost_median_drives_the_bucket_as_one_key`).
+> Still open: the over-the-wire DKG transport, the RFC 9591 binding-factor
+> two-nonce hardening, the threshold-signed dlcspecs announcement, and the
+> §3.5 "don't-publish-early" (tlock) escape.
+
 ## 6. Open items
 
 1. Exact CET wiring of the tlock escape (extend proposal 0001).
