@@ -186,7 +186,8 @@ verification, and Rail-0/Rail-1 references are E2E green on regtest —
 the cryptographic core the option settlement reuses.
 
 **M-1 — The trustless core (Phase 1, dev signet).**
-☐ FR-1 option-pair mint · ☐ FR-2 unilateral maturity settlement ·
+☑ FR-1 option-pair mint (mint + settle round-trip, devnet-validated 2026-06-17) ·
+☑ FR-2 unilateral maturity settlement (two-input burn⟺claim, both min(S,x) regimes, devnet-validated 2026-06-17) ·
 ☑ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** (devnet-validated 2026-06-17) ·
 ☑ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
 holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-17) ·

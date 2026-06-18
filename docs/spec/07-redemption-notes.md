@@ -173,8 +173,13 @@ protocol_sink_script_key`, spec 01 §4), validated client-side by
 `satusd-verify` — because atomicity (one tx) rules out tapd's native
 `BurnAsset` (it cannot compose into an external anchor; left to a tapd
 upstream change / the covenant era). Devnet-validated burn ⟺ payout in
-one tx: `satusd-rail0/tests/devnet_burn_settle`, and the full two-input
-form `satusd-rail1/tests/devnet_settle::redeem_two_input`.
+one tx: `satusd-rail0/tests/devnet_burn_settle`, the two-input form
+`satusd-rail1/tests/devnet_settle::redeem_two_input` (single-key `Q`), and
+the **full FR-1+FR-2 lifecycle on the 2-of-2 MuSig2 `Q`** —
+`satusd-vault/tests/devnet_option::option_pair_mint_and_settle_both_regimes`
+mints the pair, co-signs the maturity CET as a MuSig2 adaptor, and settles
+unilaterally across both `min(S, x)` regimes (synthetic-dollar `x ≥ S`;
+shortfall `x < S`, where the N/LP output vanishes).
 
 ### 4.4 Buyer verification at purchase
 
