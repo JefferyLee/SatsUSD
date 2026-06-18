@@ -191,7 +191,7 @@ the cryptographic core the option settlement reuses.
 ☑ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** (devnet-validated 2026-06-17) ·
 ☑ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
 holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-17) ·
-◑ FR-5 maturity-event oracle — **core done**: stake-weighted median + FROST threshold attestation present the decentralised median as one DLC key (`satusd-oracle::{median, frost}`, 2026-06-18); daemon transport + binding-factor/tlock hardening pending ·
+◑ FR-5 maturity-event oracle — **core + crypto hardening done**: stake-weighted median + binding-factor-hardened FROST threshold attestation present the decentralised median as one DLC key (`satusd-oracle::{median, frost}`, 2026-06-18); over-the-wire DKG daemon + tlock escape pending ·
 ☑ FR-6 client verification — a position is backed by its own locked `Q`, P+N=`Q`, CET armed for the announced event (`satusd-verify::position`, 2026-06-17).
 
 **M-2 — The market (Phase 2, dev signet).**

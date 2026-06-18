@@ -461,9 +461,15 @@ decoupled from the §3.1 1 s trading tick.
 > threshold-signs the median's digit decomposition into the *same*
 > `Announcement`/`Attestation` a single oracle emits — verified end-to-end
 > against the live bucket code (`rail1::cet::frost_median_drives_the_bucket_as_one_key`).
-> Still open: the over-the-wire DKG transport, the RFC 9591 binding-factor
-> two-nonce hardening, the threshold-signed dlcspecs announcement, and the
-> §3.5 "don't-publish-early" (tlock) escape.
+> Nonce generation is **binding-factor hardened** (RFC 9591-style two-nonce
+> per signer; `ρ_j = H(j ‖ event ‖ digit ‖ commitment-set)` binds the
+> aggregate nonce to every commitment, so no signer can steer it). The
+> binding factor omits the *message*, by design: the DLC commits the nonce
+> at announce and reuses it for whichever digit realises — signing two
+> values for one digit is equivocation, which leaks the key (EOTS, §3.3),
+> not a forgery. Still open: the over-the-wire DKG transport (the daemon),
+> the threshold-signed dlcspecs announcement, and the §3.5
+> "don't-publish-early" (tlock) escape.
 
 ## 6. Open items
 
