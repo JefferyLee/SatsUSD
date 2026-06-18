@@ -197,9 +197,17 @@ partial + the attestation, and broadcasts alone.
 
 > Engineering note: the maturity CET needs a **MuSig2-*adaptor*** (the
 > aggregate-nonce adaptor + even-Y handling), not just a MuSig2 keyspend.
-> Until it lands with property tests (decrypted partial verifies under the
-> aggregate `Q`; nonces bound to full context and pairwise-distinct),
-> "the LP cannot move `Q`" is paper. This is the Phase-1 work (PRD FR-3).
+> **Built and devnet-validated (FR-3, 2026-06-17).** `satusd-vault`'s
+> `musig::cosign_keyspend_adaptor` produces the 2-of-2 adaptor (both
+> partials, `receive_signature` verifying the counterparty's before
+> aggregation) and `adapt_keyspend` decrypts it with the published oracle
+> scalar; the `musig2` crate handles the even-Y dance internally. A unit
+> test confirms the adapted joint signature verifies under the aggregate
+> `Q` with the project's *independent* secp256k1 (and the wrong scalar
+> does not), and `devnet_vault::vault_musig2_maturity_settle` confirms it
+> on-chain: a 2-of-2 `Q` is funded, the maturity CET is co-signed at
+> issuance, and at maturity the public attestation alone adapts it into a
+> valid key-path spend. "The LP cannot move `Q`" is no longer paper.
 
 ## 6. Maturity, the offline floor, and free-option = 0
 
@@ -333,13 +341,17 @@ both eras are built"); mainnet awaits opcode activation. Until then, the
 
 ## 12. Open items
 
-1. **The offline maturity-floor E2E — the Phase-1 HARD GATE (§6).** A
-   holder offline since issuance recovers fair-value BTC at maturity
-   (anyone-broadcasts, or holder-only CSV) with no LP and no keeper.
-   *Never tested* — the system's only unconditional guarantee.
-2. **MuSig2 `Q` + MuSig2-adaptor maturity CET (§5)** — Phase 1; with
-   property tests + strict nonce discipline. Until it lands, custody is
-   v0-single-key (LP-trusted).
+1. ~~**The offline maturity-floor E2E — the Phase-1 HARD GATE (§6).**~~
+   **✓ DONE (2026-06-17).** A holder offline since issuance recovers
+   fair-value BTC at maturity both ways — anyone-broadcasts and holder-only
+   CSV — with no LP and no keeper (`rail1` `devnet_settle::offline_maturity_floor`
+   + `offline_maturity_floor_csv_fallback`).
+2. ~~**MuSig2 `Q` + MuSig2-adaptor maturity CET (§5)**~~ **✓ DONE
+   (2026-06-17).** Built (`vault` `musig::cosign_keyspend_adaptor` /
+   `adapt_keyspend`) with a unit test under the project's independent
+   secp256k1 and the on-chain `devnet_vault::vault_musig2_maturity_settle`;
+   custody is no longer v0-single-key. (Strict nonce discipline + the
+   rolling/pre-authorisation wiring of item 3 still to harden.)
 3. **Maturity CET wiring** + the holder's issuance-time pre-authorisation
    format (spec 06 §5).
 4. **Oracle bridge**: decentralised stake-weighted median → one FROST

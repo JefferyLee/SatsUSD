@@ -187,9 +187,9 @@ the cryptographic core the option settlement reuses.
 
 **M-1 — The trustless core (Phase 1, dev signet).**
 ☐ FR-1 option-pair mint · ☐ FR-2 unilateral maturity settlement ·
-☐ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** ·
-☐ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
-holder recovers fair-value BTC with no LP, no keeper) ·
+☑ FR-3 **2-of-2 MuSig2 `Q` + MuSig2-adaptor CET** (devnet-validated 2026-06-17) ·
+☑ **FR-4 offline maturity-floor E2E — the hard gate** (offline-since-issuance
+holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-17) ·
 ☐ FR-5 maturity-event oracle · ☐ FR-6 client verification incl. LP solvency.
 
 **M-2 — The market (Phase 2, dev signet).**
