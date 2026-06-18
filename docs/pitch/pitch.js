@@ -337,7 +337,7 @@ function drawTranche() {
   ctx.beginPath(); ctx.moveTo(0, claimY); ctx.lineTo(W, claimY); ctx.stroke(); ctx.setLineDash([]);
   ctx.font = F(22, 600); ctx.textAlign = "left";
   ctx.fillStyle = broken ? RED : GREEN;
-  ctx.fillText(broken ? T("NAV 地板：赎回价 = CR × 面值，人人同价（spec 04 §5）", "NAV floor: redemption = CR × face, same for everyone (spec 04 §5)")
+  ctx.fillText(broken ? T("地板：跌破抵押时优先层拿走它自己那份 Q 的全部（spec 07 §6/§9）", "Floor: below collateral the senior leg takes the whole of its own Q (spec 07 §6/§9)")
                       : T("$1.00 优先索取权 —— 纹丝不动", "$1.00 senior claim — does not move"), 16, claimY + 34);
   ctx.fillStyle = ORANGE; ctx.fillText(T("BTC 储备价值（次级层吸收全部波动）", "BTC reserve value (junior side absorbs all volatility)"), 16, vy(pts[20].val) - 18);
   // gauges
@@ -586,7 +586,7 @@ function drawMarket(ctx, W, H, t) {
   // axes
   ctx.fillStyle = FAINT; ctx.font = F(18); ctx.textAlign = "left";
   ctx.fillText(T("← 慢", "← slow"), 30, H - 24);
-  ctx.textAlign = "right"; ctx.fillText(T("快（1 秒赎回）→", "fast (1-second redemption) →"), W - 30, H - 24);
+  ctx.textAlign = "right"; ctx.fillText(T("快（秒级结算）→", "fast (sub-second settlement) →"), W - 30, H - 24);
   ctx.save(); ctx.translate(26, H / 2); ctx.rotate(-Math.PI / 2); ctx.textAlign = "center";
   ctx.fillText(T("信任假设 多 ↑ / 少 ↓", "trust assumed: more ↑ / less ↓"), 0, 0); ctx.restore();
   mkRails.forEach((rl, i) => {
