@@ -6,6 +6,7 @@
 //! consume it, and the k-of-n upgrade changes the manifest, not the
 //! format.
 
+pub mod cohortd;
 pub mod equivocation;
 pub mod event;
 pub mod frost;
