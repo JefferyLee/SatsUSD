@@ -10,7 +10,7 @@
 //! 32B, signatures 64B), independently verifiable under the project's
 //! own secp256k1.
 
-use musig2::secp::{MaybePoint, MaybeScalar};
+use musig2::secp::{MaybePoint, MaybeScalar, Point};
 use musig2::secp256k1::{PublicKey, Secp256k1, SecretKey, XOnlyPublicKey};
 use musig2::{
     AdaptorSignature, BinaryEncoding, CompactSignature, FirstRound, KeyAggContext, LiftedSignature,
@@ -156,6 +156,40 @@ pub fn cosign_keyspend_adaptor(
     adaptor.to_bytes()
 }
 
+/// The UNTWEAKED MuSig2 aggregate internal key from the two parties'
+/// **public** keys (33-byte compressed, order [LP, holder]) — the
+/// verifier's counterpart to [`aggregate_internal_x`], which a buyer uses
+/// to recompute `Q` from the LP's disclosed key + their own without any
+/// secret. Returns `None` on malformed input. MUST equal
+/// `aggregate_internal_x` for the matching secret keys.
+pub fn aggregate_internal_x_pub(lp_pub: &[u8; 33], holder_pub: &[u8; 33]) -> Option<[u8; 32]> {
+    let lp = PublicKey::from_slice(lp_pub).ok()?;
+    let holder = PublicKey::from_slice(holder_pub).ok()?;
+    let c = KeyAggContext::new([lp, holder]).ok()?;
+    Some(c.aggregated_pubkey::<XOnlyPublicKey>().serialize())
+}
+
+/// Verify a 2-of-2 MuSig2 adaptor key-path signature (from
+/// [`cosign_keyspend_adaptor`]) WITHOUT the oracle secret: that it is a
+/// valid adaptor under `q_x` for `message`, encrypted to `adaptor_point`.
+/// This is the buyer's "the pre-signed maturity CET is sound" check — once
+/// the oracle publishes the scalar, [`adapt_keyspend`] yields a valid
+/// key-path signature, and not before. `q_x` is `Q`'s BIP-340 x-only key.
+pub fn verify_keyspend_adaptor(
+    adaptor_sig: &[u8; 65],
+    q_x: &[u8; 32],
+    message: &[u8; 32],
+    adaptor_point: &[u8; 33],
+) -> bool {
+    let Ok(adaptor) = AdaptorSignature::from_bytes(&adaptor_sig[..]) else { return false };
+    let Ok(point) = MaybePoint::try_from(&adaptor_point[..]) else { return false };
+    let mut q33 = [0u8; 33];
+    q33[0] = 0x02; // Q lifts to even-Y under the BIP-340 x-only convention
+    q33[1..].copy_from_slice(q_x);
+    let Ok(q) = Point::from_slice(&q33) else { return false };
+    musig2::adaptor::verify_single(q, &adaptor, message, point).is_ok()
+}
+
 /// Adapt a 2-of-2 adaptor key-path signature (from
 /// [`cosign_keyspend_adaptor`]) with the oracle scalar `oracle_secret`
 /// (the discrete log of the anticipation point) into a standard 64-byte
@@ -248,5 +282,36 @@ mod tests {
         assert!(vsecp
             .verify_schnorr(&secp256k1::schnorr::Signature::from_byte_array(bad), &msg, &q)
             .is_err());
+    }
+
+    #[test]
+    fn pubkey_aggregate_matches_and_adaptor_verifies_without_secret() {
+        let (mk, rs) = keys();
+        let secp = secp256k1::Secp256k1::new();
+        let lp_pub = secp256k1::SecretKey::from_byte_array(mk).unwrap().public_key(&secp).serialize();
+        let holder_pub = secp256k1::SecretKey::from_byte_array(rs).unwrap().public_key(&secp).serialize();
+        // The pubkey-keyed aggregate (verifier side) equals the secret-keyed one.
+        assert_eq!(
+            aggregate_internal_x_pub(&lp_pub, &holder_pub).unwrap(),
+            aggregate_internal_x(&mk, &rs)
+        );
+
+        let refund = refund_leaf_script(4032, &th("test/m-x", b"m"), &th("test/r-x", b"r"));
+        let f = vault_funding_output(&aggregate_internal_x(&mk, &rs), &refund);
+        let msg = th("test/adaptor-sighash", b"verify");
+        let t = th("test/oracle-secret", b"price-bucket");
+        let t_point = secp256k1::SecretKey::from_byte_array(t).unwrap().public_key(&secp).serialize();
+        let adaptor = cosign_keyspend_adaptor(&mk, &rs, &f.merkle_root, &msg, &t_point);
+
+        // The buyer verifies the pre-signed adaptor under Q with NO secret.
+        assert!(verify_keyspend_adaptor(&adaptor, &f.output_x, &msg, &t_point));
+        // A different adaptor point, a tampered sig, or the wrong message all fail.
+        let wrong_point = secp256k1::SecretKey::from_byte_array(th("test/oracle-secret", b"x"))
+            .unwrap().public_key(&secp).serialize();
+        assert!(!verify_keyspend_adaptor(&adaptor, &f.output_x, &msg, &wrong_point));
+        let mut tampered = adaptor;
+        tampered[40] ^= 1;
+        assert!(!verify_keyspend_adaptor(&tampered, &f.output_x, &msg, &t_point));
+        assert!(!verify_keyspend_adaptor(&adaptor, &f.output_x, &th("test/adaptor-sighash", b"other"), &t_point));
     }
 }

@@ -10,4 +10,5 @@
 //! reconstruction (spec 01 §5) are the next increments.
 
 pub mod marker;
+pub mod position;
 pub mod settlement;

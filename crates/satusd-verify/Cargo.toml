@@ -7,8 +7,13 @@ rust-version.workspace = true
 
 [dependencies]
 bitcoin = "0.32.9"
+satusd-crypto = { path = "../satusd-crypto" }
+satusd-oracle = { path = "../satusd-oracle" }
 satusd-rail = { path = "../satusd-rail" }
 satusd-rail0 = { path = "../satusd-rail0" }
+satusd-rail1 = { path = "../satusd-rail1" }
+satusd-vault = { path = "../satusd-vault" }
 
 [dev-dependencies]
 hex.workspace = true
+secp256k1 = "0.31.1"
