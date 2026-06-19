@@ -78,22 +78,41 @@ The architecture (composing with M-1's FROST + tlock):
    public reputable feeds for that timestamp (Pyth's confidence interval is a
    usable reliability/band signal). To lie, the committee must collude **and**
    diverge from publicly-observable prices — provable manipulation.
-3. **Optimistic bonded dispute (borrowed from UMA).** A bonded proposer
-   asserts the maturity price; a permissionless bonded dispute window opens;
-   undisputed → the committee signs it; disputed → resolve against the public
-   feeds / the committee. The delta-neutral **LP is the natural honest
-   proposer/disputer** (its CEX hedge settles at the true price). This is the
-   live, permissionless challenge window the staked game could not provide.
+3. **Optimistic bonded dispute (borrowed from UMA), with an OPTIONAL window.**
+   A bonded proposer asserts the maturity price; a permissionless bonded
+   dispute window opens; undisputed → the committee signs the resolved price;
+   disputed → resolve against the public feeds / the committee. The
+   delta-neutral **LP is the natural honest proposer/disputer** (its CEX hedge
+   settles at the true price). This is the live, permissionless challenge
+   window the staked game could not provide.
+
+   **The window is OFF the critical path for the common case.** The hard
+   constraint is that the cohort signs exactly ONE price per maturity event
+   (signing two = equivocation = key-leak), so it cannot emit both a "fast"
+   and a "windowed" attestation. The dispute window therefore gates only the
+   **unilateral** settlement path; the holder chooses per-settlement between:
+   - **Cooperative (default, instant, no window):** holder + LP co-sign the
+     maturity price now — both consent, so there is nothing to dispute. The LP
+     wants this (it closes the position at the true price for its hedge). This
+     is FR-10's cooperative exit applied at the maturity point. Most
+     settlements take this path with zero added latency.
+   - **Unilateral windowed (fallback / protected):** the holder settles alone
+     against the cohort attestation, which runs the dispute window — for when
+     the LP will not cooperate or the holder distrusts the asserted price.
+   The holder is never denied the unilateral backstop; the window's hours of
+   latency hit only the unilateral-distrust path — exactly when the protection
+   is wanted. The fast path trades the dispute backstop for speed and needs LP
+   cooperation (the LP can refuse but never steal); the choice is the holder's.
 4. **Equivocation-slash** (the one crypto-economic floor: signing two prices
    for one event leaks the key, M-1) + **tlock** (no front-run, FR-5e) +
    **bounded exposure** (a per-position / system notional cap) + reputation
    and franchise as the real-world deterrents.
 
-**The settlement-finality latency** of the dispute window is accepted: the
-maturity CET is broadcastable only after the window closes. The **offline
-floor survives** — an undisputed attestation finalizes after the window
-regardless of the holder's liveness, and the holder-only CSV still backstops
-silence.
+**The settlement-finality latency** of the dispute window applies ONLY to the
+unilateral path (above): the cohort attestation is broadcastable after the
+window closes. The common cooperative path is instant. The **offline floor
+survives** — an undisputed attestation finalizes after the window regardless
+of the holder's liveness, and the holder-only CSV still backstops silence.
 
 ## Consequences — the trust-layering (the honest narrative)
 

@@ -555,19 +555,31 @@ decoupled from the §3.1 1 s trading tick.
    the committee must collude **and** diverge from publicly-observable
    prices — provable manipulation, not a silent skew.
 
-3. **Optimistic bonded dispute (UMA-style; cf. §4 `optimistic`).** A
-   bonded proposer asserts the maturity price; a permissionless bonded
-   **dispute window** opens; undisputed → the committee signs it;
-   disputed → resolve against the public feeds / the committee. The
-   delta-neutral **LP is the natural honest proposer/disputer** (its
-   CEX hedge settles at the true price). This is the live,
-   permissionless "anyone can catch a lie" defence the staked median
-   could not provide. The window's **settlement-finality latency is
-   accepted** — the maturity CET is broadcastable only after the
-   window closes — but the **offline floor survives**: an undisputed
-   attestation finalizes after the window regardless of holder
-   liveness, and the holder-only CSV still backstops silence (§0,
-   §3.5).
+3. **Optimistic bonded dispute (UMA-style; cf. §4 `optimistic`), with an
+   OPTIONAL window.** A bonded proposer asserts the maturity price; a
+   permissionless bonded **dispute window** opens; undisputed → the committee
+   signs the resolved price; disputed → resolve against the public feeds /
+   the committee. The delta-neutral **LP is the natural honest
+   proposer/disputer** (its CEX hedge settles at the true price). This is the
+   live, permissionless "anyone can catch a lie" defence the staked median
+   could not provide.
+
+   **The window is OFF the critical path for the common case.** Because the
+   committee signs exactly ONE price per event (signing two = equivocation =
+   key-leak, §3.3), it cannot emit both a "fast" and a "windowed" attestation;
+   the window therefore gates only the **unilateral** path. The holder chooses
+   per-settlement:
+   - **Cooperative (default, instant, no window):** holder + LP co-sign the
+     maturity price now — both consent, nothing to dispute (FR-10's
+     cooperative exit at the maturity point). Most settlements; zero added
+     latency.
+   - **Unilateral windowed (fallback / protected):** settle alone against the
+     committee attestation, which runs the window — for when the LP will not
+     cooperate or the holder distrusts the asserted price.
+   The holder is never denied the unilateral backstop; the window's latency
+   hits only the unilateral-distrust path. The **offline floor survives**: an
+   undisputed attestation finalizes after the window regardless of holder
+   liveness, and the holder-only CSV still backstops silence (§0, §3.5).
 
 4. **Equivocation-slash** — the one crypto-economic floor: signing two
    prices for one event leaks the key (EOTS, §3.3, M-1).
