@@ -7,6 +7,7 @@
 //! format.
 
 pub mod cohortd;
+pub mod dispute;
 pub mod equivocation;
 pub mod event;
 pub mod frost;
