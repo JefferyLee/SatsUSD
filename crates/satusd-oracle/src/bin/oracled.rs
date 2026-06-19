@@ -36,25 +36,17 @@ use std::net::{TcpListener, TcpStream};
 use std::path::Path;
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 
+use satusd_oracle::dispute::within_band;
 use satusd_oracle::oracle::Oracle;
 
 /// Announcement lead, in ticks: spec 03 §3.2 requires publication at
 /// least `2 × cadence × 60` seconds ahead of maturity.
 const LEAD_TICKS: u64 = 120;
 
-/// `None` = no trustworthy price for this tick → the tick is
-/// SKIPPED, never back-filled: a missing attestation degrades a
-/// rail to its refund path; a wrong price corrupts a settlement.
-trait PriceSource {
-    fn price_usd(&mut self, unix_ts: u64) -> Option<u32>;
-}
-
-struct Fixed(u32);
-impl PriceSource for Fixed {
-    fn price_usd(&mut self, _ts: u64) -> Option<u32> {
-        Some(self.0)
-    }
-}
+/// Cross-check band (spec 03 §5.8): a price diverging from the independent
+/// multi-venue reference by more than this is REFUSED in live mode (a glitch
+/// or a manipulation), or WARNED in fixed mode (the operator chose it).
+const CROSS_CHECK_BAND_BPS: u32 = 100; // 1%
 
 /// Live BTC/USD: median of three public spot APIs (Coinbase,
 /// Kraken, Bitstamp), refreshed by a background thread every
@@ -159,12 +151,6 @@ mod live {
     }
 }
 
-struct LiveSource(live::Live);
-impl PriceSource for LiveSource {
-    fn price_usd(&mut self, unix_ts: u64) -> Option<u32> {
-        self.0.current(unix_ts)
-    }
-}
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let args: Vec<String> = std::env::args().collect();
@@ -184,13 +170,16 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     seed.copy_from_slice(&bytes);
 
     let oracle = Oracle::from_seed(&seed)?;
-    let mut source: Box<dyn PriceSource> = if price_arg == "live" {
+    let fixed_price: Option<u32> = if price_arg == "live" { None } else { Some(price_arg.parse()?) };
+    // The multi-venue median: the attest price in live mode, AND — always —
+    // the independent cross-check reference (spec 03 §5.8). One fetcher.
+    let reference = live::Live::start();
+    if fixed_price.is_none() {
         println!("oracled: live price (median of coinbase/kraken/bitstamp, refresh {}s, stale cutoff {}s)",
             live::REFRESH_S, live::STALE_S);
-        Box::new(LiveSource(live::Live::start()))
-    } else {
-        Box::new(Fixed(price_arg.parse()?))
-    };
+    }
+    println!("oracled: cross-check band {CROSS_CHECK_BAND_BPS}bps ({})",
+        if fixed_price.is_some() { "advisory — fixed mode" } else { "enforcing" });
     std::fs::create_dir_all(&out_dir)?;
     let pubkey_hex = hex_encode(&oracle.pubkey);
     println!("oracled: pubkey={pubkey_hex}");
@@ -233,8 +222,21 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
                 eprintln!("tick {t}: SKIPPED (beyond catch-up window)");
                 continue;
             }
-            match source.price_usd(t) {
+            match fixed_price.or_else(|| reference.current(now)) {
                 Some(p) => {
+                    // Cross-check against the independent multi-venue reference
+                    // (spec 03 §5.8). Refuse a divergent price in live mode; warn
+                    // in fixed mode (the operator chose it). A missing reference
+                    // (feed down) is best-effort — do not halt the oracle.
+                    if let Some(r) = reference.current(now) {
+                        if !within_band(p, r, CROSS_CHECK_BAND_BPS) {
+                            if fixed_price.is_none() {
+                                eprintln!("tick {t}: REFUSED (cross-check) price={p} vs multi-venue ref={r} (>{CROSS_CHECK_BAND_BPS}bps)");
+                                continue;
+                            }
+                            eprintln!("tick {t}: WARNING fixed price={p} diverges from multi-venue ref={r} (>{CROSS_CHECK_BAND_BPS}bps)");
+                        }
+                    }
                     let att = oracle.attest(t, p)?;
                     write_hex(&out_dir, &format!("att-{t}.hex"), &att.tlv_bytes)?;
                     std::fs::write(Path::new(&out_dir).join("latest.txt"), t.to_string())?;
