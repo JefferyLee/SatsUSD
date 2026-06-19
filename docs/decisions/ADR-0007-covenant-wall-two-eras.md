@@ -92,3 +92,41 @@ project structure it forces, so the dead-ends are not re-explored.
   on Ethereum.
 - **Wait for covenants before shipping anything** — rejected: do not bet
   existence on a soft fork; ship the pre-covenant product now.
+
+## Update (2026-06-18): the secondary-market falsification + the pure options market
+
+The pre-covenant secondary market sketched in spec 07 §7 (a single-hop,
+club-based, PTLC-armed transfer with single-use-nonce equivocation slashing)
+was put to three multi-agent rounds: a falsification debate (verdict BROKEN),
+a 7-candidate generate-and-filter brainstorm (LP-reissue, closed-club
+pre-commit, secret-as-carrier, bond+watchtower, LN-channel, on-chain
+transfer-token, wildcard — **0 of 7 survived**), and a cited deep-research of
+DLC channels (rust-dlc / Crypto Garage / 10101: channels do **not** novate a
+position to a new party off-chain, and channelizing destroys the offline
+floor). The result **confirms this ADR's thesis at the mechanism level** and
+adds two structural roots (memory `project_transfer_impossibility`):
+
+- **ROOT-A (carry):** a revealed scalar proves knowledge but never
+  *extinguishes* the seller's knowledge nor moves a UTXO; settle_tx burns the
+  note `A` (a required UTXO input), which a PTLC secret cannot relocate.
+- **ROOT-B (slash):** the only pre-covenant punishment is equivocation
+  key-leak, but nothing *forces* a double-dealing seller to equivocate onto a
+  bond key, and the conflict only surfaces at maturity → a same-UTXO fee race,
+  not a recovery. A "trustless trade-time slash" is a phantom (proven 3×).
+
+**Decisions:** (1) FR-7 (trustless single-hop transfer), FR-8 (watchtower
+slash), and FR-11 (membership club) are **covenant-era** (folded into this
+wall). (2) The honest pre-covenant transfer is **LP-cosigned atomic reissue**
+— close the seller's position, mint a fresh one to the buyer (buyer's own keys
++ buyer's own CSV leaf), atomic via a PTLC; the LP is online and can **refuse
+but never steal** (the fresh CET is oracle-gated to the buyer's key, verified
+before payment). This is FR-9 (LP market-making + Q recycling) elevated to the
+primary transfer path; FR-10 (cooperative early exit) fits alongside.
+(3) Because transfer is covenant-era, the **membership club and per-member
+nonce-publishing are dropped**: SatUSD is a **pure, free-entry, permissionless,
+KYC-free BTC/USD options market** — self-custodial, trustless self-redeeming
+options, with LPs attracted by yield (delta-neutral CEX-hedged market-making,
+which also brings CEX liquidity depth to on-chain users). This refines
+[ADR-0006](ADR-0006-pre-covenant-options-market.md). **Never ship a
+"trustless P2P transfer" claim.** The oracle frontier is recorded separately
+in [ADR-0008](ADR-0008-oracle-bounded-trust.md).

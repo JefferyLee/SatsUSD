@@ -158,6 +158,13 @@ bounded-error parameters `minSupportExp`/`maxErrorExp` declared in
 the rail's quote). v0.1 normatively supports `(1,1)` and `(k ≤ 3,
 n ≤ 5)`; larger sets await the adaptor-count economics review.
 
+In the production architecture (§5.8) the `n` participants are
+**named, independent, reputable entities**, not a permissionless
+capital-staked pool — reputation, not stake, is the bound (ADR-0008).
+FR-5's FROST (§5.7) aggregates them into one DLC attestation key,
+escaping the `C(n,k)` adaptor blow-up while keeping the signers
+independent.
+
 `(1,1)` is **transitional by declaration**: a rail whose oracle_spec
 is single-signer MUST say so in its disclosure (02 §6.4), and the
 founder-run instance is a PRD §8 ledger row.
@@ -377,12 +384,46 @@ is expected and acceptable — its product is *sovereignty and
 manipulation / censorship resistance* of the bootstrap anchor, not
 price leadership, which no relay can have (price discovery happens
 only where real capital trades — exactly what the §5.2 internal
-settlements become). Security holds while
+settlements become).
+
+> **Honest correction (ADR-0008, 2026-06-19).** A *permissionless,
+> capital-staked* median is **not a trustless trust root for an
+> external price** — a 9-agent adversarial red-team broke all eight
+> attack vectors. The residuals are untunable, not parameter bugs:
+>
+> - **the external short is unbounded by stake** — off-protocol
+>   profit `X·Δ` scales in the unobservable CEX short `X`, attacker
+>   cost only in stake `S`; for any finite parameter some `X` makes
+>   corruption profitable (a notional cap bounds only the in-protocol
+>   leg);
+> - **a patient >50 % staker is never slashable** — a true majority
+>   *is* the consensus median, so its lie is self-consistent and the
+>   median-defined slash never fires;
+> - **the honest-stake "flood" defence does not exist** — the vesting
+>   that stops a flash-bought majority also gates out the fresh
+>   capital meant to contest a manipulated median (dead flood-window);
+> - **p+ε bribery** selects `P_false` as the focal point at ≈zero
+>   realized cost, independent of `S`; commit-reveal hides the
+>   *emerging* median, not a *published* target.
+>
+> Therefore the §5.5 stake-weighted median is **retained only as a
+> bootstrap relay and a slashing/commit-reveal mechanism, never as
+> the trust root**. The production external source's trust rests on
+> **k-of-n reputable independent signers + public detectability**
+> (§5.8) — the same reputation-bounded ceiling Chainlink/Pyth secure
+> billions under; SatUSD sits *above* it with equivocation-slash,
+> cross-check, and an optimistic dispute window. The stake floor
+> condition below is a *necessary* bond hygiene constraint, not a
+> sufficient trust guarantee. **Never market a "trustless oracle".**
+
+Security of the relay layer holds while
 `total_honest_stake > value extractable within the slash window`,
 **including external short positions on SatUSD**: a captor who
 profits from SatUSD's collapse defeats the "don't kill the golden
 goose" incentive, so the stake floor MUST exceed that external
-payoff, not merely the in-protocol one.
+payoff, not merely the in-protocol one — and per the correction
+above, even this floor does not by itself make the median a trust
+root.
 
 ### 5.6 Coupling with rail competition (spec 02)
 
@@ -485,6 +526,82 @@ decoupled from the §3.1 1 s trading tick.
 > ([`satusd-oracle::tlock`]). Still open (spec §6): real drand-IBE (BLS
 > pairing) behind the `Timelock` trait, the escape's on-chain refund-CET
 > wiring, and real peer-to-peer transport (vs the directory).
+
+### 5.8 The oracle is bounded, disclosed trust — the production architecture
+
+> **Decision (ADR-0008, 2026-06-19; refines §3.3/§5).** SatUSD settles
+> every option against one fact: the BTC/USD price the oracle attests
+> at maturity. The oracle is the trust root for **settlement-value
+> correctness**, and no market-game makes it *trustless* (§5.5
+> correction). The production oracle is **bounded, DISCLOSED trust**,
+> engineered to a bound as tight as — and tighter than — the rest of
+> the industry. The five composing parts (with M-1's FROST + tlock):
+
+1. **k-of-n independent reputable FROST signers — dlcspecs-native.**
+   The `n` participants are named, independent, reputable entities
+   (§3.4), **not** a permissionless capital-staked pool (patient-
+   majority-attackable and out-biddable for an external price — §5.5;
+   reputation is not for sale). Each pre-commits its nonce points `R`
+   ahead of the maturity event and BIP-340-attests the price at
+   maturity (§3.2/§3.3) — the only construction yielding a usable DLC
+   attestation. FR-5's FROST (§5.7) is the *mechanism* that aggregates
+   the `k` signers into one DLC key (escaping the `C(n,k)` blow-up);
+   the *participants* are the reputable set.
+
+2. **Multi-source data + mandatory cross-check.** Each signer prices
+   from multiple CEX APIs / Chainlink / Pyth; the attested value MUST
+   match the public reputable feeds for that timestamp (Pyth's
+   confidence interval is a usable reliability / band signal). To lie,
+   the committee must collude **and** diverge from publicly-observable
+   prices — provable manipulation, not a silent skew.
+
+3. **Optimistic bonded dispute (UMA-style; cf. §4 `optimistic`).** A
+   bonded proposer asserts the maturity price; a permissionless bonded
+   **dispute window** opens; undisputed → the committee signs it;
+   disputed → resolve against the public feeds / the committee. The
+   delta-neutral **LP is the natural honest proposer/disputer** (its
+   CEX hedge settles at the true price). This is the live,
+   permissionless "anyone can catch a lie" defence the staked median
+   could not provide. The window's **settlement-finality latency is
+   accepted** — the maturity CET is broadcastable only after the
+   window closes — but the **offline floor survives**: an undisputed
+   attestation finalizes after the window regardless of holder
+   liveness, and the holder-only CSV still backstops silence (§0,
+   §3.5).
+
+4. **Equivocation-slash** — the one crypto-economic floor: signing two
+   prices for one event leaks the key (EOTS, §3.3, M-1).
+
+5. **tlock** liveness escape (§3.5, FR-5e) + **bounded exposure** (a
+   per-position / system notional cap) + reputation and franchise as
+   the real-world deterrents.
+
+**The trust ceiling, honestly.** This is the **same reputation-bounded
+ceiling Chainlink/Pyth secure billions under** — high in practice,
+reputation-bounded not crypto-bounded, and rising over time (more /
+more-independent signers; the eventual `internal_twap` blend as
+SatUSD's own volume deepens, §5.2/§5.4). SatUSD sits *above* the
+industry baseline by adding dlcspecs equivocation-slash + an optimistic
+dispute window + mandatory cross-check. Three residuals are **disclosed,
+not eliminated**: (a) a reputation-indifferent, very-well-resourced
+external-short attacker is the untunable tail — bounded by k-of-n
+independence + the notional cap + monitoring + disclosure, not zero;
+(b) assembling a credible reputable committee is a real operational / BD
+lift; (c) the safe notional is capped by the trust and grows with it.
+Custody, unilateral settlement, and the offline floor remain
+oracle-independent and unbounded (the genuine edge over USDC/USDT,
+which carry both an oracle/reserve-audit dependency **and** a freeze
+node). **Never market a "trustless oracle".**
+
+> **Note — external feeds are data / cross-check only, never the DLC
+> attestation.** Chainlink, Pyth, and CEX feeds are **not
+> dlcspecs-native** (ECDSA over a message body, no pre-committed nonce
+> `R`, no maturity attestation), so none can be the DLC attestation
+> key — they serve only as the §5.8(2) data sources and cross-checks.
+> Coinbase's signed price oracle (single-exchange, self-attested) is
+> **deprecated** (2025); Binance Oracle is single-entity / non-dlcspecs.
+> The trust root is the k-of-n reputable FROST committee, not any
+> single external feed.
 
 ## 6. Open items
 

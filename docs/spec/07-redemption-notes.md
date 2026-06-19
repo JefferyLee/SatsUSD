@@ -54,7 +54,7 @@ are deferred to the covenant era (§11).
 | **LP / market-maker** | locks `Q`, mints the option pair, pre-signs the maturity CET, takes the other side and makes markets; the BTC-risk bearer (may hedge privately — §0) |
 | **Oracle** | attests BTC/USD at the maturity event per spec 03 (one aggregate key, §8) |
 | **Broadcaster** | anyone may complete a maturity settlement (permissionless) |
-| **Watchtower** | (secondary market) watches for a transferred-away seller broadcasting a stale state; punishes via the leaked nonce key (§7) |
+| **Watchtower** | (covenant-era) trustless transfer + its watchtower slashing are falsified for pre-covenant L1 (§7, ADR-0007) |
 
 ```
 issue   (buy from an LP; LP locks Q (2-of-2 MuSig2, §5), splits it into
@@ -255,34 +255,51 @@ hard gate — and it is now **devnet-validated both ways** (2026-06-17):
 `offline_maturity_floor_csv_fallback` (holder-only CSV) both pass with no
 LP and no keeper (§12, PRD FR-4).
 
-## 7. The secondary market — single-hop transfer (Phase 2)
+## 7. The secondary market — LP-reissue (Phase 2); trustless P2P transfer is covenant-era
 
-A position MAY be sold **once**, peer-to-peer, before maturity, on an
-order book within a **pseudonymous membership club** (the issuing LP
-pre-signs settlements payable to each enrolled member):
+An earlier draft of this section sketched a **trustless single-hop
+transfer**: a PTLC-armed, pseudonymous-membership-club trade slashed by a
+seller's single-use nonce. That mechanism is **falsified** — it is
+**covenant-era**, not pre-covenant (see [ADR-0007](../decisions/ADR-0007-covenant-wall-two-eras.md),
+Update 2026-06-18). Two structural roots kill it on L1 today:
 
-- **Atomic, off-chain trade**: the buyer pays BTC over Lightning (a PTLC),
-  and claiming that payment reveals the seller's transfer secret that
-  **arms the buyer's pre-signed settlement** — "buyer pays ⟺ buyer gets a
-  valid settlement", no escrow, no LP at trade time. CETs are pre-signed
-  at mint, so a trade is a secret-reveal + a Lightning payment, not a
-  re-sign (the trade is seconds-latency; only mint/maturity are on-chain).
-- **Single-hop / terminal buyer**: the buyer holds to maturity or sells
-  back to the LP; they cannot re-transfer onward (no second-hop pre-sign).
-  Open, multi-hop, fungible circulation is covenant-era (§11).
-- **No double-deal**: the seller's settlement and the transfer use the
-  seller's **single-use nonce**; doing both leaks the seller's key
-  (equivocation), letting the buyer / a **watchtower** punish — the only
-  trustless on-chain enforcement primitive on Bitcoin today.
-- **LP liquidity & `Q` recycling**: the LP MAY make markets on both legs;
-  buying a position back (with the seller co-signing an early close)
-  recovers `Q` early to re-issue — one `Q` serving sequential holders.
-- **Cooperative early exit**: a holder + LP MAY co-sign a current-price
-  unwind (a fresh co-signed price, so no free-option).
+- **No carry**: settlement burns the note `A` (a required UTXO input). A
+  PTLC secret proves the buyer learned a scalar but never *extinguishes*
+  the seller's knowledge nor *moves* that UTXO — the seller still holds a
+  valid settlement. A scalar can't relocate a UTXO.
+- **No slash**: the only pre-covenant punishment is equivocation key-leak,
+  but nothing *forces* a double-dealing seller to equivocate onto a bond,
+  and the conflict surfaces only at maturity as a same-UTXO fee race, not
+  a recovery. A trustless trade-time slash is a phantom.
 
-Pricing is free-market (the order book); a position is worth its
-mark-to-market (≈ face for a deep-in-the-money P leg). The detailed
-order-book / transfer mechanism is its own buildout (PRD M-2).
+So the honest pre-covenant secondary market is **LP-cosigned atomic
+reissue** — the LP is online and can **refuse but never steal**:
+
+- **Close-and-reissue**: the seller and LP co-sign closing the seller's
+  position; the LP mints a **fresh** position to the buyer — the buyer's
+  **own keys**, the buyer's **own CSV leaf**, a fresh maturity CET. The
+  two halves are made **atomic via a PTLC**: the buyer pays BTC over
+  Lightning, and the close-old / mint-fresh bundle completes iff the buyer
+  is paid into. `Q` recycles — one `Q` serving sequential holders.
+- **Refuse-but-can't-steal**: the fresh maturity CET is oracle-gated to
+  the **buyer's** key, and the buyer **verifies it before paying** (§4.4).
+  The LP can decline to make a market, but it cannot mint the buyer a
+  position it can later seize — the offline floor (§6) on the fresh
+  position is the buyer's from the moment they pay.
+- **Cooperative early exit (FR-10)**: a holder + LP MAY co-sign a
+  current-price unwind (a fresh co-signed price, so no free-option),
+  closing the position back to the LP instead of reselling.
+
+The cost is **settlement-finality / latency**: a transfer is no longer a
+seconds-latency secret-reveal but an LP-cosigned reissue, and it depends
+on the LP being online. That tradeoff is **acceptable** — the buyer's
+unilateral offline floor survives intact on the fresh position.
+
+Pricing is free-market; a position is worth its mark-to-market (≈ face for
+a deep-in-the-money P leg). **Fully-trustless P2P transfer of a unilateral
+L1 position is covenant-era** (§11; [ADR-0007](../decisions/ADR-0007-covenant-wall-two-eras.md)) —
+this spec never claims trustless P2P transfer. The reissue buildout is its
+own work (PRD M-2).
 
 ## 8. Oracle
 
@@ -371,8 +388,8 @@ both eras are built"); mainnet awaits opcode activation. Until then, the
 4. **Oracle bridge**: decentralised stake-weighted median → one FROST
    aggregate attestation per maturity event (spec 03 §5.7); and the
    "do-not-publish-early" hardening (§8; timelock encryption candidate).
-5. **Secondary-market mechanism (§7)** — order-book transport, the
-   single-hop atomic-swap (PTLC) construction, watchtower design,
-   membership enrollment. Phase 2 (PRD M-2).
+5. **Secondary-market mechanism (§7)** — the LP-cosigned atomic-reissue
+   construction (close-old / mint-fresh bundled via a PTLC) and FR-10
+   cooperative early exit. Phase 2 (PRD M-2).
 6. **Covenant prototypes (§11)** — fungible-claim + shared-pool on the
    covenant signet. Phase ∞.

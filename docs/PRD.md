@@ -18,10 +18,10 @@
 
 ## 1. Product definition
 
-Pre-covenant SatUSD is a **self-custodial, KYC-free BTC/USD options
-market on Bitcoin L1**. A participant takes a position on their *own*
-bitcoin — **short, long, hedge, or lock-in a gain** — without KYC,
-without a wrapped token (no wBTC/tBTC), and without ever leaving
+Pre-covenant SatUSD is a **pure, free-entry, permissionless, KYC-free
+BTC/USD options market on Bitcoin L1**. A participant takes a position on
+their *own* bitcoin — **short, long, hedge, or lock-in a gain** — without
+KYC, without a wrapped token (no wBTC/tBTC), and without ever leaving
 self-custodied bitcoin.
 
 **The instrument.** A bitcoin-collateralized **option pair**, settled by
@@ -39,17 +39,22 @@ to the locked bitcoin, so **there is no liquidation**:
 issuance; at maturity the holder broadcasts it **alone** (or anyone may,
 or a CSV fallback fires) — no issuer signs, no one can freeze or refuse.
 
-**Issued by LPs; a single-hop club secondary market for early exit.**
-LPs (market-makers) take the other side and quote both legs. Holders can
-sell a not-yet-matured position **once**, peer-to-peer, on an order book
-(single-hop, within a pseudonymous membership club). Not a freely
-circulating token — that is the covenant era.
+**Made by LPs; transfer is LP-cosigned atomic reissue.** LPs
+(market-makers) take the other side and quote both legs — **delta-neutral
+CEX-hedged market-makers**, attracted by the spread/yield, who also bring
+CEX liquidity depth to on-chain users. A holder who wants out before
+maturity either co-signs a current-price unwind with the LP, or transfers
+to a new party via an LP-cosigned **atomic reissue** (close the seller's
+position, mint a fresh one to the buyer, atomic via a PTLC; the LP is
+online and can **refuse but never steal**). Free/permissionless transfer
+and a freely-circulating token are the **covenant era** — proven so by the
+2026-06-18 falsification ([ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md)).
 
 **An open-source framework, not a company.** The deliverable is a
-framework anyone can deploy to run their own club-market; many small
-markets — each anchored by an LP — federate into meaningful volume. The
-project seeks to give the Bitcoin community a useful, secure framework,
-not to extract rent.
+framework anyone can deploy to run their own market; many small markets —
+each anchored by an LP — federate into meaningful volume. The project
+seeks to give the Bitcoin community a useful, secure framework, not to
+extract rent.
 
 One sentence per audience:
 
@@ -68,18 +73,18 @@ One sentence per audience:
 
 | Actor | Job to be done | Permission |
 |---|---|---|
-| **Holder / participant** | take a P-leg (stable / hedge / short) or N-leg (leveraged-long) position; redeem at maturity, unilaterally | club membership (pseudonymous) |
-| **LP / market-maker** | issue option pairs against own over-collateralised `Q`; quote + make markets on both legs; pre-sign settlements; recycle `Q`; earn spread; manage own risk (optional, unconnected CEX hedge) | over-collateralised `Q` (2-of-2 with the holder) |
-| **Club / market operator** (often = LP) | deploy + run a framework instance; admit members; publish the order book | none (runs their own market) |
-| **Oracle** | attest BTC/USD at maturity events (spec 03) | per class; market-priced |
-| **Watchtower** | watch for a seller broadcasting a transferred-away (stale) state; punish via the leaked key | none; holder-run or delegated |
+| **Holder / participant** | take a P-leg (stable / hedge / short) or N-leg (leveraged-long) position; redeem at maturity, unilaterally | permissionless (pseudonymous) |
+| **LP / market-maker** | make option pairs against own over-collateralised `Q`; quote both legs; pre-sign settlements; LP-cosign atomic reissue / cooperative exit; recycle `Q`; earn spread; **delta-neutral CEX-hedged** | over-collateralised `Q` (2-of-2 with the holder) |
+| **Market operator** (often = LP) | deploy + run a framework instance; publish quotes / the order book | none (runs their own market) |
+| **Oracle** | attest BTC/USD at maturity events: k-of-n independent reputable FROST signers (spec 03, [ADR-0008](decisions/ADR-0008-oracle-bounded-trust.md)) | named reputable entities; bonded dispute |
 | **Broadcaster** | complete a maturity settlement for anyone (permissionless) | none; paid by economics |
 | **Founder** | scaffolding roles only (§8); exits | enumerated, with removal criteria |
 
 ## 3. User journeys (golden paths)
 
-- **J1 — Join a club.** Pseudonymously register keys/nonces with a market
-  and be admitted (no KYC, no real-world identity).
+- **J1 — Enter the market (permissionless).** Anyone holds a position or
+  LP-issues with no registration, no club, no KYC, no real-world identity —
+  free entry.
 - **J2 — Open a position.** Mint an option pair from an LP and take the
   **P leg** (lock dollar value / hedge / short) or the **N leg**
   (leveraged-long). The wallet verifies that **this position's own `Q`**
@@ -96,20 +101,22 @@ One sentence per audience:
   collateral via a **holder-only** fallback. **No LP, no permission, no
   freeze.** *This path — including the permanently-offline holder — is the
   Phase-1 hard gate (§7).*
-- **J5 — Sell on the secondary market (single-hop).** List the position on
-  the order book; a club member buys it via an **atomic swap** (buyer pays
-  BTC over Lightning/PTLC ⟺ seller arms the buyer's settlement); price is
-  discovered freely. The buyer is terminal (holds to maturity or sells
-  back to the LP). A watchtower deters the seller from double-dealing.
+- **J5 — Exit before maturity (LP-reissue).** Sell the position back to the
+  LP, who closes it and **re-issues a fresh position to a buyer** — atomic via
+  a PTLC, the LP **online but refuse-but-can't-steal** (the buyer's fresh
+  settlement is oracle-gated to the buyer's own key + buyer-only CSV, verified
+  before payment); price is the LP's two-sided quote. No club, no watchtower.
+  (Trustless P2P transfer is covenant-era — [ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md).)
 - **J6 — LP market-make.** Quote both legs; take the other side; manage
   risk privately; recycle `Q` (buy back + cooperatively close, then
   re-issue) to serve sequential holders.
 - **J7 — Cooperative early exit.** Holder + LP co-sign a current-price
   unwind (no pre-signed stale prices, so no free-option).
 - **J8 — Deploy a market.** Stand up an instance of the open-source
-  framework as a club operator / LP.
-- **J9 — Challenge.** Detect oracle equivocation (or a stale-state
-  broadcast) → submit evidence / use the leaked key → collect the slash.
+  framework as a market operator / LP.
+- **J9 — Challenge.** Detect oracle equivocation → submit the conflicting
+  attestations / use the leaked key → collect the slash; or dispute a bad
+  optimistic price assertion within the bonded window.
   The maturity-redemption path itself needs no challenge (no refusal
   surface).
 
@@ -123,13 +130,13 @@ Each FR names its normative home, its acceptance check, and its phase.
 | FR-2 | The **DLC maturity-settlement primitive** — pre-signed, oracle-gated, **unilateral**, two-input (burn position ⟺ claim BTC) | 02 §7, 07 | 1 | a position settles unilaterally with no LP online |
 | FR-3 | **2-of-2 MuSig2 collateral `Q`** + MuSig2-**adaptor** maturity CET — so the LP cannot move `Q` before maturity | 06, 07 | 1 | property test: decrypted adaptor verifies under the aggregate `Q`; LP alone cannot spend `Q`; nonce bound to full context, pairwise-distinct |
 | FR-4 | **Offline maturity-floor** — a permanently-offline holder is paid at maturity: maturity CET broadcastable by anyone (bounty), or **holder-only CSV** fallback | 07 §5 | 1 | **E2E (HARD GATE): a holder offline since issuance recovers fair-value BTC at maturity, with no LP and no keeper** |
-| FR-5 | Oracle daemon: dlcspecs announcements/attestations for **maturity events** (attest only at maturity), digit decomposition, context-bound nonces; transitional | 03 | 1 | independent DLC client consumes its attestations |
+| FR-5 | **Bounded-trust oracle** ([ADR-0008](decisions/ADR-0008-oracle-bounded-trust.md)): **k-of-n independent reputable FROST signers** (dlcspecs-native — pre-committed nonce `R`, BIP-340 maturity attestation, digit decomposition); **multi-source data + mandatory cross-check** vs public reputable feeds; an **optimistic bonded dispute window** (the delta-neutral LP = natural honest proposer/disputer); **equivocation-slash** + **tlock** + **bounded notional exposure**. Bounded **disclosed** trust — not a permissionless capital-staked pool, **never** "trustless" | 03 | 1 | independent DLC client consumes its attestations; a disputed attestation resolves against the public feeds |
 | FR-6 | Client verification library: **this position's own locked `Q`** (over-collateralised, P + N = `Q`), option terms, the pre-signed settlement, settlement history — embeddable | 01/02 | 1 | verifies a position is fully backed by its own locked `Q`, with no server of ours |
-| FR-7 | **Order book + single-hop transfer**: list/match; atomic swap (PTLC/adaptor) coupling BTC payment ⟺ settlement-arming; LP pre-signs per-member settlements | 02, 07 | 2 | a position sells member→member, atomic, no LP at trade time |
-| FR-8 | **Watchtower / stale-state slashing**: detect a transferred-away seller's broadcast; punish via leaked nonce key | 05, 07 | 2 | a planted double-deal is detected and slashed on the dev signet |
-| FR-9 | **LP market-making + `Q` recycling**: quote both legs; buy back + cooperative early close; re-issue against recovered `Q` | 02, 06 | 2 | one `Q` serves ≥ 2 sequential holders without on-chain mint-per-holder |
+| FR-9 | **LP-cosigned atomic reissue transfer + `Q` recycling**: the pre-covenant transfer path — close the seller's position and mint a **fresh** one to the buyer (buyer's own keys + buyer's own CSV leaf, CET oracle-gated to the buyer's key, verified before payment), atomic via a **PTLC**; the LP is online and can **refuse but never steal**; quote both legs; recycle recovered `Q` | 02, 06, 07 | 2 | a position transfers seller→buyer via LP-cosigned reissue, atomic, LP cannot steal; one `Q` serves ≥ 2 sequential holders without on-chain mint-per-holder |
 | FR-10 | **Cooperative early exit**: holder + LP co-sign a current-price unwind | 07 | 2 | a position unwinds early at the live co-signed price, no stale CET |
-| FR-11 | **Membership / club enrollment**: pseudonymous nonce registration; the per-member pre-signing set | 02 | 2 | a new member is admitted and can be a transfer counterparty |
+| FR-7 | **Trustless single-hop transfer** (order book + atomic swap re-binding settlement to an unknown holder) — **COVENANT-ERA** ([ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md), 2026-06-18 falsification): proven impossible pre-covenant (ROOT-A carry / ROOT-B slash). Deferred to M-∞ | 07 | ∞ | (covenant-era) |
+| FR-8 | **Watchtower / stale-state slashing** — **COVENANT-ERA** ([ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md)): no pre-covenant primitive forces a double-dealing seller to equivocate onto a bond key; the "trustless trade-time slash" is a phantom. Deferred to M-∞ | 05, 07 | ∞ | (covenant-era) |
+| FR-11 | **Membership / club enrollment** — **COVENANT-ERA** ([ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md)): the club + per-member nonce-publishing existed to support trustless single-hop transfer (FR-7); with transfer deferred, dropped — SatUSD is free-entry/permissionless. Deferred to M-∞ | 02 | ∞ | (covenant-era) |
 | FR-12 | **Deployable open-source framework**: a club operator stands up a market (LP daemon, order book, oracle hookup, holder/MM wallets) from docs | — | 3 | an independent team runs a market on the dev signet from the repo alone |
 
 ## 5. Non-functional requirements
@@ -144,15 +151,15 @@ Each FR names its normative home, its acceptance check, and its phase.
   pinned by Rust = TS vectors; `make verify` green is a merge gate.
 - **NFR-4 No permission layer on the holder.** No KYC, no freeze, no admin
   key over the holder's self-custodied bitcoin or their unilateral
-  redemption. (Membership is a pseudonymous club; an LP's optional CEX
-  hedge is its own private, unconnected matter.)
+  redemption. (There is no club, registration, or admin layer — free entry;
+  an LP's optional CEX hedge is its own private, unconnected matter.)
 - **NFR-5 LP custody is trustless (Phase 1).** Via 2-of-2 MuSig2 `Q`
   (FR-3), the LP cannot move, seize, or freeze a holder's collateral; it
   can at most decline to *open* a new position or *facilitate* a transfer.
-- **NFR-6 Trading is off-chain / instant.** Entering a position (mint) and
-  exiting (maturity redeem) are on-chain (infrequent, block-paced); the
-  **secondary-market trade is off-chain and seconds-latency** (PTLC +
-  secret-reveal; CETs pre-signed at mint, not regenerated per trade).
+- **NFR-6 On-chain, block-paced lifecycle.** Mint, maturity settlement, and
+  the secondary-market **LP-reissue** (close + re-mint, atomic via a PTLC) are
+  all on-chain; the LN payment leg is instant, but the position itself moves
+  on-chain. (Cheap off-chain trading is covenant-era — ADR-0007.)
 - **NFR-7 No free-option.** Maturity-only settlement ⇒ a single event,
   single price, no accumulable stale authorizations (spec 07).
 - **NFR-8 Cost posture.** Founder-funded until LP/market economics cover
@@ -194,15 +201,18 @@ holder recovers fair-value BTC with no LP, no keeper; devnet-validated 2026-06-1
 ☑ FR-5 maturity-event oracle — stake-weighted median + binding-factor-hardened **distributed** FROST cohort (Pedersen DKG, each party isolated) presents the decentralised median as one DLC key, run as a directory-transport daemon (`satusd-oracle::{median, frost, cohortd, tlock}` + `bin/cohortd`, 2026-06-18); a DLC client consumes its `ann-/att-` TLVs as one oracle. Post-M-1 (spec §6): real drand-IBE, on-chain tlock-CET wiring, p2p transport ·
 ☑ FR-6 client verification — a position is backed by its own locked `Q`, P+N=`Q`, CET armed for the announced event (`satusd-verify::position`, 2026-06-17).
 
-**M-2 — The market (Phase 2, dev signet).**
-☐ FR-7 order book + single-hop atomic-swap transfer ·
-☐ FR-8 watchtower / stale-state slashing ·
-☐ FR-9 LP market-making + `Q` recycling · ☐ FR-10 cooperative early exit ·
-☐ FR-11 club membership.
+**M-2 — The market (Phase 2, dev signet).** Near-term scope is the
+LP-cosigned transfer path:
+☐ FR-9 **LP-cosigned atomic-reissue transfer** + `Q` recycling
+(refuse-but-can't-steal) · ☐ FR-10 cooperative early exit.
+FR-7 (trustless single-hop transfer), FR-8 (watchtower/stale-state slash),
+and FR-11 (club membership) are **covenant-era** — proven so by the
+2026-06-18 falsification ([ADR-0007](decisions/ADR-0007-covenant-wall-two-eras.md));
+moved to M-∞.
 
 **M-3 — The framework (Phase 3).**
 ☐ FR-12 an independent team deploys a market from the repo ·
-☐ ≥ 1 external club / community running · ☐ ≥ 1 external LP making markets.
+☐ ≥ 1 external market / community running · ☐ ≥ 1 external LP making markets.
 
 **M-∞ — Post-covenant (future, gated on mainnet covenants).**
 The bridge — its own PRD when the era opens.
@@ -217,41 +227,45 @@ every release.
 | Custom covenant-signet testbed | mainnet has no covenants; we develop both eras here | n/a (a testbed, not a shipped control); post-covenant code gates on mainnet activation |
 | Founder LP / founder-run market | LP cold-start; no external market-makers yet | ≥ 1 external LP making markets (M-3) |
 | Founder-run single oracle | dlcspecs oracle market is empty today | ≥ 1 independent oracle class with market share |
-| Single founder-run club | bootstrapping; no external operators | ≥ 1 external club deployed from the repo (M-3) |
+| Single founder-run market | bootstrapping; no external operators | ≥ 1 external market deployed from the repo (M-3) |
 | TA group-key custody (issuance authority) | grouped-asset issuance needs a signature; threshold/covenant issuance not built | FROST k-of-n group key, or covenant-gated issuance |
 | Reference BTC/USD marker | external marker until an internal market earns authority (covenant-era goal) | covenant-era self-referencing criterion |
 | Founder as sole maintainer | solo + AI build phase | ≥ 2 maintainers with release capability |
-| Manual / early slash execution | dispute automation staged | automated stale-state + oracle-equivocation slashing live |
+| Manual / early slash execution | dispute automation staged | automated oracle-equivocation slashing + optimistic-dispute resolution live |
 
 ## 9. Top risks
 
 1. **Demand-side / cold start (highest).** Technical capability ≠ market
    demand — **10101 built a similar self-custodial synthetic and died of
-   no traction.** The first club / community is unvalidated. Mitigation:
+   no traction.** The first market / community is unvalidated. Mitigation:
    target the specific underserved segment (self-custodial, anti-KYC,
    anti-wrapping bitcoiners who want to hedge/short/lock-in); ship as a
    free open framework so usefulness, not growth-or-die, is the bar.
-2. **Offline maturity-floor never E2E'd.** Invariant-4's only true
-   guarantee is untested (spec 07 §10). Mitigation: it is the Phase-1
-   hard gate (FR-4) — proven before anything is built on top.
-3. **MuSig2-adaptor is unwritten, sensitive crypto.** `musig2` may not
-   expose adaptor injection; worst case a BIP-327 adaptor must be written.
-   Until FR-3 lands, "LP can't move `Q`" is paper. Mitigation: Phase 1,
-   with property tests + strict nonce discipline.
-4. **Liquidity fragmentation.** Small clubs are thin. Mitigation: each
-   club needs a committed market-making LP as its liquidity core.
-5. **PTLC / Lightning maturity** for atomic-swap trades. Fallback:
+2. **The oracle is bounded, disclosed trust — not trustless** (ADR-0008).
+   An external-price oracle cannot be a trustless trust-root; a
+   reputation-indifferent, very-well-resourced external-short attacker is
+   the untunable tail. Mitigation: k-of-n independent reputable signers +
+   mandatory cross-check + optimistic bonded dispute + equivocation-slash +
+   bounded exposure + disclosure — never marketed as trustless.
+3. **Assembling the k-of-n reputable oracle committee is a real BD /
+   operational lift.** The oracle ceiling is only as high as the independent
+   reputable signers we can recruit. Mitigation: bootstrap with the founder +
+   a few reputable independents; the delta-neutral LP (it wants the true
+   price for its hedge) is a natural proposer/disputer.
+4. **Liquidity fragmentation.** Small markets are thin. Mitigation: each
+   market needs a committed market-making LP as its liquidity core.
+5. **PTLC / Lightning maturity** for the LP-reissue atomicity. Fallback:
    on-chain BTC payment (~1 block) or an operator-escrowed match.
-6. **Stale-state griefing** in the secondary market (watchtower load).
-7. **Founder concentration** — bus factor + legal exposure; mitigated by
+6. **Founder concentration** — bus factor + legal exposure; mitigated by
    the exit ledger and the open-source framework goal.
 
 ## 10. Open product questions
 
-1. **First target club / community** (demand validation — the top risk).
+1. **First target market / community** (demand validation — the top risk).
 2. **Order-book transport / matching** — decentralized vs operator-run
    (Nostr a candidate).
-3. **Watchtower design** — holder-run vs a delegated service; incentives.
+3. **Oracle committee bootstrap** — which independent reputable signers; the
+   optimistic-dispute bond sizing + cross-check feed set (ADR-0008).
 4. **Wallet strategy** — minimal reference wallet (CLI + thin web) vs
    integrate an existing TA wallet.
 5. **Custom covenant-signet** — Bitcoin Inquisition signet vs roll our own.

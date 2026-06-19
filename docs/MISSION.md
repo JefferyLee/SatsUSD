@@ -87,7 +87,7 @@ take years — or never come — would be a strategic error.
 So SatUSD has **two eras**, and this document describes both
 honestly:
 
-- **Pre-covenant (now): a self-custodial, KYC-free BTC/USD
+- **Pre-covenant (now): a pure, permissionless, KYC-free BTC/USD
   options market.** A genuinely useful instrument that today's
   Bitcoin *can* enforce trustlessly — and the foundation the full
   vision is later built on.
@@ -119,7 +119,7 @@ is ready to ship rather than only imagined.
 
 ---
 
-## Pre-covenant SatUSD (today): a self-custodial BTC/USD options market
+## Pre-covenant SatUSD (today): a pure, permissionless BTC/USD options market
 
 Strip away what today's Bitcoin cannot do, and a real product
 remains — one that *no one else offers*.
@@ -167,28 +167,33 @@ hold a directional view, hedge on-chain, leave it unhedged, or — a
 natural choice for a professional market-maker — go **delta-neutral**
 by hedging on a centralized exchange and earning the **spread**, the
 more trading the better. That this is merely *possible* widens who
-can profitably be an LP (professional market-makers, not only
-bitcoin bulls), which answers the question that sank earlier attempts
-("who wants the other side?"). But it is an *option*, not a
+can profitably be an LP (professional market-makers attracted by the
+yield, not only bitcoin bulls), which answers the question that sank
+earlier attempts ("who wants the other side?") — and such an LP
+*brings CEX liquidity depth to on-chain users* who would otherwise
+never touch an exchange. But it is an *option*, not a
 dependency: **whatever an LP chooses, the holder never touches an
 exchange, and the holder's backing is always the on-chain locked
 bitcoin, never any LP hedge** — distinguishing SatUSD from
 delta-neutral synthetics (e.g. Ethena), where the holder *is* the
 one exposed to the hedge.
 
-**A secondary market, within a membership club.** Holders can sell
-a not-yet-matured option once, peer-to-peer, on an order book —
-price discovered freely, the trade atomic and (over Lightning)
-near-instant, the LP free to make markets and recycle its
-collateral. This transfer is **single-hop within a pseudonymous
-membership club** (each member pre-registers; the issuing LP
-pre-signs settlements payable to each member). It is *not* open,
-permissionless, fungible circulation — that is covenant-era. What
-is on-chain and slow (entering a position, redeeming at maturity)
-is infrequent; what must feel smooth (trading) is off-chain.
+**Exiting before maturity.** A holder who does not want to wait can
+unwind through the LP: the LP **cosigns an atomic reissue** — it
+closes the seller's position and mints a fresh one to the buyer
+(under the buyer's own keys), the two legs swapped atomically against
+payment. The LP is online and can **refuse but never steal** — the
+fresh settlement is oracle-gated to the buyer's key, verifiable
+before any payment changes hands. This is market-making and
+collateral recycling, not a transfer of the original claim.
+**Open, permissionless, peer-to-peer circulation of a live option —
+freely transferable to arbitrary recipients — is covenant-era**: we
+proved today's Bitcoin cannot extinguish a seller's pre-signed claim
+nor re-bind a payout to an unknown future holder, so a *trustless
+P2P transfer is not something we ship now*.
 
-**An open-source framework, not a company.** A single club-market
-is necessarily bounded. So the deliverable is an **open framework
+**An open-source framework, not a company.** A single market is
+necessarily bounded. So the deliverable is an **open framework
 anyone can deploy to run their own market**. Many small markets —
 each anchored by an institution or a bitcoin-rich whale acting as
 the market-making LP, monetizing idle bitcoin without lending it
@@ -200,20 +205,57 @@ correctness, not by TVL.
 
 **Honest scope and limits (pre-covenant).**
 
-- It is an option you **hold to maturity** (or sell once / unwind
-  cooperatively), not a circulating cash-like token. Liquidity
-  before maturity comes from the secondary market and a maturity
-  *ladder*, not from spending the instrument itself.
+- It is an option you **hold to maturity** (or unwind early through
+  an LP-cosigned reissue), not a circulating cash-like token.
+  Liquidity before maturity comes from that LP path and a maturity
+  *ladder*, not from spending or freely transferring the instrument
+  itself.
 - It is **not fungible across series** — different strikes and
   maturities are different instruments; fungibility is achieved
   only within a standardized series, and full fungibility is
   covenant-era.
-- Membership is **pseudonymous but permissioned** (you join a
-  club), not permissionless like the bitcoin behind it.
+- It is **not freely transferable**: open, permissionless P2P
+  circulation of a live option to arbitrary holders is covenant-era;
+  pre-covenant, exit before maturity goes through an LP.
 - Backing is **over-collateralization**, not a guarantee against a
   catastrophic crash: below the collateral floor the holder bears
   the tail, as in any honest bitcoin-collateralized synthetic
   (DAI/LUSD). This is stated plainly, not papered over.
+
+**The trust model, in three honest layers.** SatUSD's trust does not
+collapse to a single number; it decomposes, and only one layer is
+oracle-bounded.
+
+- **Unbounded / trustless (oracle-independent).** Self-custody (the
+  bitcoin never leaves mainnet), unilateral maturity settlement (no
+  counterparty can freeze, seize, or refuse), and the offline floor
+  (collateral recoverable with no oracle at all). This is the genuine
+  differentiator no fiat stablecoin has — USDC/USDT always carry a
+  freeze node; SatUSD has none.
+- **The oracle ceiling (settlement-value correctness).** One fact —
+  the BTC/USD price at maturity — must be attested, and that is
+  **bounded, *disclosed* trust**, never a "trustless oracle." We
+  engineer the bound as tight as the rest of the industry and
+  tighter: **k-of-n independent reputable signers**, each
+  **cross-checked against public reputable feeds**, behind an
+  **optimistic bonded dispute window** that lets anyone challenge a
+  lie, with **equivocation-slashing** as the crypto-economic floor.
+  This is the *same reputation-bounded ceiling Chainlink and Pyth
+  secure billions under* — high in practice, rising over time as
+  signers multiply and SatUSD's own volume eventually blends in.
+- **Three honest residuals (disclosed, not eliminated).** A
+  very-well-resourced *external-short* attacker is the untunable tail
+  (bounded by signer independence + a notional cap + monitoring, not
+  zeroed); assembling a credible reputable committee is a real
+  operational lift, not a design footnote; and the safe notional is
+  **trust-capped, and grows with the trust**.
+
+The project's possibility is therefore the product of two factors:
+the **industry-common oracle ceiling** that every crypto-dollar
+shares, multiplied by the **orthogonal, unbounded custody/censorship
+edge that no fiat stablecoin has**. The oracle is not our weakness
+relative to competitors — it is the shared constraint of every
+crypto-dollar; SatUSD simply removes the extra freeze node they keep.
 
 ---
 
@@ -286,10 +328,9 @@ covenant capability that opens this era at all.
 
 **No centralized issuer.** No company that can freeze an address.
 You trust a protocol, not a firm. (Pre-covenant, an LP can decline
-to *open* a redemption position or to facilitate a *transfer* for
-you — but it can never seize, freeze, or refuse to honor an
-option already in your hands; your unilateral maturity redemption
-is yours alone.)
+to *open* a position or to cosign an *early-exit reissue* for you —
+but it can never seize, freeze, or refuse to honor an option already
+in your hands; your unilateral maturity redemption is yours alone.)
 
 **No fiat reserve.** No dollars, no Treasury bills, no fiat
 instrument of any kind. The reserve is bitcoin only.
@@ -303,10 +344,10 @@ taking risk accrues to the leveraged leg and to the LP's spread.
 **No permission layer on the holder's bitcoin.** No KYC, no AML
 gate, no freeze function, no admin key over the holder's
 self-custodied bitcoin or their unilateral redemption. (The
-pre-covenant *market* is a pseudonymous membership club; an LP
-that *chooses* to hedge on an exchange does its own KYC there as a
-private matter unconnected to the protocol — neither touches the
-holder's custody or their right to redeem.)
+pre-covenant market is **free-entry and permissionless** — no club,
+no registration; an LP that *chooses* to hedge on an exchange does
+its own KYC there as a private matter unconnected to the protocol —
+neither touches the holder's custody or their right to redeem.)
 
 **Not optimized for institutions.** We optimize for the
 individual who treats monetary sovereignty as an end in itself —
