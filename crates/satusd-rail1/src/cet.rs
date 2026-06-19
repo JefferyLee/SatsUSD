@@ -218,6 +218,78 @@ mod tests {
     }
 
     #[test]
+    fn oracle_pipeline_assert_resolve_attest_drives_the_bucket() {
+        // The full decentralised-oracle pipeline (ADR-0008), in-process:
+        // reporter median (the public reference) -> a bonded assertion ->
+        // (optional dispute) -> resolve with cross-check -> the FROST cohort
+        // signs the RESOLVED price -> the DLC bucket consumes it. Shows the
+        // honest fast path, a disputed lie getting corrected, and an
+        // undisputed lie refused by the cross-check (never attested).
+        use satusd_oracle::dispute::{resolve, Assertion, Dispute, Resolution};
+        use satusd_oracle::frost::Cohort;
+        use satusd_oracle::median::{stake_weighted_median, Report};
+
+        // 1) the reporter market -> the public reference price.
+        let reference = stake_weighted_median(&[
+            Report { price_usd: 99_800, stake: 30 },
+            Report { price_usd: 100_000, stake: 50 }, // > 50% stake -> the median
+            Report { price_usd: 100_300, stake: 20 },
+        ])
+        .unwrap();
+        assert_eq!(reference, 100_000);
+        let band_bps = 100; // 1% cross-check band
+
+        let cohort = Cohort::keygen(5, 3, &[5u8; 32]).unwrap();
+        let quorum = [1u16, 2, 4];
+        let ts = 1_700_000_500u64;
+
+        // helper: the cohort attests `price`, and the DLC bucket consumes it.
+        let drives_bucket = |price: u32| {
+            let ann = cohort.announce(ts, &quorum).unwrap();
+            let att = cohort.attest(ts, price, &quorum).unwrap();
+            let win = bucket_of(price, M);
+            let point = bucket_adaptor_point(&ann, &cohort.group_pubkey, M, win).unwrap();
+            let t = bucket_secret(&att, M, win).unwrap();
+            assert!(secret_matches_point(&t, &point), "the attested resolved price drives the bucket");
+        };
+
+        let base = Assertion {
+            event_id: format!("SatUSD/BTCUSD/{ts}"),
+            price_usd: reference,
+            bond_sats: 1_000_000,
+            asserted_at_block: 100,
+            window_blocks: 18,
+        };
+
+        // A) honest fast path: assert the true price, undisputed, window closed -> Accepted.
+        match resolve(&base, None, reference, band_bps, 200) {
+            Resolution::Accepted { price_usd } => {
+                assert_eq!(price_usd, reference);
+                drives_bucket(price_usd);
+            }
+            other => panic!("honest assertion must be Accepted, got {other:?}"),
+        }
+
+        // B) a disputed lie is corrected to the true price, liar's bond slashed.
+        let liar = Assertion { price_usd: 108_000, ..base.clone() }; // 8% lie, out of band
+        let truth = Dispute { price_usd: reference, bond_sats: 2_000_000 };
+        match resolve(&liar, Some(&truth), reference, band_bps, 101) {
+            Resolution::Disputed { price_usd, slashed_bond_sats } => {
+                assert_eq!(price_usd, reference, "the true price wins");
+                assert_eq!(slashed_bond_sats, 1_000_000, "the liar's bond is slashed");
+                drives_bucket(price_usd);
+            }
+            other => panic!("a disputed lie must resolve to the true price, got {other:?}"),
+        }
+
+        // C) an undisputed lie is still refused by the cross-check (never attested).
+        assert!(
+            matches!(resolve(&liar, None, reference, band_bps, 200), Resolution::Rejected { .. }),
+            "an out-of-band price nobody disputed must be refused, not signed"
+        );
+    }
+
+    #[test]
     fn end_to_end_with_adaptor() {
         // Oracle → bucket point → presign → attest → bucket secret →
         // decrypt → BIP-340 verify. The full J4 crypto chain, pure.
